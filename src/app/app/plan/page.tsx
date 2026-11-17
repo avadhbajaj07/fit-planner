@@ -21,6 +21,7 @@ import { loadAssessmentProgress } from "@/lib/assessment/storage";
 import { generateWorkoutPlan } from "@/lib/engine/recommendation";
 import { adjustSession, AdjustmentType } from "@/lib/engine/adjustments";
 import { GeneratedPlan, PlannedSession } from "@/lib/engine/types";
+import { ShareablePlanCard } from "@/components/workout/ShareablePlanCard";
 
 export default function PlanPage() {
   const [plan, setPlan] = useState<GeneratedPlan | null>(null);
@@ -229,6 +230,23 @@ export default function PlanPage() {
             ))}
           </div>
         )}
+      </div>
+
+      {/* SHAREABLE PLAN CARD (Section 9) */}
+      <div className="ios-glass-card rounded-3xl p-6 border border-[#28525B] text-center space-y-4">
+        <div>
+          <span className="text-xs font-mono uppercase text-[#28DACC]">
+            Athlete Identity
+          </span>
+          <h3 className="text-base font-bold text-[#F4F9FA] mt-0.5">
+            Your Shareable Training Card
+          </h3>
+          <p className="text-xs text-[#A8C5CA] mt-1">
+            Branded card summary of your split and cadence with zero private health information.
+          </p>
+        </div>
+
+        <ShareablePlanCard plan={plan} />
       </div>
 
       {/* iOS BOTTOM SHEET: ADJUST MY WEEK */}

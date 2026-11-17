@@ -213,6 +213,34 @@ fit-planner/
   - Meal completion checkboxes for daily habit tracking
   - Mandatory General Guidance notice displayed prominently (no simulated clinical certifications)
 
+### ✅ Phase 4: Admin Console & Growth (Complete)
+- [x] **Operations & Aggregated Analytics (`/admin`)**:
+  - Telemetry KPIs: Total Athletes, Assessment Completion Rate, Paid Subscribers, Monthly Combined Revenue
+  - Interactive Recharts monthly onboarding volume graphs
+  - Coach review queue for Restricted-Mode injury plans with 1-click program approval
+- [x] **Customer Management (`/admin/customers`)**:
+  - Athlete records table with goal, split, restricted mode tags, and subscription statuses
+  - Search by name, email, or split; filter by active/free/restricted
+  - Detailed athlete profile inspection and audit log trigger
+- [x] **Questionnaire Builder (`/admin/questionnaire`)**:
+  - Interactive question schema editor for Stages A, B, and C
+  - Supports single-select, multi-select, and numeric steppers with exclusive option rules
+  - Schema versioning indicator (Version 1.2) and visual option card preview
+- [x] **Exercise Library Editor (`/admin/exercises`)**:
+  - Search and filter 40+ approved exercises by muscle group, equipment, and difficulty
+  - Add & edit modal: name, description, sets, reps, rest, safety notes, and contraindication tags
+- [x] **Recommendation Rules Manager (`/admin/rules`)**:
+  - Split allocation rule weights (Days/week &rarr; Split)
+  - Volume, rep ranges, and rest density calibration by training goal
+- [x] **Subscriptions & Multi-Currency Pricing (`/admin/subscriptions`)**:
+  - Dynamic pricing matrix editor across CHF, EUR, USD, and INR for 1, 3, and 6-month horizons
+- [x] **Platform Governance & Compliance Settings (`/admin/settings`)**:
+  - Brand identity, active payment gateway switcher, certified nutrition reviewer assignment, legal entity placeholders
+- [x] **Shareable Athlete Plan Card (`ShareablePlanCard`)**:
+  - High-resolution dark athlete card (free of private health data)
+  - 1-click clipboard summary copy for sharing on social platforms
+  - Integrated into the customer Plan tab (`/app/plan`)
+
 ---
 
 ## ⚠️ Current Configuration States
