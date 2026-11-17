@@ -92,8 +92,18 @@ export default function TodayPage() {
       {/* Bento Grid Layout */}
       <div className="grid grid-cols-1 md:grid-cols-12 gap-4">
         {/* HERO TILE: Today's Scheduled Session (8 cols) */}
-        <div className="md:col-span-8 ios-glass-card rounded-3xl p-6 border border-[#28525B] relative overflow-hidden flex flex-col justify-between">
+        <div className="md:col-span-8 ios-glass-card rounded-3xl p-6 border border-[#222222] relative overflow-hidden flex flex-col justify-between">
           <div className="absolute -top-16 -right-16 w-44 h-44 bg-[#28DACC]/10 rounded-full blur-3xl pointer-events-none" />
+
+          {/* Background workout athlete texture */}
+          <div className="absolute right-0 top-0 bottom-0 w-1/3 opacity-25 pointer-events-none overflow-hidden hidden sm:block">
+            <img
+              src="/images/fit-planner/focused_heavy_squat_in_the_gym_4.png"
+              alt="Active workout"
+              className="w-full h-full object-cover"
+            />
+            <div className="absolute inset-0 bg-gradient-to-r from-[#121212] via-[#121212]/60 to-transparent" />
+          </div>
 
           <div>
             <div className="flex items-center justify-between mb-3">

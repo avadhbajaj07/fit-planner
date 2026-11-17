@@ -157,8 +157,8 @@ export default function HomePage() {
             <div className="relative w-full max-w-sm rounded-3xl overflow-hidden border border-[#222222] bg-[#0A0A0A] shadow-2xl p-3">
               <div className="relative rounded-2xl overflow-hidden aspect-[4/5] bg-black">
                 <img
-                  src="/images/assets/hero_couple.jpg"
-                  alt="Athletic couple"
+                  src="/images/fit-planner/athletic_man_in_black_studio_wear.png"
+                  alt="Athletic training physique"
                   className="w-full h-full object-cover object-top opacity-90"
                 />
                 <div className="absolute inset-0 bg-gradient-to-t from-black via-transparent to-transparent" />
@@ -420,66 +420,86 @@ export default function HomePage() {
 
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
             {/* Card 1: Nutrition */}
-            <div className="p-6 rounded-3xl bg-[#0E0E0E] border border-[#1F1F1F] flex flex-col justify-between hover:border-[#28DACC]/50 transition-all">
-              <div>
-                <div className="w-10 h-10 rounded-2xl bg-[#141414] border border-[#242424] flex items-center justify-center text-[#28DACC] mb-4">
-                  <Apple size={20} />
-                </div>
-                <h3 className="text-lg font-bold text-white">NUTRITION</h3>
-                <p className="text-xs text-[#8E8E93] mt-2 leading-relaxed">
+            <div className="group rounded-3xl bg-[#0E0E0E] border border-[#1F1F1F] overflow-hidden flex flex-col justify-between hover:border-[#28DACC]/50 transition-all">
+              <div className="h-36 overflow-hidden relative">
+                <img
+                  src="/images/fit-planner/wholesome_kitchen_feast_with_fitness_focus.png"
+                  alt="Nutrition"
+                  className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                />
+                <div className="absolute inset-0 bg-gradient-to-t from-[#0E0E0E] via-transparent to-transparent" />
+              </div>
+              <div className="p-5 pt-0">
+                <h3 className="text-base font-bold text-white">NUTRITION</h3>
+                <p className="text-xs text-[#8E8E93] mt-1.5 leading-relaxed">
                   Dynamic macronutrient and caloric targets tailored to your metabolic rate, body fat, and diet type.
                 </p>
-              </div>
-              <div className="mt-6 pt-4 border-t border-[#1C1C1C] text-[11px] font-mono text-[#28DACC]">
-                Protein · Carbs · Fats
+                <div className="mt-4 pt-3 border-t border-[#1C1C1C] text-[11px] font-mono text-[#28DACC]">
+                  Protein · Carbs · Fats
+                </div>
               </div>
             </div>
 
             {/* Card 2: Recipes */}
-            <div className="p-6 rounded-3xl bg-[#0E0E0E] border border-[#1F1F1F] flex flex-col justify-between hover:border-[#28DACC]/50 transition-all">
-              <div>
-                <div className="w-10 h-10 rounded-2xl bg-[#141414] border border-[#242424] flex items-center justify-center text-[#28DACC] mb-4">
-                  <Sparkles size={20} />
-                </div>
-                <h3 className="text-lg font-bold text-white">RECIPES</h3>
-                <p className="text-xs text-[#8E8E93] mt-2 leading-relaxed">
+            <div className="group rounded-3xl bg-[#0E0E0E] border border-[#1F1F1F] overflow-hidden flex flex-col justify-between hover:border-[#28DACC]/50 transition-all">
+              <div className="h-36 overflow-hidden relative">
+                <img
+                  src="/images/fit-planner/wholesome_kitchen_feast_with_fitness_focus.png"
+                  alt="Recipes"
+                  className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                />
+                <div className="absolute inset-0 bg-gradient-to-t from-[#0E0E0E] via-transparent to-transparent" />
+              </div>
+              <div className="p-5 pt-0">
+                <h3 className="text-base font-bold text-white">RECIPES</h3>
+                <p className="text-xs text-[#8E8E93] mt-1.5 leading-relaxed">
                   Over 300 macro-balanced meals with hard allergen filters for dairy, gluten, and nut intolerances.
                 </p>
-              </div>
-              <div className="mt-6 pt-4 border-t border-[#1C1C1C] text-[11px] font-mono text-[#28DACC]">
-                Strict Allergen Safety
+                <div className="mt-4 pt-3 border-t border-[#1C1C1C] text-[11px] font-mono text-[#28DACC]">
+                  Strict Allergen Safety
+                </div>
               </div>
             </div>
 
             {/* Card 3: Bodyweight */}
-            <div className="p-6 rounded-3xl bg-[#0E0E0E] border border-[#1F1F1F] flex flex-col justify-between hover:border-[#28DACC]/50 transition-all">
-              <div>
-                <div className="w-10 h-10 rounded-2xl bg-[#141414] border border-[#242424] flex items-center justify-center text-[#28DACC] mb-4">
-                  <Scale size={20} />
-                </div>
-                <h3 className="text-lg font-bold text-white">BODYWEIGHT</h3>
-                <p className="text-xs text-[#8E8E93] mt-2 leading-relaxed">
+            <div className="group rounded-3xl bg-[#0E0E0E] border border-[#1F1F1F] overflow-hidden flex flex-col justify-between hover:border-[#28DACC]/50 transition-all">
+              <div className="h-36 overflow-hidden relative">
+                <img
+                  src="/images/fit-planner/confident_fitness_waist_measurement_portrait.png"
+                  alt="Bodyweight"
+                  className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                />
+                <div className="absolute inset-0 bg-gradient-to-t from-[#0E0E0E] via-transparent to-transparent" />
+              </div>
+              <div className="p-5 pt-0">
+                <h3 className="text-base font-bold text-white">BODYWEIGHT</h3>
+                <p className="text-xs text-[#8E8E93] mt-1.5 leading-relaxed">
                   Daily weight logs, moving averages, target weight pacing, and body fat estimation models.
                 </p>
-              </div>
-              <div className="mt-6 pt-4 border-t border-[#1C1C1C] text-[11px] font-mono text-[#28DACC]">
-                Trend Smoothing Pacing
+                <div className="mt-4 pt-3 border-t border-[#1C1C1C] text-[11px] font-mono text-[#28DACC]">
+                  Trend Smoothing Pacing
+                </div>
               </div>
             </div>
 
             {/* Card 4: Recovery */}
-            <div className="p-6 rounded-3xl bg-[#0E0E0E] border border-[#1F1F1F] flex flex-col justify-between hover:border-[#28DACC]/50 transition-all">
-              <div>
-                <div className="w-10 h-10 rounded-2xl bg-[#141414] border border-[#242424] flex items-center justify-center text-[#28DACC] mb-4">
-                  <Activity size={20} />
-                </div>
-                <h3 className="text-lg font-bold text-white">RECOVERY</h3>
-                <p className="text-xs text-[#8E8E93] mt-2 leading-relaxed">
+            <div className="group rounded-3xl bg-[#0E0E0E] border border-[#1F1F1F] overflow-hidden flex flex-col justify-between hover:border-[#28DACC]/50 transition-all">
+              <div className="h-36 overflow-hidden relative">
+                <img
+                  src="/images/fit-planner/focused_gym_stretch_portrait.png"
+                  alt="Recovery"
+                  className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                />
+                <div className="absolute inset-0 bg-gradient-to-t from-[#0E0E0E] via-transparent to-transparent" />
+              </div>
+              <div className="p-5 pt-0">
+                <h3 className="text-base font-bold text-white">RECOVERY</h3>
+                <p className="text-xs text-[#8E8E93] mt-1.5 leading-relaxed">
                   Sleep tracking, daily activity NEAT adjustments, and fatigue management protecting against burnout.
                 </p>
-              </div>
-              <div className="mt-6 pt-4 border-t border-[#1C1C1C] text-[11px] font-mono text-[#28DACC]">
-                CNS Readiness Reserve
+                <div className="mt-4 pt-3 border-t border-[#1C1C1C] text-[11px] font-mono text-[#28DACC]">
+                  CNS Readiness Reserve
+                </div>
               </div>
             </div>
           </div>
@@ -516,37 +536,37 @@ export default function HomePage() {
               {
                 name: "Guy Amon",
                 title: "Pro Natural Bodybuilder",
-                img: "/images/assets/pro_guy.jpg",
+                img: "/images/fit-planner/full_length_portrait_of_a_bearded_athlete.png",
                 quote: "The scientific periodization and progressive overload recommendations took my strength to another level without burning out."
               },
               {
                 name: "John Laurent",
                 title: "Fitness Coach & Strength Athlete",
-                img: "/images/assets/pro_john.jpg",
+                img: "/images/fit-planner/athletic_studio_portrait_in_black.png",
                 quote: "Best app for progressive overload. The way it automatically adapts when you have back or knee restrictions is game-changing."
               },
               {
                 name: "Florian Weber",
                 title: "Competitive Powerlifter",
-                img: "/images/assets/pro_florian.jpg",
+                img: "/images/fit-planner/studio_portrait_of_a_man_in_black_athleticwear.png",
                 quote: "Having my workout volume and nutrition calibrated down to the exact rep and gram saved me hours of guesswork every week."
               },
               {
                 name: "Luisa Eckhard",
                 title: "Bikini Fitness Athlete",
-                img: "/images/assets/pro_luisa.jpg",
+                img: "/images/fit-planner/athletic_woman_in_black_sportswear.png",
                 quote: "Finally an app that understands meal distribution and adjusts when I'm busy. The iOS app experience is lightning fast."
               },
               {
                 name: "Patrick Reiser",
                 title: "World Champion Bodybuilder",
-                img: "/images/assets/pro_patrick.jpg",
+                img: "/images/fit-planner/minimalist_studio_athlete_portrait.png",
                 quote: "Pure evidence-based sports science. No marketing fluff, just consistent results and measurable progression every single workout."
               },
               {
                 name: "Pierre Cohen",
                 title: "Strength & Conditioning Specialist",
-                img: "/images/assets/pro_pierre.jpg",
+                img: "/images/fit-planner/full_body_portrait_in_black_athleticwear.png",
                 quote: "Replaced an expensive personal trainer. The transparent 'Why this plan' explanations give you 100% confidence in the training."
               }
             ].map((pro, index) => (

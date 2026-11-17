@@ -82,6 +82,25 @@ export default function ProgressPage() {
         </span>
       </div>
 
+      {/* Visual Metric Banner */}
+      <div className="rounded-3xl overflow-hidden border border-[#222222] relative h-36 bg-[#0E0E0E]">
+        <img
+          src="/images/fit-planner/confident_fitness_waist_measurement_portrait.png"
+          alt="Body tracking"
+          className="w-full h-full object-cover object-top opacity-50"
+        />
+        <div className="absolute inset-0 bg-gradient-to-r from-black via-black/70 to-transparent" />
+        <div className="absolute inset-0 p-5 flex flex-col justify-between">
+          <span className="text-[10px] font-mono uppercase tracking-widest text-[#28DACC]">
+            Weekly Metric Analytics
+          </span>
+          <div>
+            <h3 className="text-lg font-bold text-white">Consistent Measurement Pacing</h3>
+            <p className="text-xs text-[#8E8E93] mt-0.5">We track rolling 7-day averages to filter out daily water retention fluctuations.</p>
+          </div>
+        </div>
+      </div>
+
       {/* High-level KPI Bento Tiles */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4">
         <div className="ios-glass-card rounded-2xl p-4 border border-[#28525B]">

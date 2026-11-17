@@ -164,6 +164,27 @@ export default function NutritionPage() {
         </div>
       </div>
 
+      {/* Visual Kitchen Feast Banner */}
+      <div className="rounded-3xl overflow-hidden border border-[#1F1F1F] relative h-40 group shadow-lg">
+        <img
+          src="/images/fit-planner/wholesome_kitchen_feast_with_fitness_focus.png"
+          alt="Wholesome athlete meal feast"
+          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
+        />
+        <div className="absolute inset-0 bg-gradient-to-t from-black via-black/40 to-transparent" />
+        <div className="absolute bottom-4 left-5 right-5 flex items-end justify-between">
+          <div>
+            <span className="text-[10px] font-mono uppercase tracking-widest text-[#28DACC] block">
+              Curated Athlete Nutrition
+            </span>
+            <h3 className="text-lg font-bold text-white">Whole Foods &amp; Allergen Purity</h3>
+          </div>
+          <span className="text-xs font-mono px-3 py-1 rounded-full bg-black/60 backdrop-blur-md border border-[#28DACC]/40 text-[#28DACC] font-semibold">
+            {profile.dietType.replace(/_/g, " ").toUpperCase()}
+          </span>
+        </div>
+      </div>
+
       {/* MACRO BREAKDOWN SUMMARY TILE */}
       {dailyPlan && (
         <div className="ios-glass-card rounded-3xl p-5 md:p-6 border border-[#28525B]">

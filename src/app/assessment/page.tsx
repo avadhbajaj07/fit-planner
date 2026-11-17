@@ -277,9 +277,9 @@ export default function AssessmentPage() {
                 >
                   <div className="absolute inset-0 z-0">
                     <img
-                      src="/images/assets/gender_male.jpg"
+                      src="/images/fit-planner/gender_male.png"
                       alt="Male physique"
-                      className="w-full h-full object-cover object-top opacity-75 group-hover:scale-105 transition-transform duration-500"
+                      className="w-full h-full object-cover object-top opacity-85 group-hover:scale-105 transition-transform duration-500"
                     />
                     <div className="absolute inset-0 bg-gradient-to-t from-[#000000] via-[#000000]/40 to-transparent" />
                   </div>
@@ -305,9 +305,9 @@ export default function AssessmentPage() {
                 >
                   <div className="absolute inset-0 z-0">
                     <img
-                      src="/images/assets/gender_female.jpg"
+                      src="/images/fit-planner/gender_female.png"
                       alt="Female physique"
-                      className="w-full h-full object-cover object-top opacity-75 group-hover:scale-105 transition-transform duration-500"
+                      className="w-full h-full object-cover object-top opacity-85 group-hover:scale-105 transition-transform duration-500"
                     />
                     <div className="absolute inset-0 bg-gradient-to-t from-[#000000] via-[#000000]/40 to-transparent" />
                   </div>
@@ -326,13 +326,27 @@ export default function AssessmentPage() {
               <button
                 type="button"
                 onClick={() => updateAnswers({ gender: "prefer_not_to_say" })}
-                className={`mt-3 py-3 px-4 rounded-xl border text-center transition-all text-xs font-semibold ${
+                className={`mt-3 p-3 rounded-2xl border flex items-center justify-between transition-all ${
                   answers.gender === "prefer_not_to_say"
-                    ? "border-[#28DACC] bg-[#121212] text-[#28DACC]"
+                    ? "border-[#28DACC] bg-[#121212] shadow-[0_0_16px_rgba(40,218,204,0.2)] text-[#28DACC]"
                     : "border-[#1F1F1F] bg-[#0A0A0A] text-[#8E8E93] hover:text-white"
                 }`}
               >
-                Prefer not to say
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-xl overflow-hidden bg-[#1A1A1A] border border-[#222222] shrink-0">
+                    <img
+                      src="/images/fit-planner/gender_prefer_not_to_say.png"
+                      alt="Prefer not to say"
+                      className="w-full h-full object-cover"
+                    />
+                  </div>
+                  <span className="text-xs font-bold text-white">Prefer not to say</span>
+                </div>
+                {answers.gender === "prefer_not_to_say" && (
+                  <div className="w-5 h-5 rounded-full bg-[#28DACC] text-[#000000] flex items-center justify-center font-bold">
+                    <Check size={12} strokeWidth={3} />
+                  </div>
+                )}
               </button>
             </motion.div>
           )}
@@ -494,53 +508,59 @@ export default function AssessmentPage() {
                     id: "build_muscle" as Goal,
                     title: "Build muscle",
                     subtitle: "Hypertrophy focus, progressive overload & lean mass",
-                    icon: "💪"
+                    img: "/images/fit-planner/build_muscle.png"
                   },
                   {
                     id: "lose_weight" as Goal,
                     title: "Lose weight & body fat",
                     subtitle: "High caloric expenditure, deficit support & definition",
-                    icon: "🔥"
+                    img: "/images/fit-planner/lose_weight_body_fat.png"
                   },
                   {
                     id: "gain_weight" as Goal,
                     title: "Gain weight & mass",
                     subtitle: "Caloric surplus, compound strength & size foundation",
-                    icon: "📈"
+                    img: "/images/fit-planner/gain_weight.png"
                   },
                   {
                     id: "improve_fitness" as Goal,
                     title: "Improve fitness & stamina",
                     subtitle: "Athletic conditioning, work capacity & functional health",
-                    icon: "⚡"
+                    img: "/images/fit-planner/improve_fitness_stamina.png"
                   },
                   {
                     id: "maintain" as Goal,
                     title: "Maintain fitness",
                     subtitle: "Sustain strength, joint mobility & long-term health",
-                    icon: "⚖️"
+                    img: "/images/fit-planner/maintain_fitness.png"
                   }
                 ].map((item) => (
                   <button
                     key={item.id}
                     type="button"
                     onClick={() => updateAnswers({ goal: item.id })}
-                    className={`w-full p-4 rounded-2xl border text-left flex items-center justify-between transition-all ${
+                    className={`w-full p-3.5 rounded-2xl border text-left flex items-center justify-between transition-all ${
                       answers.goal === item.id
                         ? "border-[#28DACC] bg-[#121212] shadow-[0_0_16px_rgba(40,218,204,0.2)] ring-1 ring-[#28DACC]"
                         : "border-[#1F1F1F] bg-[#0E0E0E] hover:border-[#333333]"
                     }`}
                   >
-                    <div>
-                      <div className="flex items-center gap-2">
-                        <span className="text-lg">{item.icon}</span>
-                        <span className="font-bold text-base text-white">
+                    <div className="flex items-center gap-3.5">
+                      <div className="w-12 h-12 rounded-xl overflow-hidden bg-[#1A1A1A] border border-[#262626] shrink-0">
+                        <img
+                          src={item.img}
+                          alt={item.title}
+                          className="w-full h-full object-cover"
+                        />
+                      </div>
+                      <div>
+                        <span className="font-bold text-sm text-white block">
                           {item.title}
                         </span>
+                        <p className="text-[11px] text-[#8E8E93] mt-0.5">
+                          {item.subtitle}
+                        </p>
                       </div>
-                      <p className="text-xs text-[#8E8E93] mt-1 ml-7">
-                        {item.subtitle}
-                      </p>
                     </div>
                     {answers.goal === item.id && (
                       <div className="w-6 h-6 rounded-full bg-[#28DACC] text-[#000000] flex items-center justify-center font-bold shrink-0 ml-3">
@@ -579,41 +599,54 @@ export default function AssessmentPage() {
                   {
                     id: "complete_beginner" as FitnessLevel,
                     title: "Complete Beginner",
-                    desc: "Never trained consistently, learning basic movement patterns"
+                    desc: "Never trained consistently, learning basic movement patterns",
+                    img: "/images/fit-planner/complete_beginner_fitness_level.png"
                   },
                   {
                     id: "beginner" as FitnessLevel,
                     title: "Beginner",
-                    desc: "Working out for a few months, building consistency"
+                    desc: "Working out for a few months, building consistency",
+                    img: "/images/fit-planner/beginner_fitness_level.png"
                   },
                   {
                     id: "intermediate" as FitnessLevel,
                     title: "Intermediate",
-                    desc: "1–2 years of consistent strength training with good form"
+                    desc: "1–2 years of consistent strength training with good form",
+                    img: "/images/fit-planner/intermediate_fitness_level.png"
                   },
                   {
                     id: "advanced" as FitnessLevel,
                     title: "Advanced",
-                    desc: "3+ years of progressive overload training and periodization"
+                    desc: "3+ years of progressive overload training and periodization",
+                    img: "/images/fit-planner/advanced_fitness_level.png"
                   }
                 ].map((item) => (
                   <button
                     key={item.id}
                     type="button"
                     onClick={() => updateAnswers({ fitnessLevel: item.id })}
-                    className={`w-full p-4 rounded-2xl border text-left flex items-center justify-between transition-all ${
+                    className={`w-full p-3.5 rounded-2xl border text-left flex items-center justify-between transition-all ${
                       answers.fitnessLevel === item.id
                         ? "border-[#28DACC] bg-[#121212] shadow-[0_0_16px_rgba(40,218,204,0.2)] ring-1 ring-[#28DACC]"
                         : "border-[#1F1F1F] bg-[#0E0E0E] hover:border-[#333333]"
                     }`}
                   >
-                    <div>
-                      <span className="font-bold text-base text-white block">
-                        {item.title}
-                      </span>
-                      <span className="text-xs text-[#8E8E93] mt-1 block">
-                        {item.desc}
-                      </span>
+                    <div className="flex items-center gap-3.5">
+                      <div className="w-12 h-12 rounded-xl overflow-hidden bg-[#1A1A1A] border border-[#262626] shrink-0">
+                        <img
+                          src={item.img}
+                          alt={item.title}
+                          className="w-full h-full object-cover"
+                        />
+                      </div>
+                      <div>
+                        <span className="font-bold text-sm text-white block">
+                          {item.title}
+                        </span>
+                        <span className="text-[11px] text-[#8E8E93] mt-0.5 block">
+                          {item.desc}
+                        </span>
+                      </div>
                     </div>
                     {answers.fitnessLevel === item.id && (
                       <div className="w-6 h-6 rounded-full bg-[#28DACC] text-[#000000] flex items-center justify-center font-bold shrink-0 ml-3">
@@ -1152,19 +1185,19 @@ export default function AssessmentPage() {
                     id: "home" as WorkoutLocation,
                     title: "At Home",
                     desc: "Training with minimal or no equipment",
-                    img: "/images/assets/loc_home.png"
+                    img: "/images/fit-planner/at_home_workout.png"
                   },
                   {
                     id: "gym" as WorkoutLocation,
                     title: "Gym",
                     desc: "Training with machines, cable pulleys, and free weights",
-                    img: "/images/assets/loc_gym.png"
+                    img: "/images/fit-planner/at_the_gym_workout.png"
                   },
                   {
                     id: "both" as WorkoutLocation,
                     title: "Hybrid (Home & Gym)",
                     desc: "Combination of gym and home workouts based on schedule",
-                    img: "/images/assets/loc_hybrid.png"
+                    img: "/images/fit-planner/both_home_and_gym_workout.png"
                   }
                 ].map((item) => (
                   <button
@@ -1185,7 +1218,7 @@ export default function AssessmentPage() {
                         {item.desc}
                       </span>
                     </div>
-                    <div className="w-16 h-14 rounded-xl overflow-hidden bg-[#1A1A1A] shrink-0 border border-[#222222]">
+                    <div className="w-16 h-16 rounded-xl overflow-hidden bg-[#1A1A1A] shrink-0 border border-[#222222]">
                       <img
                         src={item.img}
                         alt={item.title}
@@ -1221,11 +1254,11 @@ export default function AssessmentPage() {
 
               <div className="space-y-2.5 my-auto">
                 {[
-                  { id: "bodyweight" as EquipmentOption, label: "Bodyweight Only" },
-                  { id: "dumbbells" as EquipmentOption, label: "Dumbbells" },
-                  { id: "resistance_bands" as EquipmentOption, label: "Resistance Bands" },
-                  { id: "basic_home_gym" as EquipmentOption, label: "Basic Home Gym (Bench, Pullup Bar)" },
-                  { id: "fully_equipped_gym" as EquipmentOption, label: "Fully Equipped Commercial Gym" }
+                  { id: "bodyweight" as EquipmentOption, label: "Bodyweight Only", img: "/images/fit-planner/equipment_bodyweight_only.png" },
+                  { id: "dumbbells" as EquipmentOption, label: "Dumbbells", img: "/images/fit-planner/equipment_dumbbells.png" },
+                  { id: "resistance_bands" as EquipmentOption, label: "Resistance Bands", img: "/images/fit-planner/equipment_resistance_bands.png" },
+                  { id: "basic_home_gym" as EquipmentOption, label: "Basic Home Gym (Bench, Bar)", img: "/images/fit-planner/equipment_basic_home_gym.png" },
+                  { id: "fully_equipped_gym" as EquipmentOption, label: "Fully Equipped Gym", img: "/images/fit-planner/equipment_fully_equipped_gym.png" }
                 ].map((item) => {
                   const isSelected = answers.equipment?.includes(item.id);
                   return (
@@ -1243,15 +1276,24 @@ export default function AssessmentPage() {
                         }
                         updateAnswers({ equipment: next });
                       }}
-                      className={`w-full p-4 rounded-2xl border text-left flex items-center justify-between transition-all ${
+                      className={`w-full p-3.5 rounded-2xl border text-left flex items-center justify-between transition-all ${
                         isSelected
                           ? "border-[#28DACC] bg-[#121212] shadow-[0_0_16px_rgba(40,218,204,0.15)] ring-1 ring-[#28DACC]"
                           : "border-[#1F1F1F] bg-[#0E0E0E] hover:border-[#333333]"
                       }`}
                     >
-                      <span className="font-semibold text-sm text-white">
-                        {item.label}
-                      </span>
+                      <div className="flex items-center gap-3">
+                        <div className="w-11 h-11 rounded-xl overflow-hidden bg-[#1A1A1A] border border-[#262626] shrink-0">
+                          <img
+                            src={item.img}
+                            alt={item.label}
+                            className="w-full h-full object-cover"
+                          />
+                        </div>
+                        <span className="font-semibold text-sm text-white">
+                          {item.label}
+                        </span>
+                      </div>
                       <div
                         className={`w-6 h-6 rounded-lg border flex items-center justify-center transition-colors ${
                           isSelected
