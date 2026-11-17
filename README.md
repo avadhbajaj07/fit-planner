@@ -192,6 +192,27 @@ fit-planner/
   - Access level determination (visitor, registered free, active subscriber, expired subscriber, admin)
   - Membership selection page (`/membership`) and success screen (`/membership/success`)
 
+### ✅ Phase 3: Nutrition Module (Complete)
+- [x] **Stage C Preferences & Questionnaire**:
+  - Diet type: Vegetarian, Vegan, Non-Vegetarian, Pescatarian, Flexible
+  - Hard allergen multi-select (None Known exclusive, Dairy, Gluten, Nuts, Eggs, Soy, Fish, Other with free text)
+  - Searchable disliked foods chip tags
+  - Meals per day selection (2, 3, 4, 5)
+- [x] **Food & Meal Recipe Database (`/lib/nutrition/database.ts`)**:
+  - Verified macro distributions across Breakfast, Lunch, Dinner, and Snacks
+  - Accurate ingredients, step-by-step preparation instructions, and allergen-safe substitutions
+- [x] **Allergen Hard Filtering Engine (`/lib/nutrition/filterEngine.ts`)**:
+  - Pure deterministic filtering enforcing 100% hard allergen exclusion
+  - Diet type matching (vegan, vegetarian, pescatarian, flexible)
+  - Disliked food text matching
+  - 100% passing Vitest unit tests (5/5 tests in 3ms)
+- [x] **Customer Nutrition Dashboard (`/app/app/nutrition`)**:
+  - Daily macro blueprint summary (Calories, Protein, Carbs, Fat)
+  - Daily meal schedule with category tags and preparation times
+  - Interactive Meal Details Bottom Sheet with ingredient quantities, steps, and substitutions
+  - Meal completion checkboxes for daily habit tracking
+  - Mandatory General Guidance notice displayed prominently (no simulated clinical certifications)
+
 ---
 
 ## ⚠️ Current Configuration States
