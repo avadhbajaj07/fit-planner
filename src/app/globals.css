@@ -1,26 +1,114 @@
 @import "tailwindcss";
 
+@theme {
+  --color-bg-primary: #07151D;
+  --color-bg-secondary: #102831;
+  --color-bg-card: #142D35;
+  --color-bg-card-hover: #183741;
+  --color-teal-primary: #28DACC;
+  --color-teal-hover: #41E9DC;
+  --color-text-primary: #F4F9FA;
+  --color-text-secondary: #A8C5CA;
+  --color-border-subtle: #28525B;
+  --color-semantic-success: #28DA8B;
+  --color-semantic-warning: #FFB020;
+  --color-semantic-error: #FF5C5C;
+  --font-mono-numbers: "JetBrains Mono", "SF Mono", "Fira Code", monospace;
+  --font-ios: -apple-system, BlinkMacSystemFont, "SF Pro Text", "SF Pro Display", Inter, system-ui, sans-serif;
+}
+
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --bg-primary: #07151D;
+  --bg-secondary: #102831;
+  --bg-card: #142D35;
+  --teal-primary: #28DACC;
+  --teal-hover: #41E9DC;
+  --text-primary: #F4F9FA;
+  --text-secondary: #A8C5CA;
+  --border-subtle: #28525B;
+  --safe-top: env(safe-area-inset-top, 0px);
+  --safe-bottom: env(safe-area-inset-bottom, 0px);
 }
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+* {
+  box-sizing: border-box;
+  -webkit-tap-highlight-color: transparent;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+html, body {
+  background-color: #07151D;
+  color: #F4F9FA;
+  font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "SF Pro Display", Inter, system-ui, sans-serif;
+  min-height: 100dvh;
+  margin: 0;
+  padding: 0;
+  overflow-x: hidden;
+  touch-action: manipulation;
+  -webkit-font-smoothing: antialiased;
 }
 
-body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+/* iOS Monospace Numerals for athlete training log */
+.num-mono {
+  font-family: "JetBrains Mono", "SF Mono", "Menlo", monospace;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.02em;
+}
+
+/* iOS Glass Effect */
+.ios-glass {
+  background: rgba(16, 40, 49, 0.75);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border-color: rgba(40, 82, 91, 0.5);
+}
+
+.ios-glass-card {
+  background: rgba(20, 45, 53, 0.85);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(40, 82, 91, 0.6);
+}
+
+/* Active Teal Glow */
+.card-selected-glow {
+  border-color: #28DACC !important;
+  box-shadow: 0 0 0 1.5px #28DACC, 0 0 16px rgba(40, 218, 204, 0.22);
+}
+
+/* Safe areas */
+.pb-safe {
+  padding-bottom: calc(env(safe-area-inset-bottom, 0px) + 64px);
+}
+
+.pt-safe {
+  padding-top: max(env(safe-area-inset-top, 0px), 12px);
+}
+
+/* iOS Inset Group */
+.ios-inset-group {
+  background: #142D35;
+  border-radius: 18px;
+  border: 1px solid #28525B;
+  overflow: hidden;
+}
+
+.ios-inset-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 16px;
+  border-bottom: 1px solid rgba(40, 82, 91, 0.5);
+}
+
+.ios-inset-row:last-child {
+  border-bottom: none;
+}
+
+/* Hide scrollbars for slick mobile view */
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
 }

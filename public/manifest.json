@@ -1,0 +1,17 @@
+{
+  "name": "FIT Planner",
+  "short_name": "FIT Planner",
+  "description": "Your Goals. Your Body. Your Plan. Personalized workout and nutrition planning.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#07151D",
+  "theme_color": "#07151D",
+  "orientation": "portrait",
+  "icons": [
+    {
+      "src": "/favicon.ico",
+      "sizes": "64x64 32x32 24x24 16x16",
+      "type": "image/x-icon"
+    }
+  ]
+}
