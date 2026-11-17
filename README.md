@@ -155,29 +155,46 @@ fit-planner/
 
 ---
 
-## 📋 Phase 1 Status Report
+## 📋 Build Phases & Status Report
 
-- [x] **Complete**:
-  - Full project structure, dark "Training Log" design system & CSS tokens
-  - Native iOS-style app shell (49px bottom tab bar, safe areas, large titles)
-  - Public Homepage with live demo card, 3-step workflow, bento grid, pricing teaser, FAQ
-  - Stage A Assessment (9 questions, age 18+ enforcement, Live Plan Card updating in real time)
-  - Interactive SVG Body Diagram highlighting target muscles
-  - Explicit Sensitive Health Data Consent modal (Protocol v1.2)
-  - Results Preview with "Why this plan" transparent engine rationale
-  - Pure deterministic Recommendation Engine in `/lib/engine`
-  - Exercise Library with ~40 approved exercises with contraindication tags
-  - 100% passing unit tests via Vitest
-  - Customer App (Today, Plan, Progress, Nutrition, Profile tabs)
-  - Focus Mode with automated countdown rest timer, haptics, and set completion
-  - 7-Day Concentric Activity Rings strip
-  - "Adjust my week" tools (20-min express, low energy, bodyweight only)
-  - Self-service data export (GDPR Art. 20) & account deletion (Art. 17)
-  - PostgreSQL migrations with Row-Level Security (RLS) & seed script
-  - `.env.example` template
-- ⚠️ **Needs Configuration**:
-  - Supabase URL & Anon Key: If omitted, runs in clearly labelled Local Demo Mode
-  - Stripe / Razorpay: Shows clear "Payment Setup Required" state (never simulates fake success)
-  - Resend / SMTP: Email recovery shows dev note until credentials provided
-- 🧪 **Untested**:
-  - Physical native Capacitor wrapper (web PWA tested)
+### ✅ Phase 1: Working Core & iOS App Shell (Complete)
+- [x] Full project structure, dark "Training Log" design system & CSS tokens
+- [x] Native iOS-style app shell (49px bottom tab bar, safe areas, large titles)
+- [x] Public Homepage with live demo card, 3-step workflow, bento grid, pricing teaser, FAQ
+- [x] Stage A Assessment (9 questions, age 18+ enforcement, Live Plan Card updating in real time)
+- [x] Interactive SVG Body Diagram highlighting target muscles
+- [x] Explicit Sensitive Health Data Consent modal (Protocol v1.2)
+- [x] Results Preview with "Why this plan" transparent engine rationale
+- [x] Pure deterministic Recommendation Engine in `/lib/engine`
+- [x] Exercise Library with ~40 approved exercises with contraindication tags
+- [x] Customer App (Today, Plan, Progress, Nutrition, Profile tabs)
+- [x] 100% passing recommendation engine unit tests via Vitest
+
+### ✅ Phase 2: Money, Progress, & PWA (Complete)
+- [x] **Billing Provider Abstraction**:
+  - `BillingProvider` interface with Stripe and Razorpay adapters (`/lib/billing`)
+  - 1-month, 3-month, 6-month tier configurations with multi-currency support (CHF, EUR, USD, INR)
+  - Clear `setup_required` state handling (never fakes success when credentials are missing)
+  - `/api/billing/checkout` and `/api/billing/webhook` route handlers
+  - Unit tests verifying provider factory, unconfigured fallback, and price formatters
+- [x] **Stage B Profile Checklist Flow (`/app/profile/checklist`)**:
+  - Muscle focus selection with real-time Body Diagram visual highlights
+  - Height & current weight with segmented unit toggles (`cm`/`ft-in` & `kg`/`lb`)
+  - Target weight (optional & skippable)
+  - Body shape selection with abstract silhouettes & explicit non-medical disclaimer
+  - Daily activity (NEAT), sleep duration, biggest obstacle, and workout frequency
+  - Dynamic Today dashboard checklist progress indicator
+- [x] **PWA & Offline Execution**:
+  - Service worker caching (`public/sw.js`) for offline workout logging
+  - Screen Wake Lock API in Focus Mode to keep screen active during lifting
+  - iOS Install Guide Sheet ("Tap Share, then Add to Home Screen") for Safari users
+- [x] **Subscription Gating & States**:
+  - Access level determination (visitor, registered free, active subscriber, expired subscriber, admin)
+  - Membership selection page (`/membership`) and success screen (`/membership/success`)
+
+---
+
+## ⚠️ Current Configuration States
+* **Payment Gateway**: Configured to `none` by default. Set `NEXT_PUBLIC_PAYMENT_PROVIDER=stripe` or `razorpay` in `.env.local` to connect live credentials.
+* **Supabase**: If omitted, app runs in local demo mode with sample athlete data.
+* **Email**: SMTP / Resend displays development notice on password recovery.
