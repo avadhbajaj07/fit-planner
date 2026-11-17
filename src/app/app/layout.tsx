@@ -16,9 +16,9 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
   }, []);
 
   return (
-    <div className="min-h-[100dvh] bg-[#07151D] text-[#F4F9FA] flex flex-col lg:flex-row">
+    <div className="min-h-[100dvh] bg-[#000000] text-[#F4F9FA] flex flex-col lg:flex-row selection:bg-[#28DACC] selection:text-[#000000]">
       {/* Desktop Sidebar + Mobile Bottom Tab Bar */}
-      <Suspense fallback={<div className="h-[49px] bg-[#07151D]" />}>
+      <Suspense fallback={<div className="h-[49px] bg-[#000000]" />}>
         <IosTabBar />
       </Suspense>
 

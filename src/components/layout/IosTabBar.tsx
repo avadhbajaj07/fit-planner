@@ -47,7 +47,7 @@ export const IosTabBar: React.FC = () => {
       {/* MOBILE BOTTOM TAB BAR (49px + Safe Area Bottom) */}
       <nav
         aria-label="Mobile Navigation"
-        className="lg:hidden fixed bottom-0 left-0 right-0 z-50 bg-[#07151D]/85 backdrop-blur-2xl border-t border-[#28525B]/40 pb-safe"
+        className="lg:hidden fixed bottom-0 left-0 right-0 z-50 bg-[#000000]/90 backdrop-blur-2xl border-t border-[#1A1A1A] pb-safe"
       >
         <div className="h-[49px] flex items-center justify-around px-2 max-w-md mx-auto">
           {tabs.map((tab) => {
@@ -59,7 +59,7 @@ export const IosTabBar: React.FC = () => {
                 key={tab.name}
                 href={tab.href}
                 className={`flex-1 flex flex-col items-center justify-center py-1 transition-colors select-none ${
-                  isActive ? "text-[#28DACC]" : "text-[#A8C5CA]/70 hover:text-[#F4F9FA]"
+                  isActive ? "text-[#28DACC]" : "text-[#8E8E93] hover:text-white"
                 }`}
               >
                 <Icon
@@ -82,13 +82,13 @@ export const IosTabBar: React.FC = () => {
       </nav>
 
       {/* DESKTOP SIDEBAR (Large Screens) */}
-      <aside className="hidden lg:flex flex-col w-64 bg-[#102831]/80 backdrop-blur-xl border-r border-[#28525B]/60 p-6 min-h-screen shrink-0">
+      <aside className="hidden lg:flex flex-col w-64 bg-[#0A0A0A] backdrop-blur-xl border-r border-[#1F1F1F] p-6 min-h-screen shrink-0">
         <div className="flex items-center gap-2.5 mb-8">
-          <div className="w-9 h-9 rounded-xl bg-[#142D35] border border-[#28DACC]/40 flex items-center justify-center text-[#28DACC] font-bold">
+          <div className="w-9 h-9 rounded-xl bg-[#121212] border border-[#28DACC]/40 flex items-center justify-center text-[#28DACC] font-bold">
             <Dumbbell size={20} />
           </div>
           <div>
-            <div className="text-sm font-bold tracking-tight text-[#F4F9FA]">
+            <div className="text-sm font-bold tracking-tight text-white">
               FIT PLANNER
             </div>
             <div className="text-[10px] font-mono text-[#28DACC] tracking-widest uppercase">

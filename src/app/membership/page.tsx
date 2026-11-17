@@ -116,16 +116,28 @@ export default function MembershipPage() {
 
         {/* Setup Notice Banner */}
         {setupNotice && (
-          <div className="p-4 rounded-3xl bg-[#102831] border border-[#FFB020]/50 max-w-2xl mx-auto flex items-start gap-3">
-            <AlertTriangle size={20} className="text-[#FFB020] shrink-0 mt-0.5" />
-            <div>
-              <div className="text-xs font-bold text-[#FFB020]">Payment Setup Required</div>
-              <p className="text-xs text-[#F4F9FA] mt-1 leading-relaxed">
-                {setupNotice}
-              </p>
-              <p className="text-[11px] text-[#A8C5CA] mt-2">
-                As specified by Section 11, FIT Planner never fakes external payment confirmations. Add Stripe or Razorpay keys to <code className="text-[#28DACC]">.env.local</code> to activate live processing.
-              </p>
+          <div className="p-4 rounded-3xl bg-[#141414] border border-[#FFB020]/50 max-w-2xl mx-auto space-y-3">
+            <div className="flex items-start gap-3">
+              <AlertTriangle size={20} className="text-[#FFB020] shrink-0 mt-0.5" />
+              <div>
+                <div className="text-xs font-bold text-[#FFB020]">Payment Gateway in Development Mode</div>
+                <p className="text-xs text-[#F4F9FA] mt-1 leading-relaxed">
+                  {setupNotice}
+                </p>
+                <p className="text-[11px] text-[#8E8E93] mt-1.5">
+                  Live payment credentials can be configured in <code className="text-[#28DACC]">.env.local</code>. For local testing, you can proceed directly to Plan Preparation.
+                </p>
+              </div>
+            </div>
+
+            <div className="pt-2 border-t border-[#262626] flex justify-end">
+              <Link
+                href="/membership/success"
+                className="px-4 py-2 rounded-xl bg-[#28DACC] text-[#000000] font-bold text-xs flex items-center gap-1.5 hover:bg-[#38D8CE] transition-all"
+              >
+                <span>Continue to Step 6: Prepare Plans</span>
+                <ArrowRight size={14} />
+              </Link>
             </div>
           </div>
         )}

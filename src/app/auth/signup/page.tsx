@@ -41,7 +41,7 @@ export default function SignupPage() {
     setIsSubmitting(false);
 
     if (res.success) {
-      router.push("/app/today");
+      router.push("/membership");
     } else {
       setError(res.error || "Signup failed.");
     }
@@ -49,7 +49,7 @@ export default function SignupPage() {
 
   const handleDemo = () => {
     loginAsDemo();
-    router.push("/app/today");
+    router.push("/membership");
   };
 
   return (

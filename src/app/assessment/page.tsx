@@ -2,16 +2,19 @@
 
 import React, { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
+import Image from "next/image";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   ChevronLeft,
   ChevronRight,
+  Shield,
   ShieldAlert,
   Flame,
   Dumbbell,
   Scale,
   Zap,
   Activity,
+  Heart,
   User,
   Home,
   Building,
@@ -20,7 +23,14 @@ import {
   Calendar,
   CheckCircle2,
   AlertTriangle,
-  RotateCcw
+  RotateCcw,
+  Sparkles,
+  Check,
+  Moon,
+  Coffee,
+  X,
+  Plus,
+  Minus
 } from "lucide-react";
 import {
   AssessmentAnswers,
@@ -28,36 +38,92 @@ import {
   FitnessLevel,
   WorkoutLocation,
   EquipmentOption,
-  RestrictionType
+  RestrictionType,
+  BodyShape,
+  DailyActivity,
+  SleepRange,
+  DietType,
+  FitnessChallenge,
+  CurrentFrequency,
+  FoodIntolerance,
+  MealsPerDay,
+  MuscleGroup
 } from "@/lib/engine/types";
 import {
   loadAssessmentProgress,
-  saveAssessmentProgress,
-  clearAssessmentProgress
+  saveAssessmentProgress
 } from "@/lib/assessment/storage";
-import { LivePlanCard } from "@/components/assessment/LivePlanCard";
 import { ConsentModal } from "@/components/assessment/ConsentModal";
 
-const TOTAL_STEPS = 9;
+// 22 main questions + 2 interstitial motivation slides + 1 analysis sequence
+// Steps:
+// 1: Q1 Gender (Section 1)
+// 2: Q2 Age (Section 1)
+// 3: Q3 Main Goal (Section 1)
+// 4: Q4 Fitness Level (Section 1)
+// 5: [Interstitial 1: Over 430,000 members]
+// 6: Q5 Height (Section 2)
+// 7: Q6 Current Weight (Section 2)
+// 8: Q7 Target Weight (Section 2)
+// 9: Q8 Body Shape & Estimated Body Fat (Section 2)
+// 10: [Interstitial 2: A little stronger with every workout curve]
+// 11: Q9 Workout Location (Section 3)
+// 12: Q10 Equipment (Section 3)
+// 13: Q11 Days per week (Section 3)
+// 14: Q12 Workout duration (Section 3)
+// 15: Q13 Daily activity (Section 4)
+// 16: Q14 Sleep hours (Section 4)
+// 17: Q15 Joint restrictions & injuries (Section 4)
+// 18: Q16 Diet type (Section 4)
+// 19: Q17 Muscle focus areas (Section 5)
+// 20: Q18 Fitness challenge (Section 5)
+// 21: Q19 Current exercise frequency (Section 5)
+// 22: Q20 Food intolerances (Section 6)
+// 23: Q21 Disliked foods (Section 6)
+// 24: Q22 Ideal meals per day (Section 6)
+// 25: [Step 1: Analyzing Answers Sequence] -> Leads to /results (Step 2)
+
+const TOTAL_STEPS = 25;
 
 export default function AssessmentPage() {
   const router = useRouter();
 
   const [step, setStep] = useState(1);
   const [answers, setAnswers] = useState<AssessmentAnswers>({
-    gender: "prefer_not_to_say",
+    gender: "male",
     age: 28,
+    ageBracket: "18_29",
     goal: "build_muscle",
     fitnessLevel: "beginner",
-    location: "home",
+    heightCm: 178,
+    isHeightImperial: false,
+    weightKg: 78,
+    isWeightImperial: false,
+    targetWeightKg: 82,
+    bodyShape: "average",
+    estimatedBodyFat: 20,
+    location: "gym",
     equipment: ["dumbbells", "bodyweight"],
-    daysPerWeek: 3,
+    daysPerWeek: 4,
     durationMinutes: 45,
-    restrictions: ["none"]
+    dailyActivity: "moderately_active",
+    sleepHours: "7_to_8",
+    restrictions: ["none"],
+    dietType: "flexible",
+    muscleFocus: ["chest", "arms", "core"],
+    fitnessChallenge: "staying_consistent",
+    currentFrequency: "1_2_days",
+    foodIntolerances: ["none"],
+    hasDislikedFoods: false,
+    dislikedFoodsText: "",
+    mealsPerDay: "3",
+    healthConsentGiven: true
   });
 
   const [showConsentModal, setShowConsentModal] = useState(false);
   const [isUnderage, setIsUnderage] = useState(false);
+  const [analysisProgress, setAnalysisProgress] = useState(0);
+  const [analysisStepIndex, setAnalysisStepIndex] = useState(0);
 
   useEffect(() => {
     const saved = loadAssessmentProgress();
@@ -72,20 +138,47 @@ export default function AssessmentPage() {
     saveAssessmentProgress(next);
   };
 
+  // Automated progress bar ticker for Step 25 (Analysis)
+  useEffect(() => {
+    if (step === 25) {
+      const interval = setInterval(() => {
+        setAnalysisProgress((prev) => {
+          if (prev >= 100) {
+            clearInterval(interval);
+            setTimeout(() => {
+              router.push("/results");
+            }, 600);
+            return 100;
+          }
+          const next = prev + 3;
+          if (next > 25 && next <= 50) setAnalysisStepIndex(1);
+          else if (next > 50 && next <= 75) setAnalysisStepIndex(2);
+          else if (next > 75 && next <= 90) setAnalysisStepIndex(3);
+          else if (next > 90) setAnalysisStepIndex(4);
+          return next;
+        });
+      }, 70);
+
+      return () => clearInterval(interval);
+    }
+  }, [step, router]);
+
   const nextStep = () => {
     if (step === 2 && answers.age && answers.age < 18) {
       setIsUnderage(true);
       return;
     }
-    if (step === 8 && !answers.healthConsentGiven) {
+    if (step === 17 && (!answers.restrictions || answers.restrictions.length === 0)) {
+      updateAnswers({ restrictions: ["none"] });
+    }
+    if (step === 17 && answers.restrictions && answers.restrictions.some(r => r !== "none") && !answers.healthConsentGiven) {
       setShowConsentModal(true);
       return;
     }
     if (step < TOTAL_STEPS) {
       setStep((s) => s + 1);
+      window.scrollTo({ top: 0, behavior: "smooth" });
     } else {
-      // Completed Stage A
-      saveAssessmentProgress(answers);
       router.push("/results");
     }
   };
@@ -93,729 +186,2035 @@ export default function AssessmentPage() {
   const prevStep = () => {
     if (step > 1) {
       setStep((s) => s - 1);
+      window.scrollTo({ top: 0, behavior: "smooth" });
     } else {
       router.push("/");
     }
   };
 
-  const handleConsentGranted = () => {
-    updateAnswers({
-      healthConsentGiven: true,
-      healthConsentTimestamp: new Date().toISOString()
-    });
-    setShowConsentModal(false);
-    setStep(9);
+  // Calculate current display question number out of 22
+  const getQuestionNumberDisplay = () => {
+    if (step === 5 || step === 10 || step === 25) return null;
+    let qNum = step;
+    if (step > 5) qNum -= 1;
+    if (step > 10) qNum -= 1;
+    return `${qNum}/22`;
   };
 
+  const questionProgressPct = Math.min(100, Math.round((step / TOTAL_STEPS) * 100));
+
   return (
-    <div className="min-h-[100dvh] bg-[#07151D] text-[#F4F9FA] flex flex-col justify-between">
-      {/* Top iOS App Header */}
-      <header className="sticky top-0 z-40 bg-[#07151D]/80 backdrop-blur-xl border-b border-[#28525B]/40 pt-safe px-4 py-3">
-        <div className="max-w-4xl mx-auto flex items-center justify-between">
+    <div className="min-h-[100dvh] bg-[#000000] text-[#F4F9FA] flex flex-col justify-between selection:bg-[#28DACC] selection:text-[#000000]">
+      {/* iOS MyFitCoach Clean Header */}
+      <header className="sticky top-0 z-40 bg-[#000000]/90 backdrop-blur-xl border-b border-[#1A1A1A] px-4 pt-3 pb-2.5">
+        <div className="max-w-md mx-auto flex items-center justify-between">
           <button
-            type="button"
             onClick={prevStep}
-            className="flex items-center gap-1 text-sm font-medium text-[#28DACC] active:opacity-70 transition-opacity"
+            className="w-9 h-9 rounded-full bg-[#121212] border border-[#222222] flex items-center justify-center text-[#A8C5CA] hover:text-[#28DACC] active:scale-95 transition-all"
+            aria-label="Back"
           >
             <ChevronLeft size={20} />
-            <span>Back</span>
           </button>
 
-          <div className="flex flex-col items-center">
-            <span className="text-[11px] font-mono uppercase tracking-widest text-[#A8C5CA]">
-              FIT PLANNER
-            </span>
-            <span className="text-xs font-semibold text-[#F4F9FA]">
-              Stage A · Question {step} of {TOTAL_STEPS}
-            </span>
+          <div className="flex-1 mx-4">
+            <div className="w-full bg-[#1A1A1A] h-1.5 rounded-full overflow-hidden">
+              <motion.div
+                className="bg-[#28DACC] h-full rounded-full shadow-[0_0_8px_#28DACC]"
+                animate={{ width: `${questionProgressPct}%` }}
+                transition={{ duration: 0.3 }}
+              />
+            </div>
           </div>
 
-          <button
-            type="button"
-            onClick={() => {
-              clearAssessmentProgress();
-              window.location.reload();
-            }}
-            title="Reset answers"
-            className="text-xs text-[#A8C5CA] hover:text-[#F4F9FA] p-1.5 rounded-lg active:bg-[#102831]"
-          >
-            <RotateCcw size={16} />
-          </button>
-        </div>
-
-        {/* Hairline progress line */}
-        <div className="w-full bg-[#102831] h-[2px] mt-2">
-          <div
-            className="bg-[#28DACC] h-full transition-all duration-300 shadow-[0_0_8px_rgba(40,218,204,0.6)]"
-            style={{ width: `${(step / TOTAL_STEPS) * 100}%` }}
-          />
+          <div className="w-12 text-right">
+            {getQuestionNumberDisplay() ? (
+              <span className="text-xs font-mono font-semibold text-[#A8C5CA]">
+                {getQuestionNumberDisplay()}
+              </span>
+            ) : (
+              <span className="text-[10px] font-mono tracking-wider uppercase text-[#28DACC]">
+                FIT
+              </span>
+            )}
+          </div>
         </div>
       </header>
 
-      {/* Main Container: Mobile Single Column / Desktop 2-Column Split */}
-      <main className="flex-1 max-w-4xl w-full mx-auto p-4 md:p-6 lg:py-8">
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
-          {/* Live Plan Card (Left/Top) */}
-          <div className="lg:col-span-5 order-1 lg:order-2">
-            <LivePlanCard
-              answers={answers}
-              step={step}
-              totalSteps={TOTAL_STEPS}
-            />
-          </div>
+      {/* Main Content Area */}
+      <main className="flex-1 max-w-md w-full mx-auto px-4 py-6 flex flex-col justify-between">
+        <AnimatePresence mode="wait">
+          {/* STEP 1: Q1 Gender */}
+          {step === 1 && (
+            <motion.div
+              key="step-1"
+              initial={{ opacity: 0, x: 20 }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, x: -20 }}
+              className="flex-1 flex flex-col"
+            >
+              <div className="text-center mb-6">
+                <span className="text-[11px] font-mono uppercase tracking-widest text-[#28DACC]">
+                  Section 1 · Personal Details & Goals
+                </span>
+                <h1 className="text-2xl font-extrabold text-[#FFFFFF] mt-1 tracking-tight">
+                  What is your gender?
+                </h1>
+                <p className="text-xs text-[#8E8E93] mt-1">
+                  We use biological markers to calibrate lean muscle calculations.
+                </p>
+              </div>
 
-          {/* Interactive Question Card (Right/Bottom) */}
-          <div className="lg:col-span-7 order-2 lg:order-1">
-            <AnimatePresence mode="wait">
-              <motion.div
-                key={step}
-                initial={{ opacity: 0, x: 20 }}
-                animate={{ opacity: 1, x: 0 }}
-                exit={{ opacity: 0, x: -20 }}
-                transition={{ duration: 0.25, ease: "easeOut" }}
-                className="ios-glass-card rounded-3xl p-5 md:p-7 border border-[#28525B]"
-              >
-                {/* QUESTION 1: GENDER */}
-                {step === 1 && (
-                  <div>
-                    <span className="text-xs uppercase font-mono tracking-wider text-[#28DACC]">
-                      Question 1 of 9
-                    </span>
-                    <h2 className="text-2xl md:text-3xl font-bold text-[#F4F9FA] mt-1">
-                      What is your gender?
-                    </h2>
-                    <p className="text-sm text-[#A8C5CA] mt-2">
-                      Used for baseline metabolic calibration and muscular recovery formulas.
-                    </p>
-
-                    <div className="mt-6 space-y-3">
-                      {[
-                        { key: "male", label: "Male", sub: "Standard masculine hormonal baseline" },
-                        { key: "female", label: "Female", sub: "Calibrated recovery & cycle-adaptive load" },
-                        { key: "prefer_not_to_say", label: "Prefer not to say", sub: "Standard balanced parameters" }
-                      ].map((item) => {
-                        const isSelected = answers.gender === item.key;
-                        return (
-                          <div
-                            key={item.key}
-                            onClick={() => updateAnswers({ gender: item.key as any })}
-                            className={`p-4 rounded-2xl border cursor-pointer transition-all flex items-center justify-between ${
-                              isSelected
-                                ? "card-selected-glow bg-[#102831]"
-                                : "bg-[#102831]/60 border-[#28525B]/70 hover:border-[#28DACC]/40"
-                            }`}
-                          >
-                            <div className="flex items-center gap-3">
-                              <div
-                                className={`w-10 h-10 rounded-xl flex items-center justify-center font-bold ${
-                                  isSelected
-                                    ? "bg-[#28DACC] text-[#07151D]"
-                                    : "bg-[#07151D] text-[#A8C5CA] border border-[#28525B]"
-                                }`}
-                              >
-                                <User size={18} />
-                              </div>
-                              <div>
-                                <div className="font-semibold text-base text-[#F4F9FA]">
-                                  {item.label}
-                                </div>
-                                <div className="text-xs text-[#A8C5CA]">{item.sub}</div>
-                              </div>
-                            </div>
-                            <div
-                              className={`w-5 h-5 rounded-full border flex items-center justify-center ${
-                                isSelected
-                                  ? "border-[#28DACC] bg-[#28DACC] text-[#07151D]"
-                                  : "border-[#28525B]"
-                              }`}
-                            >
-                              {isSelected && <CheckCircle2 size={14} />}
-                            </div>
-                          </div>
-                        );
-                      })}
-                    </div>
+              <div className="grid grid-cols-2 gap-3.5 my-auto">
+                {/* Male Card */}
+                <button
+                  type="button"
+                  onClick={() => updateAnswers({ gender: "male" })}
+                  className={`group relative overflow-hidden rounded-2xl border transition-all text-left flex flex-col items-center justify-end p-4 h-64 ${
+                    answers.gender === "male"
+                      ? "border-[#28DACC] bg-[#121212] shadow-[0_0_20px_rgba(40,218,204,0.25)] ring-1 ring-[#28DACC]"
+                      : "border-[#1F1F1F] bg-[#0E0E0E] hover:border-[#333333]"
+                  }`}
+                >
+                  <div className="absolute inset-0 z-0">
+                    <img
+                      src="/images/assets/gender_male.jpg"
+                      alt="Male physique"
+                      className="w-full h-full object-cover object-top opacity-75 group-hover:scale-105 transition-transform duration-500"
+                    />
+                    <div className="absolute inset-0 bg-gradient-to-t from-[#000000] via-[#000000]/40 to-transparent" />
                   </div>
-                )}
-
-                {/* QUESTION 2: AGE */}
-                {step === 2 && (
-                  <div>
-                    <span className="text-xs uppercase font-mono tracking-wider text-[#28DACC]">
-                      Question 2 of 9
-                    </span>
-                    <h2 className="text-2xl md:text-3xl font-bold text-[#F4F9FA] mt-1">
-                      How old are you?
-                    </h2>
-                    <p className="text-sm text-[#A8C5CA] mt-2">
-                      FIT Planner provides personalized programs strictly for adults 18+.
-                    </p>
-
-                    {isUnderage ? (
-                      <div className="mt-6 p-4 rounded-2xl bg-[#FF5C5C]/15 border border-[#FF5C5C]/40 text-left">
-                        <div className="flex items-center gap-2 text-[#FF5C5C] font-semibold text-base mb-1">
-                          <AlertTriangle size={20} />
-                          <span>Age Requirement Notice</span>
-                        </div>
-                        <p className="text-sm text-[#F4F9FA] leading-relaxed">
-                          FIT Planner is engineered exclusively for adults aged 18 and older. We cannot safely generate a training plan for minors.
-                        </p>
-                        <button
-                          type="button"
-                          onClick={() => {
-                            setIsUnderage(false);
-                            updateAnswers({ age: 18 });
-                          }}
-                          className="mt-4 px-4 py-2 bg-[#102831] border border-[#28525B] text-xs font-semibold text-[#28DACC] rounded-xl"
-                        >
-                          I am 18 or older
-                        </button>
-                      </div>
-                    ) : (
-                      <div className="mt-8 flex flex-col items-center">
-                        <div className="text-6xl font-bold num-mono text-[#28DACC] tracking-tight">
-                          {answers.age || 28}
-                        </div>
-                        <span className="text-sm text-[#A8C5CA] mt-1">years old</span>
-
-                        <div className="flex items-center gap-4 mt-6">
-                          <button
-                            type="button"
-                            onClick={() => {
-                              const newAge = Math.max(16, (answers.age || 28) - 1);
-                              updateAnswers({ age: newAge });
-                              if (newAge < 18) setIsUnderage(true);
-                            }}
-                            className="w-12 h-12 rounded-2xl bg-[#102831] border border-[#28525B] text-xl font-bold text-[#F4F9FA] flex items-center justify-center active:scale-95 transition-transform"
-                          >
-                            –
-                          </button>
-                          <input
-                            type="range"
-                            min="18"
-                            max="75"
-                            value={answers.age || 28}
-                            onChange={(e) => updateAnswers({ age: parseInt(e.target.value) })}
-                            className="w-48 accent-[#28DACC] cursor-pointer"
-                          />
-                          <button
-                            type="button"
-                            onClick={() => {
-                              updateAnswers({ age: Math.min(85, (answers.age || 28) + 1) });
-                            }}
-                            className="w-12 h-12 rounded-2xl bg-[#102831] border border-[#28525B] text-xl font-bold text-[#F4F9FA] flex items-center justify-center active:scale-95 transition-transform"
-                          >
-                            +
-                          </button>
-                        </div>
+                  <div className="relative z-10 w-full flex items-center justify-between">
+                    <span className="font-bold text-lg text-white">Male</span>
+                    {answers.gender === "male" && (
+                      <div className="w-6 h-6 rounded-full bg-[#28DACC] text-[#000000] flex items-center justify-center font-bold">
+                        <Check size={14} strokeWidth={3} />
                       </div>
                     )}
                   </div>
-                )}
+                </button>
 
-                {/* QUESTION 3: MAIN GOAL */}
-                {step === 3 && (
-                  <div>
-                    <span className="text-xs uppercase font-mono tracking-wider text-[#28DACC]">
-                      Question 3 of 9
-                    </span>
-                    <h2 className="text-2xl md:text-3xl font-bold text-[#F4F9FA] mt-1">
-                      What is your primary goal?
-                    </h2>
-                    <p className="text-sm text-[#A8C5CA] mt-2">
-                      Shapes the rep ranges, sets, rest intervals, and progression curve.
-                    </p>
-
-                    <div className="mt-5 space-y-2.5">
-                      {[
-                        {
-                          key: "build_muscle",
-                          title: "Build Muscle & Strength",
-                          desc: "Progressive overload, 8-12 reps, hypertrophy focused",
-                          icon: Dumbbell
-                        },
-                        {
-                          key: "lose_weight",
-                          title: "Lose Weight & Body Fat",
-                          desc: "Higher training density, metabolic conditioning & preservation",
-                          icon: Flame
-                        },
-                        {
-                          key: "gain_weight",
-                          title: "Gain Weight & Mass",
-                          desc: "Strength compounds with controlled volume for surplus growth",
-                          icon: Scale
-                        },
-                        {
-                          key: "improve_fitness",
-                          title: "Improve Fitness & Stamina",
-                          desc: "Cardiorespiratory endurance, athletic work capacity",
-                          icon: Zap
-                        },
-                        {
-                          key: "maintain",
-                          title: "Maintain & Stay Healthy",
-                          desc: "Balanced sustainable longevity, posture, and joints",
-                          icon: Activity
-                        }
-                      ].map((item) => {
-                        const isSelected = answers.goal === item.key;
-                        const Icon = item.icon;
-                        return (
-                          <div
-                            key={item.key}
-                            onClick={() => updateAnswers({ goal: item.key as Goal })}
-                            className={`p-3.5 rounded-2xl border cursor-pointer transition-all flex items-center justify-between ${
-                              isSelected
-                                ? "card-selected-glow bg-[#102831]"
-                                : "bg-[#102831]/60 border-[#28525B]/70 hover:border-[#28DACC]/40"
-                            }`}
-                          >
-                            <div className="flex items-center gap-3">
-                              <div
-                                className={`w-10 h-10 rounded-xl flex items-center justify-center ${
-                                  isSelected
-                                    ? "bg-[#28DACC] text-[#07151D]"
-                                    : "bg-[#07151D] text-[#28DACC] border border-[#28525B]"
-                                }`}
-                              >
-                                <Icon size={20} />
-                              </div>
-                              <div>
-                                <div className="font-semibold text-sm text-[#F4F9FA]">
-                                  {item.title}
-                                </div>
-                                <div className="text-xs text-[#A8C5CA]">{item.desc}</div>
-                              </div>
-                            </div>
-                            <div
-                              className={`w-5 h-5 rounded-full border flex items-center justify-center ${
-                                isSelected
-                                  ? "border-[#28DACC] bg-[#28DACC] text-[#07151D]"
-                                  : "border-[#28525B]"
-                              }`}
-                            >
-                              {isSelected && <CheckCircle2 size={14} />}
-                            </div>
-                          </div>
-                        );
-                      })}
-                    </div>
+                {/* Female Card */}
+                <button
+                  type="button"
+                  onClick={() => updateAnswers({ gender: "female" })}
+                  className={`group relative overflow-hidden rounded-2xl border transition-all text-left flex flex-col items-center justify-end p-4 h-64 ${
+                    answers.gender === "female"
+                      ? "border-[#28DACC] bg-[#121212] shadow-[0_0_20px_rgba(40,218,204,0.25)] ring-1 ring-[#28DACC]"
+                      : "border-[#1F1F1F] bg-[#0E0E0E] hover:border-[#333333]"
+                  }`}
+                >
+                  <div className="absolute inset-0 z-0">
+                    <img
+                      src="/images/assets/gender_female.jpg"
+                      alt="Female physique"
+                      className="w-full h-full object-cover object-top opacity-75 group-hover:scale-105 transition-transform duration-500"
+                    />
+                    <div className="absolute inset-0 bg-gradient-to-t from-[#000000] via-[#000000]/40 to-transparent" />
                   </div>
-                )}
-
-                {/* QUESTION 4: FITNESS LEVEL */}
-                {step === 4 && (
-                  <div>
-                    <span className="text-xs uppercase font-mono tracking-wider text-[#28DACC]">
-                      Question 4 of 9
-                    </span>
-                    <h2 className="text-2xl md:text-3xl font-bold text-[#F4F9FA] mt-1">
-                      Current fitness experience?
-                    </h2>
-                    <p className="text-sm text-[#A8C5CA] mt-2">
-                      Self-reported experience determines exercise complexity and recovery spacing.
-                    </p>
-
-                    <div className="mt-5 space-y-3">
-                      {[
-                        {
-                          key: "complete_beginner",
-                          title: "Complete Beginner",
-                          desc: "Brand new to structured exercise. Needs foundational form instructions."
-                        },
-                        {
-                          key: "beginner",
-                          title: "Beginner (Under 6 months)",
-                          desc: "Familiar with basic exercises but haven't followed a structured progression."
-                        },
-                        {
-                          key: "intermediate",
-                          title: "Intermediate (6-24 months)",
-                          desc: "Consistent lifter; understands compound movements and effort regulation."
-                        },
-                        {
-                          key: "advanced",
-                          title: "Advanced (2+ years)",
-                          desc: "Solid technical proficiency; ready for periodized splits and higher volume."
-                        }
-                      ].map((item) => {
-                        const isSelected = answers.fitnessLevel === item.key;
-                        return (
-                          <div
-                            key={item.key}
-                            onClick={() =>
-                              updateAnswers({ fitnessLevel: item.key as FitnessLevel })
-                            }
-                            className={`p-4 rounded-2xl border cursor-pointer transition-all ${
-                              isSelected
-                                ? "card-selected-glow bg-[#102831]"
-                                : "bg-[#102831]/60 border-[#28525B]/70 hover:border-[#28DACC]/40"
-                            }`}
-                          >
-                            <div className="flex items-center justify-between">
-                              <span className="font-semibold text-base text-[#F4F9FA]">
-                                {item.title}
-                              </span>
-                              <div
-                                className={`w-5 h-5 rounded-full border flex items-center justify-center ${
-                                  isSelected
-                                    ? "border-[#28DACC] bg-[#28DACC] text-[#07151D]"
-                                    : "border-[#28525B]"
-                                }`}
-                              >
-                                {isSelected && <CheckCircle2 size={14} />}
-                              </div>
-                            </div>
-                            <p className="text-xs text-[#A8C5CA] mt-1">{item.desc}</p>
-                          </div>
-                        );
-                      })}
-                    </div>
+                  <div className="relative z-10 w-full flex items-center justify-between">
+                    <span className="font-bold text-lg text-white">Female</span>
+                    {answers.gender === "female" && (
+                      <div className="w-6 h-6 rounded-full bg-[#28DACC] text-[#000000] flex items-center justify-center font-bold">
+                        <Check size={14} strokeWidth={3} />
+                      </div>
+                    )}
                   </div>
-                )}
+                </button>
+              </div>
 
-                {/* QUESTION 5: WORKOUT LOCATION */}
-                {step === 5 && (
-                  <div>
-                    <span className="text-xs uppercase font-mono tracking-wider text-[#28DACC]">
-                      Question 5 of 9
-                    </span>
-                    <h2 className="text-2xl md:text-3xl font-bold text-[#F4F9FA] mt-1">
-                      Where will you train?
-                    </h2>
-                    <p className="text-sm text-[#A8C5CA] mt-2">
-                      Filters available exercise selection and setup constraints.
-                    </p>
+              {/* Prefer not to say option */}
+              <button
+                type="button"
+                onClick={() => updateAnswers({ gender: "prefer_not_to_say" })}
+                className={`mt-3 py-3 px-4 rounded-xl border text-center transition-all text-xs font-semibold ${
+                  answers.gender === "prefer_not_to_say"
+                    ? "border-[#28DACC] bg-[#121212] text-[#28DACC]"
+                    : "border-[#1F1F1F] bg-[#0A0A0A] text-[#8E8E93] hover:text-white"
+                }`}
+              >
+                Prefer not to say
+              </button>
+            </motion.div>
+          )}
 
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-3 mt-6">
-                      {[
-                        { key: "home", label: "At Home", icon: Home, desc: "Living room or home gym setup" },
-                        { key: "gym", label: "At the Gym", icon: Building, desc: "Commercial facility access" },
-                        { key: "both", label: "Both / Flexible", icon: Layers, desc: "Switch between home & gym" }
-                      ].map((item) => {
-                        const isSelected = answers.location === item.key;
-                        const Icon = item.icon;
-                        return (
-                          <div
-                            key={item.key}
-                            onClick={() =>
-                              updateAnswers({ location: item.key as WorkoutLocation })
-                            }
-                            className={`p-4 rounded-2xl border text-center cursor-pointer transition-all flex flex-col items-center ${
-                              isSelected
-                                ? "card-selected-glow bg-[#102831]"
-                                : "bg-[#102831]/60 border-[#28525B]/70 hover:border-[#28DACC]/40"
-                            }`}
-                          >
-                            <div
-                              className={`w-12 h-12 rounded-2xl flex items-center justify-center mb-3 ${
-                                isSelected
-                                  ? "bg-[#28DACC] text-[#07151D]"
-                                  : "bg-[#07151D] text-[#28DACC] border border-[#28525B]"
-                              }`}
-                            >
-                              <Icon size={24} />
-                            </div>
-                            <div className="font-semibold text-sm text-[#F4F9FA]">
-                              {item.label}
-                            </div>
-                            <div className="text-xs text-[#A8C5CA] mt-1">{item.desc}</div>
-                          </div>
-                        );
-                      })}
+          {/* STEP 2: Q2 Age */}
+          {step === 2 && (
+            <motion.div
+              key="step-2"
+              initial={{ opacity: 0, x: 20 }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, x: -20 }}
+              className="flex-1 flex flex-col"
+            >
+              <div className="text-center mb-6">
+                <span className="text-[11px] font-mono uppercase tracking-widest text-[#28DACC]">
+                  Question 2 · Section 1
+                </span>
+                <h1 className="text-2xl font-extrabold text-[#FFFFFF] mt-1 tracking-tight">
+                  Choose your age
+                </h1>
+                <p className="text-xs text-[#8E8E93] mt-1">
+                  Age determines baseline recovery rate and volume tolerance.
+                </p>
+              </div>
+
+              {/* Visual Age Cards matching MyFitCoach */}
+              <div className="grid grid-cols-2 gap-3 mb-5">
+                {[
+                  {
+                    bracket: "18_29" as const,
+                    label: "Age: 18-29",
+                    typicalAge: 25,
+                    img: "/images/assets/age_18_29.jpg"
+                  },
+                  {
+                    bracket: "30_39" as const,
+                    label: "Age: 30-39",
+                    typicalAge: 34,
+                    img: "/images/assets/age_30_39.jpg"
+                  },
+                  {
+                    bracket: "40_49" as const,
+                    label: "Age: 40-49",
+                    typicalAge: 45,
+                    img: "/images/assets/age_40_49.jpg"
+                  },
+                  {
+                    bracket: "50_plus" as const,
+                    label: "Age: 50+",
+                    typicalAge: 55,
+                    img: "/images/assets/age_50_plus.jpg"
+                  }
+                ].map((item) => (
+                  <button
+                    key={item.bracket}
+                    type="button"
+                    onClick={() =>
+                      updateAnswers({
+                        ageBracket: item.bracket,
+                        age: answers.age || item.typicalAge
+                      })
+                    }
+                    className={`group relative overflow-hidden rounded-2xl border transition-all text-left flex flex-col justify-end p-3 h-40 ${
+                      answers.ageBracket === item.bracket
+                        ? "border-[#28DACC] bg-[#121212] shadow-[0_0_16px_rgba(40,218,204,0.2)] ring-1 ring-[#28DACC]"
+                        : "border-[#1F1F1F] bg-[#0E0E0E] hover:border-[#333333]"
+                    }`}
+                  >
+                    <div className="absolute inset-0 z-0">
+                      <img
+                        src={item.img}
+                        alt={item.label}
+                        className="w-full h-full object-cover object-top opacity-70 group-hover:scale-105 transition-transform duration-500"
+                      />
+                      <div className="absolute inset-0 bg-gradient-to-t from-[#000000] via-[#000000]/50 to-transparent" />
                     </div>
-                  </div>
-                )}
-
-                {/* QUESTION 6: EQUIPMENT */}
-                {step === 6 && (
-                  <div>
-                    <span className="text-xs uppercase font-mono tracking-wider text-[#28DACC]">
-                      Question 6 of 9
-                    </span>
-                    <h2 className="text-2xl md:text-3xl font-bold text-[#F4F9FA] mt-1">
-                      Available equipment?
-                    </h2>
-                    <p className="text-sm text-[#A8C5CA] mt-2">
-                      Select all that apply. Exercises are 100% matched to your tools.
-                    </p>
-
-                    <div className="mt-5 space-y-2.5">
-                      {[
-                        { key: "bodyweight", label: "Bodyweight Only", desc: "No weights required" },
-                        { key: "dumbbells", label: "Dumbbells", desc: "Adjustable or fixed pairs" },
-                        { key: "resistance_bands", label: "Resistance Bands", desc: "Loop or handle bands" },
-                        { key: "basic_home_gym", label: "Basic Home Gym", desc: "Bench, pull-up bar, free weights" },
-                        { key: "fully_equipped_gym", label: "Fully Equipped Gym", desc: "Cables, barbells, machines" }
-                      ].map((item) => {
-                        const current = answers.equipment || ["bodyweight"];
-                        const isSelected = current.includes(item.key as EquipmentOption);
-
-                        const toggle = () => {
-                          let next: EquipmentOption[];
-                          if (item.key === "bodyweight") {
-                            // If user clicks bodyweight while others are selected, keep or toggle
-                            next = isSelected ? ["bodyweight"] : [...current, "bodyweight"];
-                          } else {
-                            if (isSelected) {
-                              next = current.filter((k) => k !== item.key);
-                              if (next.length === 0) next = ["bodyweight"];
-                            } else {
-                              next = [...current, item.key as EquipmentOption];
-                            }
-                          }
-                          updateAnswers({ equipment: next });
-                        };
-
-                        return (
-                          <div
-                            key={item.key}
-                            onClick={toggle}
-                            className={`p-3.5 rounded-2xl border cursor-pointer transition-all flex items-center justify-between ${
-                              isSelected
-                                ? "card-selected-glow bg-[#102831]"
-                                : "bg-[#102831]/60 border-[#28525B]/70 hover:border-[#28DACC]/40"
-                            }`}
-                          >
-                            <div>
-                              <div className="font-semibold text-sm text-[#F4F9FA]">
-                                {item.label}
-                              </div>
-                              <div className="text-xs text-[#A8C5CA]">{item.desc}</div>
-                            </div>
-                            <div
-                              className={`w-5 h-5 rounded-lg border flex items-center justify-center ${
-                                isSelected
-                                  ? "border-[#28DACC] bg-[#28DACC] text-[#07151D]"
-                                  : "border-[#28525B]"
-                              }`}
-                            >
-                              {isSelected && <CheckCircle2 size={14} />}
-                            </div>
-                          </div>
-                        );
-                      })}
-                    </div>
-                  </div>
-                )}
-
-                {/* QUESTION 7: TRAINING DAYS */}
-                {step === 7 && (
-                  <div>
-                    <span className="text-xs uppercase font-mono tracking-wider text-[#28DACC]">
-                      Question 7 of 9
-                    </span>
-                    <h2 className="text-2xl md:text-3xl font-bold text-[#F4F9FA] mt-1">
-                      Training days per week?
-                    </h2>
-                    <p className="text-sm text-[#A8C5CA] mt-2">
-                      Consistency beats intensity. Choose a realistic sustainable schedule.
-                    </p>
-
-                    <div className="mt-8 flex justify-center gap-3">
-                      {[2, 3, 4, 5, 6].map((dayCount) => {
-                        const isSelected = (answers.daysPerWeek || 3) === dayCount;
-                        return (
-                          <button
-                            key={dayCount}
-                            type="button"
-                            onClick={() => updateAnswers({ daysPerWeek: dayCount })}
-                            className={`w-14 h-20 rounded-2xl border flex flex-col items-center justify-center transition-all ${
-                              isSelected
-                                ? "card-selected-glow bg-[#102831] scale-105"
-                                : "bg-[#102831]/60 border-[#28525B]/70 hover:border-[#28DACC]/40"
-                            }`}
-                          >
-                            <span className="text-2xl font-bold num-mono text-[#F4F9FA]">
-                              {dayCount}
-                            </span>
-                            <span className="text-[10px] text-[#A8C5CA] uppercase mt-1">
-                              Days
-                            </span>
-                          </button>
-                        );
-                      })}
-                    </div>
-
-                    <div className="mt-6 p-3.5 rounded-2xl bg-[#102831] border border-[#28525B]/60 text-center text-xs text-[#A8C5CA]">
-                      {(answers.daysPerWeek || 3) <= 3 &&
-                        "Recommended: 3 days is optimal for full recovery and total-body compound stimulus."}
-                      {(answers.daysPerWeek || 3) === 4 &&
-                        "Upper / Lower Split: 2 upper body days and 2 lower body days with midweek rest."}
-                      {(answers.daysPerWeek || 3) >= 5 &&
-                        "High Frequency: Programmed as Push / Pull / Legs for experienced recovery management."}
-                    </div>
-                  </div>
-                )}
-
-                {/* QUESTION 8: DURATION */}
-                {step === 8 && (
-                  <div>
-                    <span className="text-xs uppercase font-mono tracking-wider text-[#28DACC]">
-                      Question 8 of 9
-                    </span>
-                    <h2 className="text-2xl md:text-3xl font-bold text-[#F4F9FA] mt-1">
-                      Workout session length?
-                    </h2>
-                    <p className="text-sm text-[#A8C5CA] mt-2">
-                      Calibrates the total number of working sets and rest density.
-                    </p>
-
-                    <div className="grid grid-cols-2 gap-3 mt-6">
-                      {[
-                        { min: 25, label: "20 - 30 min", desc: "Express high-density session" },
-                        { min: 40, label: "30 - 45 min", desc: "Balanced standard workout" },
-                        { min: 55, label: "45 - 60 min", desc: "Full volume with warm-up" },
-                        { min: 70, label: "60+ min", desc: "Extensive strength & accessories" }
-                      ].map((item) => {
-                        const isSelected = (answers.durationMinutes || 40) === item.min;
-                        return (
-                          <div
-                            key={item.min}
-                            onClick={() => updateAnswers({ durationMinutes: item.min })}
-                            className={`p-4 rounded-2xl border cursor-pointer transition-all ${
-                              isSelected
-                                ? "card-selected-glow bg-[#102831]"
-                                : "bg-[#102831]/60 border-[#28525B]/70 hover:border-[#28DACC]/40"
-                            }`}
-                          >
-                            <div className="flex items-center gap-2 text-[#28DACC] mb-1">
-                              <Clock size={16} />
-                              <span className="text-base font-bold num-mono text-[#F4F9FA]">
-                                {item.label}
-                              </span>
-                            </div>
-                            <div className="text-xs text-[#A8C5CA]">{item.desc}</div>
-                          </div>
-                        );
-                      })}
-                    </div>
-                  </div>
-                )}
-
-                {/* QUESTION 9: INJURIES & RESTRICTIONS */}
-                {step === 9 && (
-                  <div>
-                    <div className="flex items-center justify-between">
-                      <span className="text-xs uppercase font-mono tracking-wider text-[#28DACC]">
-                        Question 9 of 9 · Safety Check
+                    <div className="relative z-10 flex items-center justify-between w-full">
+                      <span className="font-bold text-sm text-white">
+                        {item.label}
                       </span>
-                      {answers.healthConsentGiven && (
-                        <span className="text-[11px] text-[#28DA8B] flex items-center gap-1 font-mono">
-                          <CheckCircle2 size={12} /> Consent Logged
-                        </span>
-                      )}
-                    </div>
-                    <h2 className="text-2xl md:text-3xl font-bold text-[#F4F9FA] mt-1">
-                      Injuries or joint restrictions?
-                    </h2>
-                    <p className="text-sm text-[#A8C5CA] mt-2">
-                      Reported areas will automatically activate Restricted Mode and filter out contraindicated movements.
-                    </p>
-
-                    <div className="mt-5 space-y-2.5">
-                      {[
-                        { key: "none", label: "No Restrictions", desc: "No current pain or joint issues" },
-                        { key: "knee", label: "Knee Sensitivity", desc: "Excludes jumping & deep high-impact squats" },
-                        { key: "back", label: "Lower Back / Spinal Issues", desc: "Excludes heavy axial loading & unbraced hinges" },
-                        { key: "shoulder", label: "Shoulder / Rotator Cuff", desc: "Excludes behind-neck presses & excessive dips" },
-                        { key: "other", label: "Other Physical Restriction", desc: "Triggers personalized low-impact mode" }
-                      ].map((item) => {
-                        const current = answers.restrictions || ["none"];
-                        const isSelected = current.includes(item.key as RestrictionType);
-
-                        const toggle = () => {
-                          let next: RestrictionType[];
-                          if (item.key === "none") {
-                            // "none" is mutually exclusive
-                            next = ["none"];
-                          } else {
-                            // Deselect "none"
-                            const withoutNone = current.filter((k) => k !== "none");
-                            if (isSelected) {
-                              next = withoutNone.filter((k) => k !== item.key);
-                              if (next.length === 0) next = ["none"];
-                            } else {
-                              next = [...withoutNone, item.key as RestrictionType];
-                            }
-                          }
-                          updateAnswers({ restrictions: next });
-                        };
-
-                        return (
-                          <div
-                            key={item.key}
-                            onClick={toggle}
-                            className={`p-3.5 rounded-2xl border cursor-pointer transition-all flex items-center justify-between ${
-                              isSelected
-                                ? item.key === "none"
-                                  ? "card-selected-glow bg-[#102831]"
-                                  : "border-[#FFB020] bg-[#102831] shadow-[0_0_12px_rgba(255,176,32,0.2)]"
-                                : "bg-[#102831]/60 border-[#28525B]/70 hover:border-[#28DACC]/40"
-                            }`}
-                          >
-                            <div>
-                              <div className="font-semibold text-sm text-[#F4F9FA] flex items-center gap-1.5">
-                                {item.label}
-                                {item.key !== "none" && isSelected && (
-                                  <ShieldAlert size={14} className="text-[#FFB020]" />
-                                )}
-                              </div>
-                              <div className="text-xs text-[#A8C5CA]">{item.desc}</div>
-                            </div>
-                            <div
-                              className={`w-5 h-5 rounded-lg border flex items-center justify-center ${
-                                isSelected
-                                  ? item.key === "none"
-                                    ? "border-[#28DACC] bg-[#28DACC] text-[#07151D]"
-                                    : "border-[#FFB020] bg-[#FFB020] text-[#07151D]"
-                                  : "border-[#28525B]"
-                              }`}
-                            >
-                              {isSelected && <CheckCircle2 size={14} />}
-                            </div>
-                          </div>
-                        );
-                      })}
-                    </div>
-
-                    {/* Notice if restriction is chosen */}
-                    {answers.restrictions &&
-                      answers.restrictions.some((r) => r !== "none") && (
-                        <div className="mt-4 p-3.5 rounded-2xl bg-[#FFB020]/15 border border-[#FFB020]/40 flex items-start gap-2.5">
-                          <ShieldAlert size={18} className="text-[#FFB020] shrink-0 mt-0.5" />
-                          <div className="text-xs text-[#F4F9FA] leading-relaxed">
-                            <span className="font-semibold text-[#FFB020]">Restricted Mode Activated:</span> Exercise library will automatically substitute high-impact movements with joint-friendly regressions.
-                          </div>
+                      {answers.ageBracket === item.bracket && (
+                        <div className="w-5 h-5 rounded-full bg-[#28DACC] text-[#000000] flex items-center justify-center font-bold">
+                          <Check size={12} strokeWidth={3} />
                         </div>
                       )}
+                    </div>
+                  </button>
+                ))}
+              </div>
+
+              {/* Exact Age Stepper */}
+              <div className="p-4 rounded-2xl bg-[#0E0E0E] border border-[#1F1F1F] flex items-center justify-between">
+                <div>
+                  <span className="text-xs text-[#8E8E93] font-medium block">
+                    Exact Age
+                  </span>
+                  <span className="text-2xl font-mono font-bold text-white">
+                    {answers.age || 28}{" "}
+                    <span className="text-sm font-normal text-[#8E8E93]">years</span>
+                  </span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <button
+                    type="button"
+                    onClick={() =>
+                      updateAnswers({ age: Math.max(18, (answers.age || 28) - 1) })
+                    }
+                    className="w-10 h-10 rounded-xl bg-[#1A1A1A] border border-[#2A2A2A] flex items-center justify-center text-white active:scale-95 transition-transform"
+                  >
+                    <Minus size={18} />
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() =>
+                      updateAnswers({ age: Math.min(95, (answers.age || 28) + 1) })
+                    }
+                    className="w-10 h-10 rounded-xl bg-[#1A1A1A] border border-[#2A2A2A] flex items-center justify-center text-white active:scale-95 transition-transform"
+                  >
+                    <Plus size={18} />
+                  </button>
+                </div>
+              </div>
+
+              {isUnderage && (
+                <div className="mt-4 p-3.5 rounded-xl bg-red-950/40 border border-red-500/40 text-xs text-red-200 flex items-center gap-2.5">
+                  <AlertTriangle size={18} className="text-red-400 shrink-0" />
+                  <span>
+                    FIT Planner is calibrated for adults 18 and older. Please verify your age.
+                  </span>
+                </div>
+              )}
+            </motion.div>
+          )}
+
+          {/* STEP 3: Q3 Main Goal */}
+          {step === 3 && (
+            <motion.div
+              key="step-3"
+              initial={{ opacity: 0, x: 20 }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, x: -20 }}
+              className="flex-1 flex flex-col"
+            >
+              <div className="text-center mb-6">
+                <span className="text-[11px] font-mono uppercase tracking-widest text-[#28DACC]">
+                  Question 3 · Section 1
+                </span>
+                <h1 className="text-2xl font-extrabold text-[#FFFFFF] mt-1 tracking-tight">
+                  What is your main goal?
+                </h1>
+                <p className="text-xs text-[#8E8E93] mt-1">
+                  Select your primary outcome to calibrate rep targets and volume.
+                </p>
+              </div>
+
+              <div className="space-y-3 my-auto">
+                {[
+                  {
+                    id: "build_muscle" as Goal,
+                    title: "Build muscle",
+                    subtitle: "Hypertrophy focus, progressive overload & lean mass",
+                    icon: "💪"
+                  },
+                  {
+                    id: "lose_weight" as Goal,
+                    title: "Lose weight & body fat",
+                    subtitle: "High caloric expenditure, deficit support & definition",
+                    icon: "🔥"
+                  },
+                  {
+                    id: "gain_weight" as Goal,
+                    title: "Gain weight & mass",
+                    subtitle: "Caloric surplus, compound strength & size foundation",
+                    icon: "📈"
+                  },
+                  {
+                    id: "improve_fitness" as Goal,
+                    title: "Improve fitness & stamina",
+                    subtitle: "Athletic conditioning, work capacity & functional health",
+                    icon: "⚡"
+                  },
+                  {
+                    id: "maintain" as Goal,
+                    title: "Maintain fitness",
+                    subtitle: "Sustain strength, joint mobility & long-term health",
+                    icon: "⚖️"
+                  }
+                ].map((item) => (
+                  <button
+                    key={item.id}
+                    type="button"
+                    onClick={() => updateAnswers({ goal: item.id })}
+                    className={`w-full p-4 rounded-2xl border text-left flex items-center justify-between transition-all ${
+                      answers.goal === item.id
+                        ? "border-[#28DACC] bg-[#121212] shadow-[0_0_16px_rgba(40,218,204,0.2)] ring-1 ring-[#28DACC]"
+                        : "border-[#1F1F1F] bg-[#0E0E0E] hover:border-[#333333]"
+                    }`}
+                  >
+                    <div>
+                      <div className="flex items-center gap-2">
+                        <span className="text-lg">{item.icon}</span>
+                        <span className="font-bold text-base text-white">
+                          {item.title}
+                        </span>
+                      </div>
+                      <p className="text-xs text-[#8E8E93] mt-1 ml-7">
+                        {item.subtitle}
+                      </p>
+                    </div>
+                    {answers.goal === item.id && (
+                      <div className="w-6 h-6 rounded-full bg-[#28DACC] text-[#000000] flex items-center justify-center font-bold shrink-0 ml-3">
+                        <Check size={14} strokeWidth={3} />
+                      </div>
+                    )}
+                  </button>
+                ))}
+              </div>
+            </motion.div>
+          )}
+
+          {/* STEP 4: Q4 Fitness Level */}
+          {step === 4 && (
+            <motion.div
+              key="step-4"
+              initial={{ opacity: 0, x: 20 }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, x: -20 }}
+              className="flex-1 flex flex-col"
+            >
+              <div className="text-center mb-6">
+                <span className="text-[11px] font-mono uppercase tracking-widest text-[#28DACC]">
+                  Question 4 · Section 1
+                </span>
+                <h1 className="text-2xl font-extrabold text-[#FFFFFF] mt-1 tracking-tight">
+                  What is your current fitness level?
+                </h1>
+                <p className="text-xs text-[#8E8E93] mt-1">
+                  Sets appropriate starting volume to prevent overtraining.
+                </p>
+              </div>
+
+              <div className="space-y-3 my-auto">
+                {[
+                  {
+                    id: "complete_beginner" as FitnessLevel,
+                    title: "Complete Beginner",
+                    desc: "Never trained consistently, learning basic movement patterns"
+                  },
+                  {
+                    id: "beginner" as FitnessLevel,
+                    title: "Beginner",
+                    desc: "Working out for a few months, building consistency"
+                  },
+                  {
+                    id: "intermediate" as FitnessLevel,
+                    title: "Intermediate",
+                    desc: "1–2 years of consistent strength training with good form"
+                  },
+                  {
+                    id: "advanced" as FitnessLevel,
+                    title: "Advanced",
+                    desc: "3+ years of progressive overload training and periodization"
+                  }
+                ].map((item) => (
+                  <button
+                    key={item.id}
+                    type="button"
+                    onClick={() => updateAnswers({ fitnessLevel: item.id })}
+                    className={`w-full p-4 rounded-2xl border text-left flex items-center justify-between transition-all ${
+                      answers.fitnessLevel === item.id
+                        ? "border-[#28DACC] bg-[#121212] shadow-[0_0_16px_rgba(40,218,204,0.2)] ring-1 ring-[#28DACC]"
+                        : "border-[#1F1F1F] bg-[#0E0E0E] hover:border-[#333333]"
+                    }`}
+                  >
+                    <div>
+                      <span className="font-bold text-base text-white block">
+                        {item.title}
+                      </span>
+                      <span className="text-xs text-[#8E8E93] mt-1 block">
+                        {item.desc}
+                      </span>
+                    </div>
+                    {answers.fitnessLevel === item.id && (
+                      <div className="w-6 h-6 rounded-full bg-[#28DACC] text-[#000000] flex items-center justify-center font-bold shrink-0 ml-3">
+                        <Check size={14} strokeWidth={3} />
+                      </div>
+                    )}
+                  </button>
+                ))}
+              </div>
+            </motion.div>
+          )}
+
+          {/* STEP 5: Motivational Interstitial 1 (Over 430,000 members) */}
+          {step === 5 && (
+            <motion.div
+              key="step-5-interstitial"
+              initial={{ opacity: 0, scale: 0.96 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.96 }}
+              className="flex-1 flex flex-col justify-between py-2 text-center"
+            >
+              <div>
+                <span className="text-[11px] font-mono uppercase tracking-widest text-[#28DACC]">
+                  FIT PLANNER · Community
+                </span>
+                <h1 className="text-3xl font-extrabold text-[#FFFFFF] mt-2 tracking-tight">
+                  Over 430,000 members
+                </h1>
+                <p className="text-lg text-[#28DACC] font-semibold mt-0.5">
+                  have chosen FIT Planner
+                </p>
+                <p className="text-xs text-[#8E8E93] mt-2 max-w-xs mx-auto">
+                  Our evidence-based algorithms tailor each workout to your exact physiology.
+                </p>
+              </div>
+
+              {/* Athletes Image from MyFitCoach */}
+              <div className="my-6 relative rounded-2xl overflow-hidden border border-[#1A1A1A] bg-[#0A0A0A] p-2">
+                <img
+                  src="/images/assets/social_proof_men.jpg"
+                  alt="Fit athletes"
+                  className="w-full h-56 object-contain mx-auto"
+                />
+              </div>
+
+              {/* Press Logos as seen in screenshot */}
+              <div className="mb-4">
+                <span className="text-[10px] font-mono text-[#666666] uppercase tracking-wider block mb-2">
+                  As seen in
+                </span>
+                <div className="flex items-center justify-center gap-6 text-xs font-semibold text-[#8E8E93] tracking-wide">
+                  <span>Men's Fitness</span>
+                  <span className="text-[#333333]">|</span>
+                  <span>Health &amp; Wellbeing</span>
+                  <span className="text-[#333333]">|</span>
+                  <span>Women's Fitness</span>
+                </div>
+              </div>
+            </motion.div>
+          )}
+
+          {/* STEP 6: Q5 Height */}
+          {step === 6 && (
+            <motion.div
+              key="step-6"
+              initial={{ opacity: 0, x: 20 }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, x: -20 }}
+              className="flex-1 flex flex-col"
+            >
+              <div className="text-center mb-6">
+                <span className="text-[11px] font-mono uppercase tracking-widest text-[#28DACC]">
+                  Question 5 · Section 2
+                </span>
+                <h1 className="text-2xl font-extrabold text-[#FFFFFF] mt-1 tracking-tight">
+                  What is your height?
+                </h1>
+                <p className="text-xs text-[#8E8E93] mt-1">
+                  Required for BMI and metabolic rate calculation.
+                </p>
+              </div>
+
+              {/* Unit Toggle */}
+              <div className="flex justify-center mb-8">
+                <div className="p-1 rounded-xl bg-[#121212] border border-[#222222] flex gap-1">
+                  <button
+                    type="button"
+                    onClick={() => updateAnswers({ isHeightImperial: false })}
+                    className={`px-5 py-2 rounded-lg text-xs font-bold transition-all ${
+                      !answers.isHeightImperial
+                        ? "bg-[#28DACC] text-[#000000]"
+                        : "text-[#8E8E93] hover:text-white"
+                    }`}
+                  >
+                    Centimeters (cm)
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => updateAnswers({ isHeightImperial: true })}
+                    className={`px-5 py-2 rounded-lg text-xs font-bold transition-all ${
+                      answers.isHeightImperial
+                        ? "bg-[#28DACC] text-[#000000]"
+                        : "text-[#8E8E93] hover:text-white"
+                    }`}
+                  >
+                    Feet &amp; Inches (ft/in)
+                  </button>
+                </div>
+              </div>
+
+              {/* Input Display */}
+              <div className="p-8 rounded-3xl bg-[#0E0E0E] border border-[#1F1F1F] text-center my-auto">
+                {!answers.isHeightImperial ? (
+                  <>
+                    <span className="text-6xl font-mono font-extrabold text-white tracking-tight">
+                      {answers.heightCm || 178}
+                    </span>
+                    <span className="text-lg font-bold text-[#28DACC] ml-2">cm</span>
+                    <div className="flex justify-center gap-3 mt-6">
+                      <button
+                        type="button"
+                        onClick={() =>
+                          updateAnswers({
+                            heightCm: Math.max(120, (answers.heightCm || 178) - 1)
+                          })
+                        }
+                        className="w-12 h-12 rounded-2xl bg-[#1A1A1A] border border-[#2A2A2A] flex items-center justify-center text-white active:scale-95"
+                      >
+                        <Minus size={20} />
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() =>
+                          updateAnswers({
+                            heightCm: Math.min(230, (answers.heightCm || 178) + 1)
+                          })
+                        }
+                        className="w-12 h-12 rounded-2xl bg-[#1A1A1A] border border-[#2A2A2A] flex items-center justify-center text-white active:scale-95"
+                      >
+                        <Plus size={20} />
+                      </button>
+                    </div>
+                  </>
+                ) : (
+                  <>
+                    <div className="flex justify-center items-baseline gap-4">
+                      <div>
+                        <span className="text-5xl font-mono font-extrabold text-white">
+                          {Math.floor((answers.heightCm || 178) / 30.48)}
+                        </span>
+                        <span className="text-sm font-bold text-[#28DACC] ml-1">ft</span>
+                      </div>
+                      <div>
+                        <span className="text-5xl font-mono font-extrabold text-white">
+                          {Math.round(((answers.heightCm || 178) % 30.48) / 2.54)}
+                        </span>
+                        <span className="text-sm font-bold text-[#28DACC] ml-1">in</span>
+                      </div>
+                    </div>
+                    <div className="flex justify-center gap-3 mt-6">
+                      <button
+                        type="button"
+                        onClick={() =>
+                          updateAnswers({
+                            heightCm: Math.max(120, (answers.heightCm || 178) - 2.54)
+                          })
+                        }
+                        className="w-12 h-12 rounded-2xl bg-[#1A1A1A] border border-[#2A2A2A] flex items-center justify-center text-white active:scale-95"
+                      >
+                        <Minus size={20} />
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() =>
+                          updateAnswers({
+                            heightCm: Math.min(230, (answers.heightCm || 178) + 2.54)
+                          })
+                        }
+                        className="w-12 h-12 rounded-2xl bg-[#1A1A1A] border border-[#2A2A2A] flex items-center justify-center text-white active:scale-95"
+                      >
+                        <Plus size={20} />
+                      </button>
+                    </div>
+                  </>
+                )}
+              </div>
+            </motion.div>
+          )}
+
+          {/* STEP 7: Q6 Current Weight */}
+          {step === 7 && (
+            <motion.div
+              key="step-7"
+              initial={{ opacity: 0, x: 20 }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, x: -20 }}
+              className="flex-1 flex flex-col"
+            >
+              <div className="text-center mb-6">
+                <span className="text-[11px] font-mono uppercase tracking-widest text-[#28DACC]">
+                  Question 6 · Section 2
+                </span>
+                <h1 className="text-2xl font-extrabold text-[#FFFFFF] mt-1 tracking-tight">
+                  What is your current weight?
+                </h1>
+                <p className="text-xs text-[#8E8E93] mt-1">
+                  We use this for precise daily caloric &amp; macronutrient guidance.
+                </p>
+              </div>
+
+              {/* Unit Toggle */}
+              <div className="flex justify-center mb-8">
+                <div className="p-1 rounded-xl bg-[#121212] border border-[#222222] flex gap-1">
+                  <button
+                    type="button"
+                    onClick={() => updateAnswers({ isWeightImperial: false })}
+                    className={`px-5 py-2 rounded-lg text-xs font-bold transition-all ${
+                      !answers.isWeightImperial
+                        ? "bg-[#28DACC] text-[#000000]"
+                        : "text-[#8E8E93] hover:text-white"
+                    }`}
+                  >
+                    Kilograms (kg)
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => updateAnswers({ isWeightImperial: true })}
+                    className={`px-5 py-2 rounded-lg text-xs font-bold transition-all ${
+                      answers.isWeightImperial
+                        ? "bg-[#28DACC] text-[#000000]"
+                        : "text-[#8E8E93] hover:text-white"
+                    }`}
+                  >
+                    Pounds (lbs)
+                  </button>
+                </div>
+              </div>
+
+              {/* Weight Display */}
+              <div className="p-8 rounded-3xl bg-[#0E0E0E] border border-[#1F1F1F] text-center my-auto">
+                <span className="text-6xl font-mono font-extrabold text-white tracking-tight">
+                  {!answers.isWeightImperial
+                    ? answers.weightKg || 78
+                    : Math.round((answers.weightKg || 78) * 2.20462)}
+                </span>
+                <span className="text-lg font-bold text-[#28DACC] ml-2">
+                  {!answers.isWeightImperial ? "kg" : "lbs"}
+                </span>
+
+                <div className="flex justify-center gap-3 mt-6">
+                  <button
+                    type="button"
+                    onClick={() =>
+                      updateAnswers({
+                        weightKg: Math.max(35, (answers.weightKg || 78) - 1)
+                      })
+                    }
+                    className="w-12 h-12 rounded-2xl bg-[#1A1A1A] border border-[#2A2A2A] flex items-center justify-center text-white active:scale-95"
+                  >
+                    <Minus size={20} />
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() =>
+                      updateAnswers({
+                        weightKg: Math.min(250, (answers.weightKg || 78) + 1)
+                      })
+                    }
+                    className="w-12 h-12 rounded-2xl bg-[#1A1A1A] border border-[#2A2A2A] flex items-center justify-center text-white active:scale-95"
+                  >
+                    <Plus size={20} />
+                  </button>
+                </div>
+              </div>
+            </motion.div>
+          )}
+
+          {/* STEP 8: Q7 Target Weight (Optional) */}
+          {step === 8 && (
+            <motion.div
+              key="step-8"
+              initial={{ opacity: 0, x: 20 }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, x: -20 }}
+              className="flex-1 flex flex-col"
+            >
+              <div className="text-center mb-6">
+                <span className="text-[11px] font-mono uppercase tracking-widest text-[#28DACC]">
+                  Question 7 · Section 2
+                </span>
+                <h1 className="text-2xl font-extrabold text-[#FFFFFF] mt-1 tracking-tight">
+                  What is your target weight?
+                </h1>
+                <p className="text-xs text-[#8E8E93] mt-1">
+                  Optional goal weight to plan your caloric pacing.
+                </p>
+              </div>
+
+              <div className="p-8 rounded-3xl bg-[#0E0E0E] border border-[#1F1F1F] text-center my-auto">
+                <span className="text-6xl font-mono font-extrabold text-white tracking-tight">
+                  {!answers.isWeightImperial
+                    ? answers.targetWeightKg || 80
+                    : Math.round((answers.targetWeightKg || 80) * 2.20462)}
+                </span>
+                <span className="text-lg font-bold text-[#28DACC] ml-2">
+                  {!answers.isWeightImperial ? "kg" : "lbs"}
+                </span>
+
+                <div className="mt-2 text-xs text-[#8E8E93]">
+                  {answers.weightKg && answers.targetWeightKg ? (
+                    <span>
+                      {answers.targetWeightKg > answers.weightKg
+                        ? `Target: +${answers.targetWeightKg - answers.weightKg} kg (Lean Surplus)`
+                        : answers.targetWeightKg < answers.weightKg
+                        ? `Target: -${answers.weightKg - answers.targetWeightKg} kg (Fat Loss Deficit)`
+                        : "Target: Maintenance & Recomposition"}
+                    </span>
+                  ) : null}
+                </div>
+
+                <div className="flex justify-center gap-3 mt-6">
+                  <button
+                    type="button"
+                    onClick={() =>
+                      updateAnswers({
+                        targetWeightKg: Math.max(35, (answers.targetWeightKg || 80) - 1)
+                      })
+                    }
+                    className="w-12 h-12 rounded-2xl bg-[#1A1A1A] border border-[#2A2A2A] flex items-center justify-center text-white active:scale-95"
+                  >
+                    <Minus size={20} />
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() =>
+                      updateAnswers({
+                        targetWeightKg: Math.min(250, (answers.targetWeightKg || 80) + 1)
+                      })
+                    }
+                    className="w-12 h-12 rounded-2xl bg-[#1A1A1A] border border-[#2A2A2A] flex items-center justify-center text-white active:scale-95"
+                  >
+                    <Plus size={20} />
+                  </button>
+                </div>
+              </div>
+            </motion.div>
+          )}
+
+          {/* STEP 9: Q8 Body Shape & Estimated Body Fat Slider */}
+          {step === 9 && (
+            <motion.div
+              key="step-9"
+              initial={{ opacity: 0, x: 20 }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, x: -20 }}
+              className="flex-1 flex flex-col"
+            >
+              <div className="text-center mb-5">
+                <span className="text-[11px] font-mono uppercase tracking-widest text-[#28DACC]">
+                  Question 8 · Section 2
+                </span>
+                <h1 className="text-2xl font-extrabold text-[#FFFFFF] mt-1 tracking-tight">
+                  Choose your current body shape
+                </h1>
+                <p className="text-xs text-[#8E8E93] mt-1">
+                  Select the visual profile that best represents your build.
+                </p>
+              </div>
+
+              {/* 4 Visual Body Shape Cards matching screenshot */}
+              <div className="grid grid-cols-2 gap-3 mb-5">
+                {[
+                  {
+                    id: "slender" as BodyShape,
+                    label: "Slender",
+                    img: "/images/assets/shape_slender.jpg",
+                    fat: 14
+                  },
+                  {
+                    id: "average" as BodyShape,
+                    label: "Average",
+                    img: "/images/assets/shape_average.jpg",
+                    fat: 20
+                  },
+                  {
+                    id: "heavy" as BodyShape,
+                    label: "Heavy",
+                    img: "/images/assets/shape_heavy.jpg",
+                    fat: 26
+                  },
+                  {
+                    id: "very_heavy" as BodyShape,
+                    label: "Very heavy",
+                    img: "/images/assets/shape_very_heavy.jpg",
+                    fat: 32
+                  }
+                ].map((item) => (
+                  <button
+                    key={item.id}
+                    type="button"
+                    onClick={() =>
+                      updateAnswers({
+                        bodyShape: item.id,
+                        estimatedBodyFat: item.fat
+                      })
+                    }
+                    className={`group relative overflow-hidden rounded-2xl border transition-all text-left flex flex-col justify-end p-3 h-40 ${
+                      answers.bodyShape === item.id
+                        ? "border-[#28DACC] bg-[#121212] shadow-[0_0_16px_rgba(40,218,204,0.2)] ring-1 ring-[#28DACC]"
+                        : "border-[#1F1F1F] bg-[#0E0E0E] hover:border-[#333333]"
+                    }`}
+                  >
+                    <div className="absolute inset-0 z-0">
+                      <img
+                        src={item.img}
+                        alt={item.label}
+                        className="w-full h-full object-cover object-top opacity-70 group-hover:scale-105 transition-transform duration-500"
+                      />
+                      <div className="absolute inset-0 bg-gradient-to-t from-[#000000] via-[#000000]/50 to-transparent" />
+                    </div>
+                    <div className="relative z-10 flex items-center justify-between w-full">
+                      <span className="font-bold text-sm text-white">
+                        {item.label}
+                      </span>
+                      {answers.bodyShape === item.id && (
+                        <div className="w-5 h-5 rounded-full bg-[#28DACC] text-[#000000] flex items-center justify-center font-bold">
+                          <Check size={12} strokeWidth={3} />
+                        </div>
+                      )}
+                    </div>
+                  </button>
+                ))}
+              </div>
+
+              {/* Estimated Body Fat Slider (matching MyFitCoach screenshot 24/33) */}
+              <div className="p-4 rounded-2xl bg-[#0E0E0E] border border-[#1F1F1F]">
+                <div className="flex items-center justify-between mb-2">
+                  <span className="text-xs font-semibold text-[#8E8E93]">
+                    Estimated Body Fat %
+                  </span>
+                  <span className="px-3 py-1 rounded-full bg-[#1A1A1A] border border-[#28DACC]/40 text-xs font-mono font-bold text-[#28DACC]">
+                    {answers.estimatedBodyFat || 20}%
+                  </span>
+                </div>
+                <input
+                  type="range"
+                  min="8"
+                  max="45"
+                  value={answers.estimatedBodyFat || 20}
+                  onChange={(e) =>
+                    updateAnswers({ estimatedBodyFat: parseInt(e.target.value) })
+                  }
+                  className="w-full h-2 bg-[#1A1A1A] rounded-lg appearance-none cursor-pointer accent-[#28DACC]"
+                />
+                <div className="flex justify-between text-[10px] text-[#666666] mt-1 font-mono">
+                  <span>Lean (&lt;15%)</span>
+                  <span>Fit (15–22%)</span>
+                  <span>Higher (&gt;25%)</span>
+                </div>
+              </div>
+            </motion.div>
+          )}
+
+          {/* STEP 10: Motivational Interstitial 2 (A little stronger with every workout!) */}
+          {step === 10 && (
+            <motion.div
+              key="step-10-interstitial"
+              initial={{ opacity: 0, scale: 0.96 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.96 }}
+              className="flex-1 flex flex-col justify-between py-2 text-center"
+            >
+              <div>
+                <span className="text-[11px] font-mono uppercase tracking-widest text-[#28DACC]">
+                  FIT PLANNER · Science
+                </span>
+                <h1 className="text-2xl font-extrabold text-[#FFFFFF] mt-2 tracking-tight">
+                  A little stronger with every workout!
+                </h1>
+              </div>
+
+              {/* Growth Curve Chart Graphic matching screenshot */}
+              <div className="my-6 relative rounded-2xl overflow-hidden border border-[#1A1A1A] bg-[#0A0A0A] p-3">
+                <img
+                  src="/images/assets/curve_chart.png"
+                  alt="Progress curve comparison"
+                  className="w-full h-44 object-contain mx-auto"
+                />
+                <div className="flex items-center justify-center gap-6 text-[11px] font-medium mt-3">
+                  <div className="flex items-center gap-1.5">
+                    <div className="w-3 h-3 rounded-sm bg-[#555555]" />
+                    <span className="text-[#8E8E93]">Without FIT Planner</span>
+                  </div>
+                  <div className="flex items-center gap-1.5">
+                    <div className="w-3 h-3 rounded-sm bg-[#28DACC] shadow-[0_0_6px_#28DACC]" />
+                    <span className="text-white font-semibold">With FIT Planner</span>
+                  </div>
+                </div>
+              </div>
+
+              <div className="space-y-2 text-left bg-[#0E0E0E] p-4 rounded-2xl border border-[#1A1A1A]">
+                <p className="text-xs text-[#F4F9FA] leading-relaxed">
+                  FIT Planner increases your reps and weights weekly in achievable, science-backed steps.
+                </p>
+                <p className="text-xs text-[#8E8E93] leading-relaxed">
+                  This automated progressive overload allows you to make much faster progress than with a static, generic workout plan.
+                </p>
+              </div>
+            </motion.div>
+          )}
+
+          {/* STEP 11: Q9 Workout Location */}
+          {step === 11 && (
+            <motion.div
+              key="step-11"
+              initial={{ opacity: 0, x: 20 }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, x: -20 }}
+              className="flex-1 flex flex-col"
+            >
+              <div className="text-center mb-6">
+                <span className="text-[11px] font-mono uppercase tracking-widest text-[#28DACC]">
+                  Question 9 · Section 3
+                </span>
+                <h1 className="text-2xl font-extrabold text-[#FFFFFF] mt-1 tracking-tight">
+                  Where do you want to work out?
+                </h1>
+                <p className="text-xs text-[#8E8E93] mt-1">
+                  We customize exercise selection according to your training environment.
+                </p>
+              </div>
+
+              <div className="space-y-3.5 my-auto">
+                {[
+                  {
+                    id: "home" as WorkoutLocation,
+                    title: "At Home",
+                    desc: "Training with minimal or no equipment",
+                    img: "/images/assets/loc_home.png"
+                  },
+                  {
+                    id: "gym" as WorkoutLocation,
+                    title: "Gym",
+                    desc: "Training with machines, cable pulleys, and free weights",
+                    img: "/images/assets/loc_gym.png"
+                  },
+                  {
+                    id: "both" as WorkoutLocation,
+                    title: "Hybrid (Home & Gym)",
+                    desc: "Combination of gym and home workouts based on schedule",
+                    img: "/images/assets/loc_hybrid.png"
+                  }
+                ].map((item) => (
+                  <button
+                    key={item.id}
+                    type="button"
+                    onClick={() => updateAnswers({ location: item.id })}
+                    className={`w-full p-4 rounded-2xl border text-left flex items-center justify-between transition-all ${
+                      answers.location === item.id
+                        ? "border-[#28DACC] bg-[#121212] shadow-[0_0_16px_rgba(40,218,204,0.2)] ring-1 ring-[#28DACC]"
+                        : "border-[#1F1F1F] bg-[#0E0E0E] hover:border-[#333333]"
+                    }`}
+                  >
+                    <div className="flex-1 pr-3">
+                      <span className="font-bold text-base text-white block">
+                        {item.title}
+                      </span>
+                      <span className="text-xs text-[#8E8E93] mt-1 block">
+                        {item.desc}
+                      </span>
+                    </div>
+                    <div className="w-16 h-14 rounded-xl overflow-hidden bg-[#1A1A1A] shrink-0 border border-[#222222]">
+                      <img
+                        src={item.img}
+                        alt={item.title}
+                        className="w-full h-full object-cover"
+                      />
+                    </div>
+                  </button>
+                ))}
+              </div>
+            </motion.div>
+          )}
+
+          {/* STEP 12: Q10 Equipment */}
+          {step === 12 && (
+            <motion.div
+              key="step-12"
+              initial={{ opacity: 0, x: 20 }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, x: -20 }}
+              className="flex-1 flex flex-col"
+            >
+              <div className="text-center mb-6">
+                <span className="text-[11px] font-mono uppercase tracking-widest text-[#28DACC]">
+                  Question 10 · Section 3
+                </span>
+                <h1 className="text-2xl font-extrabold text-[#FFFFFF] mt-1 tracking-tight">
+                  What equipment do you have?
+                </h1>
+                <p className="text-xs text-[#8E8E93] mt-1">
+                  Choose all gear available to you (multi-select).
+                </p>
+              </div>
+
+              <div className="space-y-2.5 my-auto">
+                {[
+                  { id: "bodyweight" as EquipmentOption, label: "Bodyweight Only" },
+                  { id: "dumbbells" as EquipmentOption, label: "Dumbbells" },
+                  { id: "resistance_bands" as EquipmentOption, label: "Resistance Bands" },
+                  { id: "basic_home_gym" as EquipmentOption, label: "Basic Home Gym (Bench, Pullup Bar)" },
+                  { id: "fully_equipped_gym" as EquipmentOption, label: "Fully Equipped Commercial Gym" }
+                ].map((item) => {
+                  const isSelected = answers.equipment?.includes(item.id);
+                  return (
+                    <button
+                      key={item.id}
+                      type="button"
+                      onClick={() => {
+                        const current = answers.equipment || [];
+                        let next: EquipmentOption[];
+                        if (isSelected) {
+                          next = current.filter((x) => x !== item.id);
+                          if (next.length === 0) next = ["bodyweight"];
+                        } else {
+                          next = [...current, item.id];
+                        }
+                        updateAnswers({ equipment: next });
+                      }}
+                      className={`w-full p-4 rounded-2xl border text-left flex items-center justify-between transition-all ${
+                        isSelected
+                          ? "border-[#28DACC] bg-[#121212] shadow-[0_0_16px_rgba(40,218,204,0.15)] ring-1 ring-[#28DACC]"
+                          : "border-[#1F1F1F] bg-[#0E0E0E] hover:border-[#333333]"
+                      }`}
+                    >
+                      <span className="font-semibold text-sm text-white">
+                        {item.label}
+                      </span>
+                      <div
+                        className={`w-6 h-6 rounded-lg border flex items-center justify-center transition-colors ${
+                          isSelected
+                            ? "bg-[#28DACC] border-[#28DACC] text-[#000000]"
+                            : "border-[#333333] bg-[#1A1A1A]"
+                        }`}
+                      >
+                        {isSelected && <Check size={14} strokeWidth={3} />}
+                      </div>
+                    </button>
+                  );
+                })}
+              </div>
+            </motion.div>
+          )}
+
+          {/* STEP 13: Q11 Days per week */}
+          {step === 13 && (
+            <motion.div
+              key="step-13"
+              initial={{ opacity: 0, x: 20 }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, x: -20 }}
+              className="flex-1 flex flex-col"
+            >
+              <div className="text-center mb-6">
+                <span className="text-[11px] font-mono uppercase tracking-widest text-[#28DACC]">
+                  Question 11 · Section 3
+                </span>
+                <h1 className="text-2xl font-extrabold text-[#FFFFFF] mt-1 tracking-tight">
+                  How many days per week can you train?
+                </h1>
+                <p className="text-xs text-[#8E8E93] mt-1">
+                  Determines your training split (Full Body, Upper/Lower, or PPL).
+                </p>
+              </div>
+
+              <div className="grid grid-cols-1 gap-3 my-auto">
+                {[
+                  { days: 2, label: "2 Days / Week", split: "Full Body A & B" },
+                  { days: 3, label: "3 Days / Week", split: "Full Body Rotation (Optimal for busy schedules)" },
+                  { days: 4, label: "4 Days / Week", split: "Upper / Lower Split (Maximum balance)" },
+                  { days: 5, label: "5 Days / Week", split: "Upper / Lower + Weak-point focus" },
+                  { days: 6, label: "6 Days / Week", split: "Push / Pull / Legs (High athletic volume)" }
+                ].map((item) => (
+                  <button
+                    key={item.days}
+                    type="button"
+                    onClick={() => updateAnswers({ daysPerWeek: item.days })}
+                    className={`w-full p-4 rounded-2xl border text-left flex items-center justify-between transition-all ${
+                      answers.daysPerWeek === item.days
+                        ? "border-[#28DACC] bg-[#121212] shadow-[0_0_16px_rgba(40,218,204,0.2)] ring-1 ring-[#28DACC]"
+                        : "border-[#1F1F1F] bg-[#0E0E0E] hover:border-[#333333]"
+                    }`}
+                  >
+                    <div>
+                      <span className="font-bold text-base text-white block">
+                        {item.label}
+                      </span>
+                      <span className="text-xs text-[#8E8E93] mt-0.5 block">
+                        {item.split}
+                      </span>
+                    </div>
+                    {answers.daysPerWeek === item.days && (
+                      <div className="w-6 h-6 rounded-full bg-[#28DACC] text-[#000000] flex items-center justify-center font-bold">
+                        <Check size={14} strokeWidth={3} />
+                      </div>
+                    )}
+                  </button>
+                ))}
+              </div>
+            </motion.div>
+          )}
+
+          {/* STEP 14: Q12 Workout duration */}
+          {step === 14 && (
+            <motion.div
+              key="step-14"
+              initial={{ opacity: 0, x: 20 }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, x: -20 }}
+              className="flex-1 flex flex-col"
+            >
+              <div className="text-center mb-6">
+                <span className="text-[11px] font-mono uppercase tracking-widest text-[#28DACC]">
+                  Question 12 · Section 3
+                </span>
+                <h1 className="text-2xl font-extrabold text-[#FFFFFF] mt-1 tracking-tight">
+                  How long can each workout be?
+                </h1>
+                <p className="text-xs text-[#8E8E93] mt-1">
+                  Determines exercise density, set count, and rest periods.
+                </p>
+              </div>
+
+              <div className="space-y-3 my-auto">
+                {[
+                  { min: 25, label: "20–30 minutes", desc: "High efficiency, supersets, 3 exercises" },
+                  { min: 40, label: "30–45 minutes", desc: "Standard hypertrophy, 4 exercises" },
+                  { min: 50, label: "45–60 minutes", desc: "Comprehensive compound & isolation, 5 exercises" },
+                  { min: 70, label: "60+ minutes", desc: "High volume power & hypertrophy, 6 exercises" }
+                ].map((item) => (
+                  <button
+                    key={item.min}
+                    type="button"
+                    onClick={() => updateAnswers({ durationMinutes: item.min })}
+                    className={`w-full p-4 rounded-2xl border text-left flex items-center justify-between transition-all ${
+                      answers.durationMinutes === item.min
+                        ? "border-[#28DACC] bg-[#121212] shadow-[0_0_16px_rgba(40,218,204,0.2)] ring-1 ring-[#28DACC]"
+                        : "border-[#1F1F1F] bg-[#0E0E0E] hover:border-[#333333]"
+                    }`}
+                  >
+                    <div>
+                      <span className="font-bold text-base text-white block">
+                        {item.label}
+                      </span>
+                      <span className="text-xs text-[#8E8E93] mt-0.5 block">
+                        {item.desc}
+                      </span>
+                    </div>
+                    {answers.durationMinutes === item.min && (
+                      <div className="w-6 h-6 rounded-full bg-[#28DACC] text-[#000000] flex items-center justify-center font-bold">
+                        <Check size={14} strokeWidth={3} />
+                      </div>
+                    )}
+                  </button>
+                ))}
+              </div>
+            </motion.div>
+          )}
+
+          {/* STEP 15: Q13 Daily Activity Level */}
+          {step === 15 && (
+            <motion.div
+              key="step-15"
+              initial={{ opacity: 0, x: 20 }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, x: -20 }}
+              className="flex-1 flex flex-col"
+            >
+              <div className="text-center mb-6">
+                <span className="text-[11px] font-mono uppercase tracking-widest text-[#28DACC]">
+                  Question 13 · Section 4 · Lifestyle
+                </span>
+                <h1 className="text-2xl font-extrabold text-[#FFFFFF] mt-1 tracking-tight">
+                  How active are you during a typical day?
+                </h1>
+                <p className="text-xs text-[#8E8E93] mt-1">
+                  Calculates Non-Exercise Activity Thermogenesis (NEAT).
+                </p>
+              </div>
+
+              <div className="space-y-3 my-auto">
+                {[
+                  {
+                    id: "mostly_sitting" as DailyActivity,
+                    title: "Mostly Sitting",
+                    desc: "Desk or remote office job, mostly sedentary throughout the day",
+                    icon: "🪑"
+                  },
+                  {
+                    id: "lightly_active" as DailyActivity,
+                    title: "Lightly Active",
+                    desc: "Desk job with frequent breaks, light daily walking (5k-7k steps)",
+                    icon: "🚶"
+                  },
+                  {
+                    id: "moderately_active" as DailyActivity,
+                    title: "Moderately Active",
+                    desc: "On your feet much of the day (teaching, retail, hospitality)",
+                    icon: "🏃"
+                  },
+                  {
+                    id: "very_active" as DailyActivity,
+                    title: "Very Active",
+                    desc: "Heavy physical labor, construction, high-intensity daily movement",
+                    icon: "⚡"
+                  }
+                ].map((item) => (
+                  <button
+                    key={item.id}
+                    type="button"
+                    onClick={() => updateAnswers({ dailyActivity: item.id })}
+                    className={`w-full p-4 rounded-2xl border text-left flex items-center justify-between transition-all ${
+                      answers.dailyActivity === item.id
+                        ? "border-[#28DACC] bg-[#121212] shadow-[0_0_16px_rgba(40,218,204,0.2)] ring-1 ring-[#28DACC]"
+                        : "border-[#1F1F1F] bg-[#0E0E0E] hover:border-[#333333]"
+                    }`}
+                  >
+                    <div>
+                      <div className="flex items-center gap-2">
+                        <span className="text-lg">{item.icon}</span>
+                        <span className="font-bold text-base text-white">
+                          {item.title}
+                        </span>
+                      </div>
+                      <p className="text-xs text-[#8E8E93] mt-1 ml-7">
+                        {item.desc}
+                      </p>
+                    </div>
+                    {answers.dailyActivity === item.id && (
+                      <div className="w-6 h-6 rounded-full bg-[#28DACC] text-[#000000] flex items-center justify-center font-bold shrink-0 ml-3">
+                        <Check size={14} strokeWidth={3} />
+                      </div>
+                    )}
+                  </button>
+                ))}
+              </div>
+            </motion.div>
+          )}
+
+          {/* STEP 16: Q14 Sleep Hours */}
+          {step === 16 && (
+            <motion.div
+              key="step-16"
+              initial={{ opacity: 0, x: 20 }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, x: -20 }}
+              className="flex-1 flex flex-col"
+            >
+              <div className="text-center mb-6">
+                <span className="text-[11px] font-mono uppercase tracking-widest text-[#28DACC]">
+                  Question 14 · Section 4
+                </span>
+                <h1 className="text-2xl font-extrabold text-[#FFFFFF] mt-1 tracking-tight">
+                  How much do you usually sleep?
+                </h1>
+                <p className="text-xs text-[#8E8E93] mt-1">
+                  Sleep directly influences muscular protein synthesis and CNS recovery.
+                </p>
+              </div>
+
+              <div className="space-y-3 my-auto">
+                {[
+                  { id: "less_than_6" as SleepRange, label: "Less than 6 hours", icon: "😴", desc: "Lower recovery reserve" },
+                  { id: "6_to_7" as SleepRange, label: "6–7 hours", icon: "🛏️", desc: "Moderate recovery" },
+                  { id: "7_to_8" as SleepRange, label: "7–8 hours", icon: "⚡", desc: "Optimal athlete recovery" },
+                  { id: "more_than_8" as SleepRange, label: "More than 8 hours", icon: "🌙", desc: "High recovery capacity" }
+                ].map((item) => (
+                  <button
+                    key={item.id}
+                    type="button"
+                    onClick={() => updateAnswers({ sleepHours: item.id })}
+                    className={`w-full p-4 rounded-2xl border text-left flex items-center justify-between transition-all ${
+                      answers.sleepHours === item.id
+                        ? "border-[#28DACC] bg-[#121212] shadow-[0_0_16px_rgba(40,218,204,0.2)] ring-1 ring-[#28DACC]"
+                        : "border-[#1F1F1F] bg-[#0E0E0E] hover:border-[#333333]"
+                    }`}
+                  >
+                    <div className="flex items-center gap-3">
+                      <span className="text-xl">{item.icon}</span>
+                      <div>
+                        <span className="font-bold text-sm text-white block">
+                          {item.label}
+                        </span>
+                        <span className="text-xs text-[#8E8E93] block">
+                          {item.desc}
+                        </span>
+                      </div>
+                    </div>
+                    {answers.sleepHours === item.id && (
+                      <div className="w-6 h-6 rounded-full bg-[#28DACC] text-[#000000] flex items-center justify-center font-bold">
+                        <Check size={14} strokeWidth={3} />
+                      </div>
+                    )}
+                  </button>
+                ))}
+              </div>
+            </motion.div>
+          )}
+
+          {/* STEP 17: Q15 Exercise Injuries / Restrictions (with red glowing spots) */}
+          {step === 17 && (
+            <motion.div
+              key="step-17"
+              initial={{ opacity: 0, x: 20 }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, x: -20 }}
+              className="flex-1 flex flex-col"
+            >
+              <div className="text-center mb-5">
+                <span className="text-[11px] font-mono uppercase tracking-widest text-[#28DACC]">
+                  Question 15 · Section 4
+                </span>
+                <h1 className="text-2xl font-extrabold text-[#FFFFFF] mt-1 tracking-tight">
+                  Do you have issues with one of the following areas?
+                </h1>
+                <p className="text-xs text-[#8E8E93] mt-1">
+                  Choose all that apply. Activates Restricted Mode for joint protection.
+                </p>
+              </div>
+
+              <div className="space-y-2.5 my-auto">
+                {/* No issues option */}
+                <button
+                  type="button"
+                  onClick={() => updateAnswers({ restrictions: ["none"] })}
+                  className={`w-full p-3.5 rounded-2xl border text-left flex items-center justify-between transition-all ${
+                    answers.restrictions?.includes("none")
+                      ? "border-[#28DACC] bg-[#121212] shadow-[0_0_16px_rgba(40,218,204,0.15)] ring-1 ring-[#28DACC]"
+                      : "border-[#1F1F1F] bg-[#0E0E0E] hover:border-[#333333]"
+                  }`}
+                >
+                  <div className="flex items-center gap-3">
+                    <div className="w-8 h-8 rounded-lg bg-red-950/40 border border-red-500/40 flex items-center justify-center text-red-400">
+                      <X size={16} strokeWidth={3} />
+                    </div>
+                    <span className="font-bold text-sm text-white">No issues</span>
+                  </div>
+                  {answers.restrictions?.includes("none") && (
+                    <div className="w-5 h-5 rounded-full bg-[#28DACC] text-[#000000] flex items-center justify-center font-bold">
+                      <Check size={12} strokeWidth={3} />
+                    </div>
+                  )}
+                </button>
+
+                {/* Specific Restrictions with real cropped photo thumbnails */}
+                {[
+                  {
+                    id: "back" as RestrictionType,
+                    label: "Sensitive back",
+                    img: "/images/assets/injury_back.png",
+                    note: "Filters deadlifts & heavy axial spinal loading"
+                  },
+                  {
+                    id: "knee" as RestrictionType,
+                    label: "Sensitive knees",
+                    img: "/images/assets/injury_knees.png",
+                    note: "Filters deep jumping squats & patella strain"
+                  },
+                  {
+                    id: "shoulder" as RestrictionType,
+                    label: "Sensitive shoulders",
+                    img: "/images/assets/injury_shoulders.png",
+                    note: "Filters behind-the-neck presses & impingements"
+                  },
+                  {
+                    id: "other" as RestrictionType,
+                    label: "Sensitive elbows / other",
+                    img: "/images/assets/injury_elbows.png",
+                    note: "Substitutes neutral grip variations"
+                  }
+                ].map((item) => {
+                  const isSelected =
+                    answers.restrictions?.includes(item.id) &&
+                    !answers.restrictions?.includes("none");
+                  return (
+                    <button
+                      key={item.id}
+                      type="button"
+                      onClick={() => {
+                        const current = answers.restrictions || [];
+                        let next: RestrictionType[];
+                        if (isSelected) {
+                          next = current.filter((x) => x !== item.id);
+                          if (next.length === 0) next = ["none"];
+                        } else {
+                          next = [...current.filter((x) => x !== "none"), item.id];
+                        }
+                        updateAnswers({ restrictions: next });
+                      }}
+                      className={`w-full p-3.5 rounded-2xl border text-left flex items-center justify-between transition-all ${
+                        isSelected
+                          ? "border-[#28DACC] bg-[#121212] shadow-[0_0_16px_rgba(40,218,204,0.15)] ring-1 ring-[#28DACC]"
+                          : "border-[#1F1F1F] bg-[#0E0E0E] hover:border-[#333333]"
+                      }`}
+                    >
+                      <div className="flex items-center gap-3">
+                        <div className="w-10 h-10 rounded-xl overflow-hidden bg-[#1A1A1A] border border-[#2A2A2A] shrink-0">
+                          <img
+                            src={item.img}
+                            alt={item.label}
+                            className="w-full h-full object-cover"
+                          />
+                        </div>
+                        <div>
+                          <span className="font-bold text-sm text-white block">
+                            {item.label}
+                          </span>
+                          <span className="text-[11px] text-[#8E8E93] block">
+                            {item.note}
+                          </span>
+                        </div>
+                      </div>
+                      {isSelected && (
+                        <div className="w-5 h-5 rounded-full bg-[#28DACC] text-[#000000] flex items-center justify-center font-bold shrink-0 ml-2">
+                          <Check size={12} strokeWidth={3} />
+                        </div>
+                      )}
+                    </button>
+                  );
+                })}
+              </div>
+            </motion.div>
+          )}
+
+          {/* STEP 18: Q16 Diet Type */}
+          {step === 18 && (
+            <motion.div
+              key="step-18"
+              initial={{ opacity: 0, x: 20 }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, x: -20 }}
+              className="flex-1 flex flex-col"
+            >
+              <div className="text-center mb-6">
+                <span className="text-[11px] font-mono uppercase tracking-widest text-[#28DACC]">
+                  Question 16 · Section 4
+                </span>
+                <h1 className="text-2xl font-extrabold text-[#FFFFFF] mt-1 tracking-tight">
+                  What type of diet do you follow?
+                </h1>
+                <p className="text-xs text-[#8E8E93] mt-1">
+                  Filters our 300+ recipe database and macro protein source recommendations.
+                </p>
+              </div>
+
+              <div className="space-y-3 my-auto">
+                {[
+                  { id: "flexible" as DietType, title: "Flexible / Mixed Diet", desc: "No specific restrictions, all whole foods", icon: "🍽️" },
+                  { id: "non_vegetarian" as DietType, title: "Non-Vegetarian", desc: "Chicken, beef, fish, eggs, and dairy", icon: "🥩" },
+                  { id: "pescatarian" as DietType, title: "Pescatarian", desc: "Plant-based plus fish and seafood", icon: "🐟" },
+                  { id: "vegetarian" as DietType, title: "Vegetarian", desc: "Plant-based with dairy and eggs", icon: "🥗" },
+                  { id: "vegan" as DietType, title: "Vegan", desc: "100% plant-based, no animal products", icon: "🌱" }
+                ].map((item) => (
+                  <button
+                    key={item.id}
+                    type="button"
+                    onClick={() => updateAnswers({ dietType: item.id })}
+                    className={`w-full p-4 rounded-2xl border text-left flex items-center justify-between transition-all ${
+                      answers.dietType === item.id
+                        ? "border-[#28DACC] bg-[#121212] shadow-[0_0_16px_rgba(40,218,204,0.2)] ring-1 ring-[#28DACC]"
+                        : "border-[#1F1F1F] bg-[#0E0E0E] hover:border-[#333333]"
+                    }`}
+                  >
+                    <div>
+                      <div className="flex items-center gap-2">
+                        <span className="text-lg">{item.icon}</span>
+                        <span className="font-bold text-sm text-white">
+                          {item.title}
+                        </span>
+                      </div>
+                      <p className="text-xs text-[#8E8E93] mt-0.5 ml-7">
+                        {item.desc}
+                      </p>
+                    </div>
+                    {answers.dietType === item.id && (
+                      <div className="w-6 h-6 rounded-full bg-[#28DACC] text-[#000000] flex items-center justify-center font-bold">
+                        <Check size={14} strokeWidth={3} />
+                      </div>
+                    )}
+                  </button>
+                ))}
+              </div>
+            </motion.div>
+          )}
+
+          {/* STEP 19: Q17 Muscle Focus Areas */}
+          {step === 19 && (
+            <motion.div
+              key="step-19"
+              initial={{ opacity: 0, x: 20 }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, x: -20 }}
+              className="flex-1 flex flex-col"
+            >
+              <div className="text-center mb-5">
+                <span className="text-[11px] font-mono uppercase tracking-widest text-[#28DACC]">
+                  Question 17 · Section 5 · Focus
+                </span>
+                <h1 className="text-2xl font-extrabold text-[#FFFFFF] mt-1 tracking-tight">
+                  Which muscles are most important to you?
+                </h1>
+                <p className="text-xs text-[#8E8E93] mt-1">
+                  Choose all that apply. Extra sets are prioritized for these muscle groups.
+                </p>
+              </div>
+
+              <div className="space-y-2.5 my-auto">
+                {[
+                  { id: "chest" as MuscleGroup, label: "Chest", img: "/images/assets/muscle_chest.png" },
+                  { id: "shoulders" as MuscleGroup, label: "Shoulders", img: "/images/assets/muscle_shoulders.png" },
+                  { id: "arms" as MuscleGroup, label: "Arms (Biceps & Triceps)", img: "/images/assets/muscle_arms.png" },
+                  { id: "core" as MuscleGroup, label: "Abs & Core", img: "/images/assets/muscle_abs.png" },
+                  { id: "back" as MuscleGroup, label: "Back (Lats & Rhomboids)", img: "/images/assets/muscle_back.png" },
+                  { id: "legs" as MuscleGroup, label: "Legs (Quads & Hamstrings)", img: "/images/assets/muscle_legs.png" }
+                ].map((item) => {
+                  const isSelected = answers.muscleFocus?.includes(item.id);
+                  return (
+                    <button
+                      key={item.id}
+                      type="button"
+                      onClick={() => {
+                        const current = answers.muscleFocus || [];
+                        let next: MuscleGroup[];
+                        if (isSelected) {
+                          next = current.filter((m) => m !== item.id);
+                          if (next.length === 0) next = ["full_body"];
+                        } else {
+                          next = [...current.filter((m) => m !== "full_body"), item.id];
+                        }
+                        updateAnswers({ muscleFocus: next });
+                      }}
+                      className={`w-full p-3 rounded-2xl border text-left flex items-center justify-between transition-all ${
+                        isSelected
+                          ? "border-[#28DACC] bg-[#121212] shadow-[0_0_16px_rgba(40,218,204,0.15)] ring-1 ring-[#28DACC]"
+                          : "border-[#1F1F1F] bg-[#0E0E0E] hover:border-[#333333]"
+                      }`}
+                    >
+                      <div className="flex items-center gap-3">
+                        <div className="w-10 h-10 rounded-xl overflow-hidden bg-[#1A1A1A] border border-[#2A2A2A] shrink-0">
+                          <img
+                            src={item.img}
+                            alt={item.label}
+                            className="w-full h-full object-cover"
+                          />
+                        </div>
+                        <span className="font-bold text-sm text-white">
+                          {item.label}
+                        </span>
+                      </div>
+                      {isSelected && (
+                        <div className="w-5 h-5 rounded-full bg-[#28DACC] text-[#000000] flex items-center justify-center font-bold">
+                          <Check size={12} strokeWidth={3} />
+                        </div>
+                      )}
+                    </button>
+                  );
+                })}
+
+                {/* All equally important button */}
+                <button
+                  type="button"
+                  onClick={() => updateAnswers({ muscleFocus: ["full_body"] })}
+                  className={`w-full p-3 rounded-2xl border text-center transition-all ${
+                    answers.muscleFocus?.includes("full_body")
+                      ? "border-[#28DACC] bg-[#121212] text-[#28DACC]"
+                      : "border-[#1F1F1F] bg-[#0A0A0A] text-[#8E8E93] hover:text-white"
+                  }`}
+                >
+                  <span className="text-xs font-bold">All equally important ⚖️</span>
+                </button>
+              </div>
+            </motion.div>
+          )}
+
+          {/* STEP 20: Q18 Fitness Challenge */}
+          {step === 20 && (
+            <motion.div
+              key="step-20"
+              initial={{ opacity: 0, x: 20 }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, x: -20 }}
+              className="flex-1 flex flex-col"
+            >
+              <div className="text-center mb-6">
+                <span className="text-[11px] font-mono uppercase tracking-widest text-[#28DACC]">
+                  Question 18 · Section 5
+                </span>
+                <h1 className="text-2xl font-extrabold text-[#FFFFFF] mt-1 tracking-tight">
+                  What is your biggest fitness challenge?
+                </h1>
+                <p className="text-xs text-[#8E8E93] mt-1">
+                  We customize app reminders and progression pace around your obstacle.
+                </p>
+              </div>
+
+              <div className="space-y-3 my-auto">
+                {[
+                  { id: "lack_of_time" as FitnessChallenge, label: "Lack of Time", desc: "Short, ultra-effective workouts with zero wasted minutes" },
+                  { id: "staying_consistent" as FitnessChallenge, label: "Difficulty Staying Consistent", desc: "Habit streaks, calendar sync & intelligent recovery pacing" },
+                  { id: "no_plan" as FitnessChallenge, label: "No Proper Workout Plan", desc: "Automated progression, daily guidance & exercise video form tips" },
+                  { id: "lack_of_knowledge" as FitnessChallenge, label: "Lack of Knowledge", desc: "Science explanations, RPE guidance & transparent exercise rationales" },
+                  { id: "lack_of_motivation" as FitnessChallenge, label: "Lack of Motivation", desc: "Milestone badges, visual progression curves & personal records" }
+                ].map((item) => (
+                  <button
+                    key={item.id}
+                    type="button"
+                    onClick={() => updateAnswers({ fitnessChallenge: item.id })}
+                    className={`w-full p-4 rounded-2xl border text-left flex items-center justify-between transition-all ${
+                      answers.fitnessChallenge === item.id
+                        ? "border-[#28DACC] bg-[#121212] shadow-[0_0_16px_rgba(40,218,204,0.2)] ring-1 ring-[#28DACC]"
+                        : "border-[#1F1F1F] bg-[#0E0E0E] hover:border-[#333333]"
+                    }`}
+                  >
+                    <div>
+                      <span className="font-bold text-sm text-white block">
+                        {item.label}
+                      </span>
+                      <span className="text-xs text-[#8E8E93] mt-0.5 block">
+                        {item.desc}
+                      </span>
+                    </div>
+                    {answers.fitnessChallenge === item.id && (
+                      <div className="w-6 h-6 rounded-full bg-[#28DACC] text-[#000000] flex items-center justify-center font-bold shrink-0 ml-3">
+                        <Check size={14} strokeWidth={3} />
+                      </div>
+                    )}
+                  </button>
+                ))}
+              </div>
+            </motion.div>
+          )}
+
+          {/* STEP 21: Q19 Current Exercise Frequency */}
+          {step === 21 && (
+            <motion.div
+              key="step-21"
+              initial={{ opacity: 0, x: 20 }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, x: -20 }}
+              className="flex-1 flex flex-col"
+            >
+              <div className="text-center mb-6">
+                <span className="text-[11px] font-mono uppercase tracking-widest text-[#28DACC]">
+                  Question 19 · Section 5
+                </span>
+                <h1 className="text-2xl font-extrabold text-[#FFFFFF] mt-1 tracking-tight">
+                  How often do you currently exercise?
+                </h1>
+                <p className="text-xs text-[#8E8E93] mt-1">
+                  Helps adjust the initial deload and ramp-up cycle.
+                </p>
+              </div>
+
+              <div className="space-y-3 my-auto">
+                {[
+                  { id: "never" as CurrentFrequency, label: "Never" },
+                  { id: "occasionally" as CurrentFrequency, label: "Occasionally (Once every few weeks)" },
+                  { id: "1_2_days" as CurrentFrequency, label: "1–2 Days per Week" },
+                  { id: "3_4_days" as CurrentFrequency, label: "3–4 Days per Week" },
+                  { id: "5_plus_days" as CurrentFrequency, label: "5+ Days per Week" }
+                ].map((item) => (
+                  <button
+                    key={item.id}
+                    type="button"
+                    onClick={() => updateAnswers({ currentFrequency: item.id })}
+                    className={`w-full p-4 rounded-2xl border text-left flex items-center justify-between transition-all ${
+                      answers.currentFrequency === item.id
+                        ? "border-[#28DACC] bg-[#121212] shadow-[0_0_16px_rgba(40,218,204,0.2)] ring-1 ring-[#28DACC]"
+                        : "border-[#1F1F1F] bg-[#0E0E0E] hover:border-[#333333]"
+                    }`}
+                  >
+                    <span className="font-bold text-sm text-white">
+                      {item.label}
+                    </span>
+                    {answers.currentFrequency === item.id && (
+                      <div className="w-6 h-6 rounded-full bg-[#28DACC] text-[#000000] flex items-center justify-center font-bold">
+                        <Check size={14} strokeWidth={3} />
+                      </div>
+                    )}
+                  </button>
+                ))}
+              </div>
+            </motion.div>
+          )}
+
+          {/* STEP 22: Q20 Food Intolerances */}
+          {step === 22 && (
+            <motion.div
+              key="step-22"
+              initial={{ opacity: 0, x: 20 }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, x: -20 }}
+              className="flex-1 flex flex-col"
+            >
+              <div className="text-center mb-6">
+                <span className="text-[11px] font-mono uppercase tracking-widest text-[#28DACC]">
+                  Question 20 · Section 6 · Nutrition
+                </span>
+                <h1 className="text-2xl font-extrabold text-[#FFFFFF] mt-1 tracking-tight">
+                  Do you have any food intolerances?
+                </h1>
+                <p className="text-xs text-[#8E8E93] mt-1">
+                  Enforces strict safety allergen filtering across all recipes.
+                </p>
+              </div>
+
+              <div className="space-y-2.5 my-auto">
+                {[
+                  { id: "none" as FoodIntolerance, label: "No / None" },
+                  { id: "lactose" as FoodIntolerance, label: "Lactose / Dairy Intolerance" },
+                  { id: "gluten" as FoodIntolerance, label: "Gluten / Celiac" },
+                  { id: "nuts" as FoodIntolerance, label: "Tree Nuts & Peanuts" },
+                  { id: "other" as FoodIntolerance, label: "Other" },
+                  { id: "not_sure" as FoodIntolerance, label: "Not Sure" }
+                ].map((item) => {
+                  const isSelected = answers.foodIntolerances?.includes(item.id);
+                  return (
+                    <button
+                      key={item.id}
+                      type="button"
+                      onClick={() => {
+                        const current = answers.foodIntolerances || [];
+                        let next: FoodIntolerance[];
+                        if (item.id === "none") {
+                          next = ["none"];
+                        } else {
+                          if (isSelected) {
+                            next = current.filter((x) => x !== item.id);
+                            if (next.length === 0) next = ["none"];
+                          } else {
+                            next = current.filter((x) => x !== "none").concat(item.id);
+                          }
+                        }
+                        updateAnswers({ foodIntolerances: next });
+                      }}
+                      className={`w-full p-4 rounded-2xl border text-left flex items-center justify-between transition-all ${
+                        isSelected
+                          ? "border-[#28DACC] bg-[#121212] shadow-[0_0_16px_rgba(40,218,204,0.15)] ring-1 ring-[#28DACC]"
+                          : "border-[#1F1F1F] bg-[#0E0E0E] hover:border-[#333333]"
+                      }`}
+                    >
+                      <span className="font-semibold text-sm text-white">
+                        {item.label}
+                      </span>
+                      <div
+                        className={`w-6 h-6 rounded-lg border flex items-center justify-center transition-colors ${
+                          isSelected
+                            ? "bg-[#28DACC] border-[#28DACC] text-[#000000]"
+                            : "border-[#333333] bg-[#1A1A1A]"
+                        }`}
+                      >
+                        {isSelected && <Check size={14} strokeWidth={3} />}
+                      </div>
+                    </button>
+                  );
+                })}
+              </div>
+            </motion.div>
+          )}
+
+          {/* STEP 23: Q21 Disliked Foods */}
+          {step === 23 && (
+            <motion.div
+              key="step-23"
+              initial={{ opacity: 0, x: 20 }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, x: -20 }}
+              className="flex-1 flex flex-col"
+            >
+              <div className="text-center mb-6">
+                <span className="text-[11px] font-mono uppercase tracking-widest text-[#28DACC]">
+                  Question 21 · Section 6
+                </span>
+                <h1 className="text-2xl font-extrabold text-[#FFFFFF] mt-1 tracking-tight">
+                  Are there any foods you don't like?
+                </h1>
+                <p className="text-xs text-[#8E8E93] mt-1">
+                  We will exclude or substitute these ingredients from your meal plan.
+                </p>
+              </div>
+
+              <div className="space-y-4 my-auto">
+                <div className="grid grid-cols-2 gap-3">
+                  <button
+                    type="button"
+                    onClick={() =>
+                      updateAnswers({ hasDislikedFoods: false, dislikedFoodsText: "" })
+                    }
+                    className={`p-4 rounded-2xl border text-center font-bold text-sm transition-all ${
+                      !answers.hasDislikedFoods
+                        ? "border-[#28DACC] bg-[#121212] text-[#28DACC]"
+                        : "border-[#1F1F1F] bg-[#0E0E0E] text-[#8E8E93]"
+                    }`}
+                  >
+                    No, I eat everything
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => updateAnswers({ hasDislikedFoods: true })}
+                    className={`p-4 rounded-2xl border text-center font-bold text-sm transition-all ${
+                      answers.hasDislikedFoods
+                        ? "border-[#28DACC] bg-[#121212] text-[#28DACC]"
+                        : "border-[#1F1F1F] bg-[#0E0E0E] text-[#8E8E93]"
+                    }`}
+                  >
+                    Yes, exclude some
+                  </button>
+                </div>
+
+                {answers.hasDislikedFoods && (
+                  <div className="p-4 rounded-2xl bg-[#0E0E0E] border border-[#1F1F1F]">
+                    <label className="text-xs text-[#8E8E93] font-semibold block mb-2">
+                      Foods to exclude (e.g. mushrooms, shellfish, cilantro, olives):
+                    </label>
+                    <input
+                      type="text"
+                      placeholder="Type foods here..."
+                      value={answers.dislikedFoodsText || ""}
+                      onChange={(e) =>
+                        updateAnswers({ dislikedFoodsText: e.target.value })
+                      }
+                      className="w-full px-4 py-3 rounded-xl bg-[#141414] border border-[#262626] text-white text-sm focus:outline-none focus:border-[#28DACC]"
+                    />
                   </div>
                 )}
-              </motion.div>
-            </AnimatePresence>
+              </div>
+            </motion.div>
+          )}
+
+          {/* STEP 24: Q22 Ideal Meals Per Day */}
+          {step === 24 && (
+            <motion.div
+              key="step-24"
+              initial={{ opacity: 0, x: 20 }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, x: -20 }}
+              className="flex-1 flex flex-col"
+            >
+              <div className="text-center mb-6">
+                <span className="text-[11px] font-mono uppercase tracking-widest text-[#28DACC]">
+                  Question 22 · Section 6 · Final Question
+                </span>
+                <h1 className="text-2xl font-extrabold text-[#FFFFFF] mt-1 tracking-tight">
+                  How many meals per day would be ideal for you?
+                </h1>
+                <p className="text-xs text-[#8E8E93] mt-1">
+                  Distributes your caloric and protein targets across your preferred schedule.
+                </p>
+              </div>
+
+              <div className="space-y-3 my-auto">
+                {[
+                  { id: "2" as MealsPerDay, label: "2 Meals", desc: "Intermittent fasting friendly (Lunch & Dinner)" },
+                  { id: "3" as MealsPerDay, label: "3 Meals (Recommended)", desc: "Standard breakfast, lunch, and dinner" },
+                  { id: "4" as MealsPerDay, label: "4 Meals", desc: "3 main meals plus an afternoon high-protein snack" },
+                  { id: "5_plus" as MealsPerDay, label: "5+ Meals", desc: "Frequent smaller meals for high-metabolism bodybuilding" },
+                  { id: "not_sure" as MealsPerDay, label: "Not Sure", desc: "Start with 3 balanced meals" }
+                ].map((item) => (
+                  <button
+                    key={item.id}
+                    type="button"
+                    onClick={() => updateAnswers({ mealsPerDay: item.id })}
+                    className={`w-full p-4 rounded-2xl border text-left flex items-center justify-between transition-all ${
+                      answers.mealsPerDay === item.id
+                        ? "border-[#28DACC] bg-[#121212] shadow-[0_0_16px_rgba(40,218,204,0.2)] ring-1 ring-[#28DACC]"
+                        : "border-[#1F1F1F] bg-[#0E0E0E] hover:border-[#333333]"
+                    }`}
+                  >
+                    <div>
+                      <span className="font-bold text-sm text-white block">
+                        {item.label}
+                      </span>
+                      <span className="text-xs text-[#8E8E93] mt-0.5 block">
+                        {item.desc}
+                      </span>
+                    </div>
+                    {answers.mealsPerDay === item.id && (
+                      <div className="w-6 h-6 rounded-full bg-[#28DACC] text-[#000000] flex items-center justify-center font-bold">
+                        <Check size={14} strokeWidth={3} />
+                      </div>
+                    )}
+                  </button>
+                ))}
+              </div>
+            </motion.div>
+          )}
+
+          {/* STEP 25: Step 1 After Q22 - Analyze Answers Sequence */}
+          {step === 25 && (
+            <motion.div
+              key="step-25-analysis"
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              className="flex-1 flex flex-col justify-center items-center text-center py-6"
+            >
+              <div className="relative w-32 h-32 mb-8">
+                {/* Outer spinning ring */}
+                <div className="absolute inset-0 rounded-full border-4 border-[#1A1A1A]" />
+                <div
+                  className="absolute inset-0 rounded-full border-4 border-[#28DACC] border-t-transparent animate-spin"
+                  style={{ animationDuration: "1.2s" }}
+                />
+                {/* Center Percentage */}
+                <div className="absolute inset-0 flex flex-col items-center justify-center">
+                  <span className="text-3xl font-mono font-extrabold text-white">
+                    {analysisProgress}%
+                  </span>
+                  <span className="text-[10px] font-mono text-[#28DACC] tracking-widest uppercase">
+                    Analyzing
+                  </span>
+                </div>
+              </div>
+
+              <h2 className="text-2xl font-extrabold text-white mb-2 tracking-tight">
+                Calibrating Your Personalized Plan
+              </h2>
+              <p className="text-xs text-[#8E8E93] max-w-xs mb-8">
+                Evaluating your 22 assessment data points against exercise science libraries.
+              </p>
+
+              {/* Step Checklist */}
+              <div className="w-full max-w-sm space-y-3 text-left">
+                {[
+                  { title: "Validating body metrics & body fat ratio", isDone: analysisStepIndex >= 0 },
+                  { title: "Checking joint contraindications & safe substitutions", isDone: analysisStepIndex >= 1 },
+                  { title: "Calculating optimal weekly volume per muscle group", isDone: analysisStepIndex >= 2 },
+                  { title: "Structuring 4-week progressive overload split", isDone: analysisStepIndex >= 3 },
+                  { title: "Calibrating daily calories & allergen-filtered nutrition", isDone: analysisStepIndex >= 4 }
+                ].map((item, idx) => (
+                  <div
+                    key={idx}
+                    className={`p-3 rounded-xl border flex items-center gap-3 transition-colors ${
+                      item.isDone
+                        ? "bg-[#0E0E0E] border-[#28DACC]/40 text-white"
+                        : "bg-[#0A0A0A] border-[#1A1A1A] text-[#555555]"
+                    }`}
+                  >
+                    <div
+                      className={`w-5 h-5 rounded-full flex items-center justify-center text-[10px] font-bold ${
+                        item.isDone
+                          ? "bg-[#28DACC] text-[#000000]"
+                          : "bg-[#1A1A1A] text-[#444444]"
+                      }`}
+                    >
+                      {item.isDone ? <Check size={12} strokeWidth={3} /> : idx + 1}
+                    </div>
+                    <span className="text-xs font-medium">{item.title}</span>
+                  </div>
+                ))}
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
+
+        {/* Sticky iOS Bottom Action Bar */}
+        {step < 25 && (
+          <div className="pt-4 pb-2">
+            <button
+              type="button"
+              onClick={nextStep}
+              className="w-full py-4 rounded-2xl bg-[#28DACC] hover:bg-[#38D8CE] active:scale-[0.98] text-[#000000] font-extrabold text-base tracking-wide shadow-[0_0_24px_rgba(40,218,204,0.35)] transition-all flex items-center justify-center gap-2"
+            >
+              <span>
+                {step === 5
+                  ? "Continue"
+                  : step === 10
+                  ? "Got it"
+                  : step === 24
+                  ? "Generate My Plan"
+                  : "Continue"}
+              </span>
+              <ChevronRight size={18} strokeWidth={3} />
+            </button>
+
+            {step === 1 && (
+              <p className="text-[11px] text-[#666666] text-center mt-3">
+                By continuing, you agree to our Privacy Policy, Terms of Service and Disclaimer.
+              </p>
+            )}
           </div>
-        </div>
+        )}
       </main>
 
-      {/* iOS Sticky Thumb-Zone Bottom Action Bar */}
-      <footer className="sticky bottom-0 z-40 bg-[#07151D]/90 backdrop-blur-xl border-t border-[#28525B]/50 px-4 py-3 pb-safe">
-        <div className="max-w-4xl mx-auto flex items-center gap-3">
-          <button
-            type="button"
-            onClick={nextStep}
-            className="w-full h-[50px] rounded-[14px] bg-[#28DACC] text-[#07151D] font-bold text-base flex items-center justify-center gap-2 shadow-[0_0_24px_rgba(40,218,204,0.35)] active:scale-[0.98] transition-all hover:bg-[#41E9DC]"
-          >
-            <span>{step === TOTAL_STEPS ? "View My Plan" : "Continue"}</span>
-            <ChevronRight size={18} />
-          </button>
-        </div>
-      </footer>
-
-      {/* Sensitive Health Data Consent Modal */}
+      {/* GDPR / Health Consent Modal */}
       <ConsentModal
         isOpen={showConsentModal}
-        onConsent={handleConsentGranted}
+        onConsent={() => {
+          updateAnswers({ healthConsentGiven: true });
+          setShowConsentModal(false);
+          setStep((s) => s + 1);
+        }}
         onCancel={() => setShowConsentModal(false)}
       />
     </div>

@@ -44,21 +44,101 @@ export type WorkoutSplit =
   | "push_pull_legs"
   | "body_part";
 
+export type BodyShape =
+  | "slender"
+  | "average"
+  | "heavy"
+  | "very_heavy"
+  | "not_sure";
+
+export type DailyActivity =
+  | "mostly_sitting"
+  | "lightly_active"
+  | "moderately_active"
+  | "very_active";
+
+export type SleepRange =
+  | "less_than_6"
+  | "6_to_7"
+  | "7_to_8"
+  | "more_than_8";
+
+export type DietType =
+  | "vegetarian"
+  | "vegan"
+  | "non_vegetarian"
+  | "pescatarian"
+  | "flexible";
+
+export type FitnessChallenge =
+  | "lack_of_time"
+  | "lack_of_motivation"
+  | "no_plan"
+  | "lack_of_knowledge"
+  | "staying_consistent";
+
+export type CurrentFrequency =
+  | "never"
+  | "occasionally"
+  | "1_2_days"
+  | "3_4_days"
+  | "5_plus_days";
+
+export type FoodIntolerance =
+  | "none"
+  | "lactose"
+  | "gluten"
+  | "nuts"
+  | "other"
+  | "not_sure";
+
+export type MealsPerDay = "2" | "3" | "4" | "5_plus" | "not_sure";
+
 export interface AssessmentAnswers {
+  // Section 1: Personal Details & Goals
   gender?: Gender;
   age?: number;
+  ageBracket?: "18_29" | "30_39" | "40_49" | "50_plus";
   goal?: Goal;
   fitnessLevel?: FitnessLevel;
+
+  // Section 2: Body Measurements
+  heightCm?: number;
+  heightFeet?: number;
+  heightInches?: number;
+  isHeightImperial?: boolean;
+  weightKg?: number;
+  isWeightImperial?: boolean;
+  targetWeightKg?: number;
+  bodyShape?: BodyShape;
+  estimatedBodyFat?: number;
+
+  // Section 3: Workout Preferences
   location?: WorkoutLocation;
   equipment?: EquipmentOption[];
   daysPerWeek?: number;
   durationMinutes?: number;
+
+  // Section 4: Lifestyle & Health
+  dailyActivity?: DailyActivity;
+  sleepHours?: SleepRange;
   restrictions?: RestrictionType[];
   restrictionNotes?: string;
+  dietType?: DietType;
+
+  // Section 5: Training Focus & Motivation
   muscleFocus?: MuscleGroup[];
-  heightCm?: number;
-  weightKg?: number;
-  targetWeightKg?: number;
+  fitnessChallenge?: FitnessChallenge;
+  currentFrequency?: CurrentFrequency;
+
+  // Section 6: Nutrition Preferences
+  foodIntolerances?: FoodIntolerance[];
+  intoleranceNotes?: string;
+  hasDislikedFoods?: boolean;
+  dislikedFoodsText?: string;
+  mealsPerDay?: MealsPerDay;
+
+  // Safety & Consent
   healthConsentGiven?: boolean;
   healthConsentTimestamp?: string;
 }
