@@ -195,9 +195,9 @@ export default function ResultsPage() {
               </span>
             </div>
             <div className="p-3 rounded-2xl bg-[#141414] border border-[#222222]">
-              <span className="text-[10px] text-[#8E8E93] uppercase font-mono block">Body Fat</span>
-              <span className="text-base font-bold font-mono text-white">
-                ~{answers.estimatedBodyFat || 20}%
+              <span className="text-[10px] text-[#8E8E93] uppercase font-mono block">Body Shape</span>
+              <span className="text-base font-bold font-mono text-white capitalize">
+                {answers.bodyShape ? answers.bodyShape.replace(/_/g, " ") : "Average"}
               </span>
             </div>
           </div>

@@ -3,6 +3,23 @@
 import React, { useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
+import dynamic from "next/dynamic";
+import { StrengthChartSkeleton } from "@/components/charts/StrengthProgressChart";
+import {
+  DEMO_PRIMARY_SERIES,
+  DEMO_COMPARISON_SERIES,
+  DEMO_METRICS,
+  DEMO_CHART_CONFIG
+} from "@/lib/chart/demoData";
+
+const DynamicStrengthChart = dynamic(
+  () =>
+    import("@/components/charts/StrengthProgressChart").then((mod) => mod.StrengthProgressChart),
+  {
+    ssr: false,
+    loading: () => <StrengthChartSkeleton />
+  }
+);
 import {
   Sparkles,
   ArrowRight,
@@ -347,58 +364,39 @@ export default function HomePage() {
 
       {/* 5. FEATURE SECTION 3: SEE YOUR PROGRESS */}
       <section className="bg-[#080808] py-16 md:py-24 px-4 md:px-8 border-y border-[#1A1A1A]">
-        <div className="max-w-6xl mx-auto grid grid-cols-1 lg:grid-cols-12 gap-12 items-center">
-          <div className="lg:col-span-6 flex justify-center">
-            <div className="w-full max-w-md rounded-3xl bg-[#0E0E0E] border border-[#222222] p-5 shadow-2xl">
-              <span className="text-[10px] font-mono text-[#28DACC] uppercase block mb-1">
-                Comparative Progression
-              </span>
-              <div className="text-base font-bold text-white mb-4">
-                Strength Growth Curve Over 12 Weeks
-              </div>
-              <div className="relative rounded-2xl overflow-hidden bg-black p-3 border border-[#1F1F1F]">
-                <img
-                  src="/images/assets/curve_chart.png"
-                  alt="Curve chart"
-                  className="w-full h-44 object-contain"
-                />
-              </div>
-              <div className="flex items-center justify-between text-xs text-[#8E8E93] pt-4 mt-2 border-t border-[#1F1F1F]">
-                <div>
-                  <span className="block text-[10px] text-[#666666] uppercase font-mono">Total Volume</span>
-                  <span className="text-sm font-bold text-white font-mono">+38.4%</span>
-                </div>
-                <div>
-                  <span className="block text-[10px] text-[#666666] uppercase font-mono">1RM Est.</span>
-                  <span className="text-sm font-bold text-[#28DACC] font-mono">+17.5 kg</span>
-                </div>
-                <div>
-                  <span className="block text-[10px] text-[#666666] uppercase font-mono">Consistency</span>
-                  <span className="text-sm font-bold text-white font-mono">96%</span>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <div className="lg:col-span-6 space-y-5 text-center lg:text-left">
+        <div className="max-w-6xl mx-auto space-y-12">
+          <div className="text-center max-w-2xl mx-auto space-y-3">
             <span className="text-xs font-mono uppercase tracking-widest text-[#28DACC]">
-              Feature Pillar 3
+              Feature Pillar 3 · Scientific Progressive Overload
             </span>
             <h2 className="text-3xl sm:text-4xl font-extrabold text-white tracking-tight">
-              SEE YOUR PROGRESS
+              SEE YOUR STRENGTH PROGRESSION
             </h2>
             <p className="text-sm sm:text-base text-[#8E8E93] leading-relaxed">
-              Track your volume per muscle group, estimated 1RM, body composition, and recovery readiness across every cycle. Clear metrics with zero guessing.
+              Track your estimated 1RM, workload capacity, and recovery readiness across every 12-week block. Real sports-science metrics with zero guessing.
             </p>
-            <div className="pt-2">
-              <Link
-                href="/assessment"
-                className="inline-flex items-center gap-2 px-6 py-3.5 rounded-xl bg-[#28DACC] hover:bg-[#38D8CE] text-black font-extrabold text-xs tracking-wide active:scale-95 transition-all"
-              >
-                <span>Calculate Your Target Growth</span>
-                <ArrowRight size={14} strokeWidth={3} />
-              </Link>
-            </div>
+          </div>
+
+          <div className="max-w-3xl mx-auto">
+            <DynamicStrengthChart
+              mode="demo"
+              primary={DEMO_PRIMARY_SERIES}
+              comparison={DEMO_COMPARISON_SERIES}
+              unit="kg"
+              metricLabel={DEMO_CHART_CONFIG.metricLabel}
+              metrics={DEMO_METRICS}
+              loop={true}
+            />
+          </div>
+
+          <div className="text-center pt-2">
+            <Link
+              href="/assessment"
+              className="inline-flex items-center gap-2 px-6 py-3.5 rounded-xl bg-[#28DACC] hover:bg-[#38D8CE] text-black font-extrabold text-xs tracking-wide active:scale-95 transition-all shadow-[0_0_24px_rgba(40,218,204,0.3)]"
+            >
+              <span>Calculate Your Target Growth</span>
+              <ArrowRight size={14} strokeWidth={3} />
+            </Link>
           </div>
         </div>
       </section>

@@ -45,10 +45,17 @@ export type WorkoutSplit =
   | "body_part";
 
 export type BodyShape =
-  | "slender"
+  | "slim"
+  | "lean"
+  | "athletic"
   | "average"
   | "heavy"
   | "very_heavy"
+  | "petite"
+  | "curvy"
+  | "plus_size"
+  | "very_plus_size"
+  | "slender"
   | "not_sure";
 
 export type DailyActivity =

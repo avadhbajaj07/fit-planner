@@ -32,7 +32,20 @@ export const AssessmentSchema = z.object({
   isWeightImperial: z.boolean().optional(),
   targetWeightKg: z.number().min(30).max(300).optional(),
   bodyShape: z
-    .enum(["slender", "average", "heavy", "very_heavy", "not_sure"])
+    .enum([
+      "slim",
+      "lean",
+      "athletic",
+      "average",
+      "heavy",
+      "very_heavy",
+      "petite",
+      "curvy",
+      "plus_size",
+      "very_plus_size",
+      "slender",
+      "not_sure"
+    ])
     .optional(),
   estimatedBodyFat: z.number().min(5).max(50).optional(),
 

@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
 import { motion, AnimatePresence } from "framer-motion";
@@ -83,7 +83,98 @@ import { ConsentModal } from "@/components/assessment/ConsentModal";
 // 24: Q22 Ideal meals per day (Section 6)
 // 25: [Step 1: Analyzing Answers Sequence] -> Leads to /results (Step 2)
 
-const TOTAL_STEPS = 25;
+const TOTAL_STEPS = 24;
+
+
+const STEPS_WITH_CONTINUE_BUTTON = new Set([
+  2,  // Q2 Age (Allows adjusting exact age stepper)
+  5,  // Interstitial 1 (Over 430,000 members)
+  6,  // Q5 Height (Number input)
+  7,  // Q6 Current weight (Number input)
+  8,  // Q7 Target weight (Number input)
+  11, // Q10 Equipment (Multi-select)
+  16, // Q15 Injuries & joint restrictions (Multi-select)
+  18, // Q17 Muscle focus areas (Multi-select)
+  21, // Q20 Food intolerances (Multi-select)
+  22  // Q21 Disliked foods (Text input & Yes/No)
+]);
+
+export interface AgeBracketConfig {
+  bracket: "18_29" | "30_39" | "40_49" | "50_plus";
+  label: string;
+  minAge: number;
+  maxAge: number;
+  defaultAge: number;
+  maleImg: string;
+  femaleImg: string;
+}
+
+export const AGE_BRACKETS: AgeBracketConfig[] = [
+  {
+    bracket: "18_29",
+    label: "Age: 18-29",
+    minAge: 18,
+    maxAge: 29,
+    defaultAge: 24,
+    maleImg: "/images/fit-planner/age/age_18_29.png",
+    femaleImg: "/images/fit-planner/age/female/18_29.png",
+  },
+  {
+    bracket: "30_39",
+    label: "Age: 30-39",
+    minAge: 30,
+    maxAge: 39,
+    defaultAge: 34,
+    maleImg: "/images/fit-planner/age/age_30_39.png",
+    femaleImg: "/images/fit-planner/age/female/30_39.png",
+  },
+  {
+    bracket: "40_49",
+    label: "Age: 40-49",
+    minAge: 40,
+    maxAge: 49,
+    defaultAge: 44,
+    maleImg: "/images/fit-planner/age/age_40_49.png",
+    femaleImg: "/images/fit-planner/age/female/40_49.png",
+  },
+  {
+    bracket: "50_plus",
+    label: "Age: 50+",
+    minAge: 50,
+    maxAge: 85,
+    defaultAge: 54,
+    maleImg: "/images/fit-planner/age/age_50_plus.png",
+    femaleImg: "/images/fit-planner/age/female/50_plus.png",
+  },
+];
+
+export const MALE_BODY_SHAPES: {
+  id: BodyShape;
+  label: string;
+  img: string;
+  fat: number;
+}[] = [
+  { id: "slim", label: "Slim", img: "/images/fit-planner/shapes/male/slim.png", fat: 12 },
+  { id: "lean", label: "Lean", img: "/images/fit-planner/shapes/male/lean.png", fat: 15 },
+  { id: "athletic", label: "Athletic", img: "/images/fit-planner/shapes/male/athletic.png", fat: 18 },
+  { id: "average", label: "Average", img: "/images/fit-planner/shapes/male/average.png", fat: 21 },
+  { id: "heavy", label: "Heavy", img: "/images/fit-planner/shapes/male/heavy.png", fat: 26 },
+  { id: "very_heavy", label: "Very Heavy", img: "/images/fit-planner/shapes/male/very_heavy.png", fat: 32 },
+];
+
+export const FEMALE_BODY_SHAPES: {
+  id: BodyShape;
+  label: string;
+  img: string;
+  fat: number;
+}[] = [
+  { id: "petite", label: "Petite", img: "/images/fit-planner/shapes/female/petite.png", fat: 19 },
+  { id: "slim", label: "Slim", img: "/images/fit-planner/shapes/female/slim.png", fat: 22 },
+  { id: "average", label: "Average", img: "/images/fit-planner/shapes/female/average.png", fat: 25 },
+  { id: "curvy", label: "Curvy", img: "/images/fit-planner/shapes/female/curvy.png", fat: 29 },
+  { id: "plus_size", label: "Plus Size", img: "/images/fit-planner/shapes/female/plus_size.png", fat: 34 },
+  { id: "very_plus_size", label: "Very Plus Size", img: "/images/fit-planner/shapes/female/very_plus_size.png", fat: 40 },
+];
 
 export default function AssessmentPage() {
   const router = useRouter();
@@ -120,6 +211,30 @@ export default function AssessmentPage() {
     healthConsentGiven: true
   });
 
+  const isAdvancingRef = useRef(false);
+
+  useEffect(() => {
+    isAdvancingRef.current = false;
+  }, [step]);
+
+  const selectAndAutoAdvance = (partial: Partial<AssessmentAnswers>) => {
+    updateAnswers(partial);
+    if (isAdvancingRef.current) return;
+    isAdvancingRef.current = true;
+
+    setTimeout(() => {
+      setStep((s) => {
+        const next = s + 1;
+        if (next > TOTAL_STEPS) {
+          router.push("/results");
+          return s;
+        }
+        return next;
+      });
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    }, 280);
+  };
+
   const [showConsentModal, setShowConsentModal] = useState(false);
   const [isUnderage, setIsUnderage] = useState(false);
   const [analysisProgress, setAnalysisProgress] = useState(0);
@@ -140,7 +255,7 @@ export default function AssessmentPage() {
 
   // Automated progress bar ticker for Step 25 (Analysis)
   useEffect(() => {
-    if (step === 25) {
+    if (step === 24) {
       const interval = setInterval(() => {
         setAnalysisProgress((prev) => {
           if (prev >= 100) {
@@ -168,10 +283,10 @@ export default function AssessmentPage() {
       setIsUnderage(true);
       return;
     }
-    if (step === 17 && (!answers.restrictions || answers.restrictions.length === 0)) {
+    if (step === 16 && (!answers.restrictions || answers.restrictions.length === 0)) {
       updateAnswers({ restrictions: ["none"] });
     }
-    if (step === 17 && answers.restrictions && answers.restrictions.some(r => r !== "none") && !answers.healthConsentGiven) {
+    if (step === 16 && answers.restrictions && answers.restrictions.some(r => r !== "none") && !answers.healthConsentGiven) {
       setShowConsentModal(true);
       return;
     }
@@ -194,10 +309,9 @@ export default function AssessmentPage() {
 
   // Calculate current display question number out of 22
   const getQuestionNumberDisplay = () => {
-    if (step === 5 || step === 10 || step === 25) return null;
+    if (step === 5 || step === 10 || step === 24) return null;
     let qNum = step;
     if (step > 5) qNum -= 1;
-    if (step > 10) qNum -= 1;
     return `${qNum}/22`;
   };
 
@@ -268,7 +382,7 @@ export default function AssessmentPage() {
                 {/* Male Card */}
                 <button
                   type="button"
-                  onClick={() => updateAnswers({ gender: "male" })}
+                  onClick={() => selectAndAutoAdvance({ gender: "male" })}
                   className={`group relative overflow-hidden rounded-2xl border transition-all text-left flex flex-col items-center justify-end p-4 h-64 ${
                     answers.gender === "male"
                       ? "border-[#28DACC] bg-[#121212] shadow-[0_0_20px_rgba(40,218,204,0.25)] ring-1 ring-[#28DACC]"
@@ -296,7 +410,7 @@ export default function AssessmentPage() {
                 {/* Female Card */}
                 <button
                   type="button"
-                  onClick={() => updateAnswers({ gender: "female" })}
+                  onClick={() => selectAndAutoAdvance({ gender: "female" })}
                   className={`group relative overflow-hidden rounded-2xl border transition-all text-left flex flex-col items-center justify-end p-4 h-64 ${
                     answers.gender === "female"
                       ? "border-[#28DACC] bg-[#121212] shadow-[0_0_20px_rgba(40,218,204,0.25)] ring-1 ring-[#28DACC]"
@@ -325,7 +439,7 @@ export default function AssessmentPage() {
               {/* Prefer not to say option */}
               <button
                 type="button"
-                onClick={() => updateAnswers({ gender: "prefer_not_to_say" })}
+                onClick={() => selectAndAutoAdvance({ gender: "prefer_not_to_say" })}
                 className={`mt-3 p-3 rounded-2xl border flex items-center justify-between transition-all ${
                   answers.gender === "prefer_not_to_say"
                     ? "border-[#28DACC] bg-[#121212] shadow-[0_0_16px_rgba(40,218,204,0.2)] text-[#28DACC]"
@@ -352,134 +466,155 @@ export default function AssessmentPage() {
           )}
 
           {/* STEP 2: Q2 Age */}
-          {step === 2 && (
-            <motion.div
-              key="step-2"
-              initial={{ opacity: 0, x: 20 }}
-              animate={{ opacity: 1, x: 0 }}
-              exit={{ opacity: 0, x: -20 }}
-              className="flex-1 flex flex-col"
-            >
-              <div className="text-center mb-6">
-                <span className="text-[11px] font-mono uppercase tracking-widest text-[#28DACC]">
-                  Question 2 · Section 1
-                </span>
-                <h1 className="text-2xl font-extrabold text-[#FFFFFF] mt-1 tracking-tight">
-                  Choose your age
-                </h1>
-                <p className="text-xs text-[#8E8E93] mt-1">
-                  Age determines baseline recovery rate and volume tolerance.
-                </p>
-              </div>
+          {step === 2 && (() => {
+            const isFemale = answers.gender === "female";
+            const currentBracket =
+              AGE_BRACKETS.find((b) => b.bracket === answers.ageBracket) || AGE_BRACKETS[0];
+            const currentAge =
+              answers.age && answers.age >= currentBracket.minAge && answers.age <= currentBracket.maxAge
+                ? answers.age
+                : currentBracket.defaultAge;
 
-              {/* Visual Age Cards matching MyFitCoach */}
-              <div className="grid grid-cols-2 gap-3 mb-5">
-                {[
-                  {
-                    bracket: "18_29" as const,
-                    label: "Age: 18-29",
-                    typicalAge: 25,
-                    img: "/images/assets/age_18_29.jpg"
-                  },
-                  {
-                    bracket: "30_39" as const,
-                    label: "Age: 30-39",
-                    typicalAge: 34,
-                    img: "/images/assets/age_30_39.jpg"
-                  },
-                  {
-                    bracket: "40_49" as const,
-                    label: "Age: 40-49",
-                    typicalAge: 45,
-                    img: "/images/assets/age_40_49.jpg"
-                  },
-                  {
-                    bracket: "50_plus" as const,
-                    label: "Age: 50+",
-                    typicalAge: 55,
-                    img: "/images/assets/age_50_plus.jpg"
-                  }
-                ].map((item) => (
-                  <button
-                    key={item.bracket}
-                    type="button"
-                    onClick={() =>
-                      updateAnswers({
-                        ageBracket: item.bracket,
-                        age: answers.age || item.typicalAge
-                      })
-                    }
-                    className={`group relative overflow-hidden rounded-2xl border transition-all text-left flex flex-col justify-end p-3 h-40 ${
-                      answers.ageBracket === item.bracket
-                        ? "border-[#28DACC] bg-[#121212] shadow-[0_0_16px_rgba(40,218,204,0.2)] ring-1 ring-[#28DACC]"
-                        : "border-[#1F1F1F] bg-[#0E0E0E] hover:border-[#333333]"
-                    }`}
-                  >
-                    <div className="absolute inset-0 z-0">
-                      <img
-                        src={item.img}
-                        alt={item.label}
-                        className="w-full h-full object-cover object-top opacity-70 group-hover:scale-105 transition-transform duration-500"
-                      />
-                      <div className="absolute inset-0 bg-gradient-to-t from-[#000000] via-[#000000]/50 to-transparent" />
-                    </div>
-                    <div className="relative z-10 flex items-center justify-between w-full">
-                      <span className="font-bold text-sm text-white">
-                        {item.label}
-                      </span>
-                      {answers.ageBracket === item.bracket && (
-                        <div className="w-5 h-5 rounded-full bg-[#28DACC] text-[#000000] flex items-center justify-center font-bold">
-                          <Check size={12} strokeWidth={3} />
+            return (
+              <motion.div
+                key="step-2"
+                initial={{ opacity: 0, x: 20 }}
+                animate={{ opacity: 1, x: 0 }}
+                exit={{ opacity: 0, x: -20 }}
+                className="flex-1 flex flex-col"
+              >
+                <div className="text-center mb-6">
+                  <span className="text-[11px] font-mono uppercase tracking-widest text-[#28DACC]">
+                    Question 2 · Section 1
+                  </span>
+                  <h1 className="text-2xl font-extrabold text-[#FFFFFF] mt-1 tracking-tight">
+                    Choose your age
+                  </h1>
+                  <p className="text-xs text-[#8E8E93] mt-1">
+                    Age determines baseline recovery rate and volume tolerance.
+                  </p>
+                </div>
+
+                {/* Visual Age Cards matching Gender */}
+                <div className="grid grid-cols-2 gap-3 mb-5">
+                  {AGE_BRACKETS.map((item) => {
+                    const isSelected = answers.ageBracket === item.bracket;
+                    const imageSrc = isFemale ? item.femaleImg : item.maleImg;
+
+                    return (
+                      <button
+                        key={item.bracket}
+                        type="button"
+                        onClick={() => {
+                          let newAge = answers.age;
+                          if (!newAge || newAge < item.minAge || newAge > item.maxAge) {
+                            newAge = item.defaultAge;
+                          }
+                          updateAnswers({
+                            ageBracket: item.bracket,
+                            age: newAge
+                          });
+                        }}
+                        className={`group relative overflow-hidden rounded-2xl border transition-all text-left flex flex-col justify-end p-3 h-40 ${
+                          isSelected
+                            ? "border-[#28DACC] bg-[#121212] shadow-[0_0_16px_rgba(40,218,204,0.2)] ring-1 ring-[#28DACC]"
+                            : "border-[#1F1F1F] bg-[#0E0E0E] hover:border-[#333333]"
+                        }`}
+                      >
+                        <div className="absolute inset-0 z-0 bg-[#0A0A0A]">
+                          <img
+                            src={imageSrc}
+                            alt={item.label}
+                            className="w-full h-full object-cover object-top opacity-75 group-hover:scale-105 transition-transform duration-500"
+                          />
+                          <div className="absolute inset-0 bg-gradient-to-t from-[#000000] via-[#000000]/40 to-transparent" />
                         </div>
-                      )}
+                        <div className="relative z-10 flex items-center justify-between w-full">
+                          <span className="font-bold text-sm text-white">
+                            {item.label}
+                          </span>
+                          {isSelected && (
+                            <div className="w-5 h-5 rounded-full bg-[#28DACC] text-[#000000] flex items-center justify-center font-bold">
+                              <Check size={12} strokeWidth={3} />
+                            </div>
+                          )}
+                        </div>
+                      </button>
+                    );
+                  })}
+                </div>
+
+                {/* Exact Age Stepper - Dynamically bound to Selected Age Bracket */}
+                <div className="p-4 rounded-2xl bg-[#0E0E0E] border border-[#1F1F1F] flex items-center justify-between">
+                  <div>
+                    <div className="flex items-center gap-2">
+                      <span className="text-xs text-[#8E8E93] font-medium block">
+                        Exact Age
+                      </span>
+                      <span className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-[#1A1A1A] text-[#28DACC] border border-[#28DACC]/30">
+                        {currentBracket.bracket === "50_plus"
+                          ? "50+ years"
+                          : `${currentBracket.minAge}–${currentBracket.maxAge} years`}
+                      </span>
                     </div>
-                  </button>
-                ))}
-              </div>
-
-              {/* Exact Age Stepper */}
-              <div className="p-4 rounded-2xl bg-[#0E0E0E] border border-[#1F1F1F] flex items-center justify-between">
-                <div>
-                  <span className="text-xs text-[#8E8E93] font-medium block">
-                    Exact Age
-                  </span>
-                  <span className="text-2xl font-mono font-bold text-white">
-                    {answers.age || 28}{" "}
-                    <span className="text-sm font-normal text-[#8E8E93]">years</span>
-                  </span>
+                    <span className="text-2xl font-mono font-bold text-white mt-1 block">
+                      {currentAge}{" "}
+                      <span className="text-sm font-normal text-[#8E8E93]">years</span>
+                    </span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <button
+                      type="button"
+                      disabled={currentAge <= currentBracket.minAge}
+                      onClick={() =>
+                        updateAnswers({
+                          age: Math.max(currentBracket.minAge, currentAge - 1)
+                        })
+                      }
+                      className="w-11 h-11 rounded-xl bg-[#1A1A1A] border border-[#2A2A2A] disabled:opacity-30 disabled:cursor-not-allowed flex items-center justify-center text-white active:scale-95 transition-all hover:border-[#28DACC]"
+                      aria-label="Decrease age"
+                    >
+                      <Minus size={18} />
+                    </button>
+                    <button
+                      type="button"
+                      disabled={currentAge >= currentBracket.maxAge}
+                      onClick={() =>
+                        updateAnswers({
+                          age: Math.min(currentBracket.maxAge, currentAge + 1)
+                        })
+                      }
+                      className="w-11 h-11 rounded-xl bg-[#1A1A1A] border border-[#2A2A2A] disabled:opacity-30 disabled:cursor-not-allowed flex items-center justify-center text-white active:scale-95 transition-all hover:border-[#28DACC]"
+                      aria-label="Increase age"
+                    >
+                      <Plus size={18} />
+                    </button>
+                  </div>
                 </div>
-                <div className="flex items-center gap-2">
+
+                {/* Quick Continue button */}
+                <div className="mt-3">
                   <button
                     type="button"
-                    onClick={() =>
-                      updateAnswers({ age: Math.max(18, (answers.age || 28) - 1) })
-                    }
-                    className="w-10 h-10 rounded-xl bg-[#1A1A1A] border border-[#2A2A2A] flex items-center justify-center text-white active:scale-95 transition-transform"
+                    onClick={nextStep}
+                    className="w-full py-2.5 rounded-xl bg-[#141414] hover:bg-[#1A1A1A] border border-[#28DACC]/30 text-xs font-bold text-[#28DACC] flex items-center justify-center gap-1.5 transition-all"
                   >
-                    <Minus size={18} />
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() =>
-                      updateAnswers({ age: Math.min(95, (answers.age || 28) + 1) })
-                    }
-                    className="w-10 h-10 rounded-xl bg-[#1A1A1A] border border-[#2A2A2A] flex items-center justify-center text-white active:scale-95 transition-transform"
-                  >
-                    <Plus size={18} />
+                    <span>Continue with age {currentAge}</span>
+                    <ChevronRight size={14} />
                   </button>
                 </div>
-              </div>
 
-              {isUnderage && (
-                <div className="mt-4 p-3.5 rounded-xl bg-red-950/40 border border-red-500/40 text-xs text-red-200 flex items-center gap-2.5">
-                  <AlertTriangle size={18} className="text-red-400 shrink-0" />
-                  <span>
-                    FIT Planner is calibrated for adults 18 and older. Please verify your age.
-                  </span>
-                </div>
-              )}
-            </motion.div>
-          )}
+                {isUnderage && (
+                  <div className="mt-4 p-3.5 rounded-xl bg-red-950/40 border border-red-500/40 text-xs text-red-200 flex items-center gap-2.5">
+                    <AlertTriangle size={18} className="text-red-400 shrink-0" />
+                    <span>
+                      FIT Planner is calibrated for adults 18 and older. Please verify your age.
+                    </span>
+                  </div>
+                )}
+              </motion.div>
+            );
+          })()}
 
           {/* STEP 3: Q3 Main Goal */}
           {step === 3 && (
@@ -538,7 +673,7 @@ export default function AssessmentPage() {
                   <button
                     key={item.id}
                     type="button"
-                    onClick={() => updateAnswers({ goal: item.id })}
+                    onClick={() => selectAndAutoAdvance({ goal: item.id })}
                     className={`w-full p-3.5 rounded-2xl border text-left flex items-center justify-between transition-all ${
                       answers.goal === item.id
                         ? "border-[#28DACC] bg-[#121212] shadow-[0_0_16px_rgba(40,218,204,0.2)] ring-1 ring-[#28DACC]"
@@ -624,7 +759,7 @@ export default function AssessmentPage() {
                   <button
                     key={item.id}
                     type="button"
-                    onClick={() => updateAnswers({ fitnessLevel: item.id })}
+                    onClick={() => selectAndAutoAdvance({ fitnessLevel: item.id })}
                     className={`w-full p-3.5 rounded-2xl border text-left flex items-center justify-between transition-all ${
                       answers.fitnessLevel === item.id
                         ? "border-[#28DACC] bg-[#121212] shadow-[0_0_16px_rgba(40,218,204,0.2)] ring-1 ring-[#28DACC]"
@@ -995,173 +1130,80 @@ export default function AssessmentPage() {
             </motion.div>
           )}
 
-          {/* STEP 9: Q8 Body Shape & Estimated Body Fat Slider */}
-          {step === 9 && (
-            <motion.div
-              key="step-9"
-              initial={{ opacity: 0, x: 20 }}
-              animate={{ opacity: 1, x: 0 }}
-              exit={{ opacity: 0, x: -20 }}
-              className="flex-1 flex flex-col"
-            >
-              <div className="text-center mb-5">
-                <span className="text-[11px] font-mono uppercase tracking-widest text-[#28DACC]">
-                  Question 8 · Section 2
-                </span>
-                <h1 className="text-2xl font-extrabold text-[#FFFFFF] mt-1 tracking-tight">
-                  Choose your current body shape
-                </h1>
-                <p className="text-xs text-[#8E8E93] mt-1">
-                  Select the visual profile that best represents your build.
-                </p>
-              </div>
+          {/* STEP 9: Q8 Body Shape (Visual Cards Only, Strictly Gender-Adaptive) */}
+          {step === 9 && (() => {
+            const isFemale = answers.gender === "female";
+            const shapeList = isFemale ? FEMALE_BODY_SHAPES : MALE_BODY_SHAPES;
+            return (
+              <motion.div
+                key="step-9"
+                initial={{ opacity: 0, x: 20 }}
+                animate={{ opacity: 1, x: 0 }}
+                exit={{ opacity: 0, x: -20 }}
+                className="flex-1 flex flex-col"
+              >
+                <div className="text-center mb-6">
+                  <span className="text-[11px] font-mono uppercase tracking-widest text-[#28DACC]">
+                    Question 8 · Section 2
+                  </span>
+                  <h1 className="text-2xl font-extrabold text-[#FFFFFF] mt-1 tracking-tight">
+                    Choose your current body shape
+                  </h1>
+                  <p className="text-xs text-[#8E8E93] mt-1">
+                    Select the visual profile that best represents your build.
+                  </p>
+                </div>
 
-              {/* 4 Visual Body Shape Cards matching screenshot */}
-              <div className="grid grid-cols-2 gap-3 mb-5">
-                {[
-                  {
-                    id: "slender" as BodyShape,
-                    label: "Slender",
-                    img: "/images/assets/shape_slender.jpg",
-                    fat: 14
-                  },
-                  {
-                    id: "average" as BodyShape,
-                    label: "Average",
-                    img: "/images/assets/shape_average.jpg",
-                    fat: 20
-                  },
-                  {
-                    id: "heavy" as BodyShape,
-                    label: "Heavy",
-                    img: "/images/assets/shape_heavy.jpg",
-                    fat: 26
-                  },
-                  {
-                    id: "very_heavy" as BodyShape,
-                    label: "Very heavy",
-                    img: "/images/assets/shape_very_heavy.jpg",
-                    fat: 32
-                  }
-                ].map((item) => (
-                  <button
-                    key={item.id}
-                    type="button"
-                    onClick={() =>
-                      updateAnswers({
-                        bodyShape: item.id,
-                        estimatedBodyFat: item.fat
-                      })
-                    }
-                    className={`group relative overflow-hidden rounded-2xl border transition-all text-left flex flex-col justify-end p-3 h-40 ${
-                      answers.bodyShape === item.id
-                        ? "border-[#28DACC] bg-[#121212] shadow-[0_0_16px_rgba(40,218,204,0.2)] ring-1 ring-[#28DACC]"
-                        : "border-[#1F1F1F] bg-[#0E0E0E] hover:border-[#333333]"
-                    }`}
-                  >
-                    <div className="absolute inset-0 z-0">
-                      <img
-                        src={item.img}
-                        alt={item.label}
-                        className="w-full h-full object-cover object-top opacity-70 group-hover:scale-105 transition-transform duration-500"
-                      />
-                      <div className="absolute inset-0 bg-gradient-to-t from-[#000000] via-[#000000]/50 to-transparent" />
-                    </div>
-                    <div className="relative z-10 flex items-center justify-between w-full">
-                      <span className="font-bold text-sm text-white">
-                        {item.label}
-                      </span>
-                      {answers.bodyShape === item.id && (
-                        <div className="w-5 h-5 rounded-full bg-[#28DACC] text-[#000000] flex items-center justify-center font-bold">
-                          <Check size={12} strokeWidth={3} />
+                {/* 6 Visual Body Shape Cards - Filtered Strictly by Gender */}
+                <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 mb-5">
+                  {shapeList.map((item) => {
+                    const isSelected = answers.bodyShape === item.id;
+                    return (
+                      <button
+                        key={item.id}
+                        type="button"
+                        onClick={() =>
+                          selectAndAutoAdvance({
+                            bodyShape: item.id,
+                            estimatedBodyFat: item.fat
+                          })
+                        }
+                        className={`group relative overflow-hidden rounded-2xl border transition-all text-left flex flex-col justify-end p-3 h-52 sm:h-56 ${
+                          isSelected
+                            ? "border-[#28DACC] bg-[#121212] shadow-[0_0_18px_rgba(40,218,204,0.25)] ring-1 ring-[#28DACC]"
+                            : "border-[#1F1F1F] bg-[#0E0E0E] hover:border-[#333333]"
+                        }`}
+                      >
+                        <div className="absolute inset-0 z-0 bg-[#0B0B0B]">
+                          <img
+                            src={item.img}
+                            alt={item.label}
+                            className="w-full h-full object-cover object-top opacity-90 group-hover:scale-105 transition-transform duration-500"
+                          />
+                          <div className="absolute inset-0 bg-gradient-to-t from-[#000000] via-[#000000]/30 to-transparent" />
                         </div>
-                      )}
-                    </div>
-                  </button>
-                ))}
-              </div>
-
-              {/* Estimated Body Fat Slider (matching MyFitCoach screenshot 24/33) */}
-              <div className="p-4 rounded-2xl bg-[#0E0E0E] border border-[#1F1F1F]">
-                <div className="flex items-center justify-between mb-2">
-                  <span className="text-xs font-semibold text-[#8E8E93]">
-                    Estimated Body Fat %
-                  </span>
-                  <span className="px-3 py-1 rounded-full bg-[#1A1A1A] border border-[#28DACC]/40 text-xs font-mono font-bold text-[#28DACC]">
-                    {answers.estimatedBodyFat || 20}%
-                  </span>
+                        <div className="relative z-10 flex items-center justify-between w-full">
+                          <span className="font-bold text-sm text-white block leading-tight">
+                            {item.label}
+                          </span>
+                          {isSelected && (
+                            <div className="w-5 h-5 rounded-full bg-[#28DACC] text-[#000000] flex items-center justify-center font-bold">
+                              <Check size={12} strokeWidth={3} />
+                            </div>
+                          )}
+                        </div>
+                      </button>
+                    );
+                  })}
                 </div>
-                <input
-                  type="range"
-                  min="8"
-                  max="45"
-                  value={answers.estimatedBodyFat || 20}
-                  onChange={(e) =>
-                    updateAnswers({ estimatedBodyFat: parseInt(e.target.value) })
-                  }
-                  className="w-full h-2 bg-[#1A1A1A] rounded-lg appearance-none cursor-pointer accent-[#28DACC]"
-                />
-                <div className="flex justify-between text-[10px] text-[#666666] mt-1 font-mono">
-                  <span>Lean (&lt;15%)</span>
-                  <span>Fit (15–22%)</span>
-                  <span>Higher (&gt;25%)</span>
-                </div>
-              </div>
-            </motion.div>
-          )}
+              </motion.div>
+            );
+          })()}
 
-          {/* STEP 10: Motivational Interstitial 2 (A little stronger with every workout!) */}
+          {/* STEP 10: Q9 Workout Location */}
           {step === 10 && (
             <motion.div
-              key="step-10-interstitial"
-              initial={{ opacity: 0, scale: 0.96 }}
-              animate={{ opacity: 1, scale: 1 }}
-              exit={{ opacity: 0, scale: 0.96 }}
-              className="flex-1 flex flex-col justify-between py-2 text-center"
-            >
-              <div>
-                <span className="text-[11px] font-mono uppercase tracking-widest text-[#28DACC]">
-                  FIT PLANNER · Science
-                </span>
-                <h1 className="text-2xl font-extrabold text-[#FFFFFF] mt-2 tracking-tight">
-                  A little stronger with every workout!
-                </h1>
-              </div>
-
-              {/* Growth Curve Chart Graphic matching screenshot */}
-              <div className="my-6 relative rounded-2xl overflow-hidden border border-[#1A1A1A] bg-[#0A0A0A] p-3">
-                <img
-                  src="/images/assets/curve_chart.png"
-                  alt="Progress curve comparison"
-                  className="w-full h-44 object-contain mx-auto"
-                />
-                <div className="flex items-center justify-center gap-6 text-[11px] font-medium mt-3">
-                  <div className="flex items-center gap-1.5">
-                    <div className="w-3 h-3 rounded-sm bg-[#555555]" />
-                    <span className="text-[#8E8E93]">Without FIT Planner</span>
-                  </div>
-                  <div className="flex items-center gap-1.5">
-                    <div className="w-3 h-3 rounded-sm bg-[#28DACC] shadow-[0_0_6px_#28DACC]" />
-                    <span className="text-white font-semibold">With FIT Planner</span>
-                  </div>
-                </div>
-              </div>
-
-              <div className="space-y-2 text-left bg-[#0E0E0E] p-4 rounded-2xl border border-[#1A1A1A]">
-                <p className="text-xs text-[#F4F9FA] leading-relaxed">
-                  FIT Planner increases your reps and weights weekly in achievable, science-backed steps.
-                </p>
-                <p className="text-xs text-[#8E8E93] leading-relaxed">
-                  This automated progressive overload allows you to make much faster progress than with a static, generic workout plan.
-                </p>
-              </div>
-            </motion.div>
-          )}
-
-          {/* STEP 11: Q9 Workout Location */}
-          {step === 11 && (
-            <motion.div
-              key="step-11"
+              key="step-10"
               initial={{ opacity: 0, x: 20 }}
               animate={{ opacity: 1, x: 0 }}
               exit={{ opacity: 0, x: -20 }}
@@ -1203,7 +1245,7 @@ export default function AssessmentPage() {
                   <button
                     key={item.id}
                     type="button"
-                    onClick={() => updateAnswers({ location: item.id })}
+                    onClick={() => selectAndAutoAdvance({ location: item.id })}
                     className={`w-full p-4 rounded-2xl border text-left flex items-center justify-between transition-all ${
                       answers.location === item.id
                         ? "border-[#28DACC] bg-[#121212] shadow-[0_0_16px_rgba(40,218,204,0.2)] ring-1 ring-[#28DACC]"
@@ -1231,10 +1273,10 @@ export default function AssessmentPage() {
             </motion.div>
           )}
 
-          {/* STEP 12: Q10 Equipment */}
-          {step === 12 && (
+          {/* STEP 11: Q10 Equipment */}
+          {step === 11 && (
             <motion.div
-              key="step-12"
+              key="step-11"
               initial={{ opacity: 0, x: 20 }}
               animate={{ opacity: 1, x: 0 }}
               exit={{ opacity: 0, x: -20 }}
@@ -1310,10 +1352,10 @@ export default function AssessmentPage() {
             </motion.div>
           )}
 
-          {/* STEP 13: Q11 Days per week */}
-          {step === 13 && (
+          {/* STEP 12: Q11 Days per week */}
+          {step === 12 && (
             <motion.div
-              key="step-13"
+              key="step-12"
               initial={{ opacity: 0, x: 20 }}
               animate={{ opacity: 1, x: 0 }}
               exit={{ opacity: 0, x: -20 }}
@@ -1342,7 +1384,7 @@ export default function AssessmentPage() {
                   <button
                     key={item.days}
                     type="button"
-                    onClick={() => updateAnswers({ daysPerWeek: item.days })}
+                    onClick={() => selectAndAutoAdvance({ daysPerWeek: item.days })}
                     className={`w-full p-4 rounded-2xl border text-left flex items-center justify-between transition-all ${
                       answers.daysPerWeek === item.days
                         ? "border-[#28DACC] bg-[#121212] shadow-[0_0_16px_rgba(40,218,204,0.2)] ring-1 ring-[#28DACC]"
@@ -1368,10 +1410,10 @@ export default function AssessmentPage() {
             </motion.div>
           )}
 
-          {/* STEP 14: Q12 Workout duration */}
-          {step === 14 && (
+          {/* STEP 13: Q12 Workout duration */}
+          {step === 13 && (
             <motion.div
-              key="step-14"
+              key="step-13"
               initial={{ opacity: 0, x: 20 }}
               animate={{ opacity: 1, x: 0 }}
               exit={{ opacity: 0, x: -20 }}
@@ -1399,7 +1441,7 @@ export default function AssessmentPage() {
                   <button
                     key={item.min}
                     type="button"
-                    onClick={() => updateAnswers({ durationMinutes: item.min })}
+                    onClick={() => selectAndAutoAdvance({ durationMinutes: item.min })}
                     className={`w-full p-4 rounded-2xl border text-left flex items-center justify-between transition-all ${
                       answers.durationMinutes === item.min
                         ? "border-[#28DACC] bg-[#121212] shadow-[0_0_16px_rgba(40,218,204,0.2)] ring-1 ring-[#28DACC]"
@@ -1425,10 +1467,10 @@ export default function AssessmentPage() {
             </motion.div>
           )}
 
-          {/* STEP 15: Q13 Daily Activity Level */}
-          {step === 15 && (
+          {/* STEP 14: Q13 Daily Activity Level */}
+          {step === 14 && (
             <motion.div
-              key="step-15"
+              key="step-14"
               initial={{ opacity: 0, x: 20 }}
               animate={{ opacity: 1, x: 0 }}
               exit={{ opacity: 0, x: -20 }}
@@ -1476,7 +1518,7 @@ export default function AssessmentPage() {
                   <button
                     key={item.id}
                     type="button"
-                    onClick={() => updateAnswers({ dailyActivity: item.id })}
+                    onClick={() => selectAndAutoAdvance({ dailyActivity: item.id })}
                     className={`w-full p-4 rounded-2xl border text-left flex items-center justify-between transition-all ${
                       answers.dailyActivity === item.id
                         ? "border-[#28DACC] bg-[#121212] shadow-[0_0_16px_rgba(40,218,204,0.2)] ring-1 ring-[#28DACC]"
@@ -1505,10 +1547,10 @@ export default function AssessmentPage() {
             </motion.div>
           )}
 
-          {/* STEP 16: Q14 Sleep Hours */}
-          {step === 16 && (
+          {/* STEP 15: Q14 Sleep Hours */}
+          {step === 15 && (
             <motion.div
-              key="step-16"
+              key="step-15"
               initial={{ opacity: 0, x: 20 }}
               animate={{ opacity: 1, x: 0 }}
               exit={{ opacity: 0, x: -20 }}
@@ -1536,7 +1578,7 @@ export default function AssessmentPage() {
                   <button
                     key={item.id}
                     type="button"
-                    onClick={() => updateAnswers({ sleepHours: item.id })}
+                    onClick={() => selectAndAutoAdvance({ sleepHours: item.id })}
                     className={`w-full p-4 rounded-2xl border text-left flex items-center justify-between transition-all ${
                       answers.sleepHours === item.id
                         ? "border-[#28DACC] bg-[#121212] shadow-[0_0_16px_rgba(40,218,204,0.2)] ring-1 ring-[#28DACC]"
@@ -1565,10 +1607,10 @@ export default function AssessmentPage() {
             </motion.div>
           )}
 
-          {/* STEP 17: Q15 Exercise Injuries / Restrictions (with red glowing spots) */}
-          {step === 17 && (
+          {/* STEP 16: Q15 Exercise Injuries / Restrictions (with red glowing spots) */}
+          {step === 16 && (
             <motion.div
-              key="step-17"
+              key="step-16"
               initial={{ opacity: 0, x: 20 }}
               animate={{ opacity: 1, x: 0 }}
               exit={{ opacity: 0, x: -20 }}
@@ -1690,10 +1732,10 @@ export default function AssessmentPage() {
             </motion.div>
           )}
 
-          {/* STEP 18: Q16 Diet Type */}
-          {step === 18 && (
+          {/* STEP 17: Q16 Diet Type */}
+          {step === 17 && (
             <motion.div
-              key="step-18"
+              key="step-17"
               initial={{ opacity: 0, x: 20 }}
               animate={{ opacity: 1, x: 0 }}
               exit={{ opacity: 0, x: -20 }}
@@ -1713,35 +1755,66 @@ export default function AssessmentPage() {
 
               <div className="space-y-3 my-auto">
                 {[
-                  { id: "flexible" as DietType, title: "Flexible / Mixed Diet", desc: "No specific restrictions, all whole foods", icon: "🍽️" },
-                  { id: "non_vegetarian" as DietType, title: "Non-Vegetarian", desc: "Chicken, beef, fish, eggs, and dairy", icon: "🥩" },
-                  { id: "pescatarian" as DietType, title: "Pescatarian", desc: "Plant-based plus fish and seafood", icon: "🐟" },
-                  { id: "vegetarian" as DietType, title: "Vegetarian", desc: "Plant-based with dairy and eggs", icon: "🥗" },
-                  { id: "vegan" as DietType, title: "Vegan", desc: "100% plant-based, no animal products", icon: "🌱" }
+                  {
+                    id: "flexible" as DietType,
+                    title: "Flexible / Mixed Diet",
+                    desc: "No specific restrictions, all whole foods",
+                    img: "/images/fit-planner/diet/diet_flexible_mixed_diet.png"
+                  },
+                  {
+                    id: "non_vegetarian" as DietType,
+                    title: "Non-Vegetarian",
+                    desc: "Chicken, beef, fish, eggs, and dairy",
+                    img: "/images/fit-planner/diet/diet_non_vegetarian.png"
+                  },
+                  {
+                    id: "pescatarian" as DietType,
+                    title: "Pescatarian",
+                    desc: "Plant-based plus fish and seafood",
+                    img: "/images/fit-planner/diet/diet_pescatarian.png"
+                  },
+                  {
+                    id: "vegetarian" as DietType,
+                    title: "Vegetarian",
+                    desc: "Plant-based with dairy and eggs",
+                    img: "/images/fit-planner/diet/diet_vegetarian.png"
+                  },
+                  {
+                    id: "vegan" as DietType,
+                    title: "Vegan",
+                    desc: "100% plant-based, no animal products",
+                    img: "/images/fit-planner/diet/diet_vegan.png"
+                  }
                 ].map((item) => (
                   <button
                     key={item.id}
                     type="button"
-                    onClick={() => updateAnswers({ dietType: item.id })}
-                    className={`w-full p-4 rounded-2xl border text-left flex items-center justify-between transition-all ${
+                    onClick={() => selectAndAutoAdvance({ dietType: item.id })}
+                    className={`w-full p-3.5 rounded-2xl border text-left flex items-center justify-between transition-all ${
                       answers.dietType === item.id
                         ? "border-[#28DACC] bg-[#121212] shadow-[0_0_16px_rgba(40,218,204,0.2)] ring-1 ring-[#28DACC]"
                         : "border-[#1F1F1F] bg-[#0E0E0E] hover:border-[#333333]"
                     }`}
                   >
-                    <div>
-                      <div className="flex items-center gap-2">
-                        <span className="text-lg">{item.icon}</span>
-                        <span className="font-bold text-sm text-white">
+                    <div className="flex items-center gap-3.5">
+                      <div className="w-12 h-12 rounded-xl overflow-hidden bg-[#1A1A1A] border border-[#2A2A2A] shrink-0">
+                        <img
+                          src={item.img}
+                          alt={item.title}
+                          className="w-full h-full object-cover"
+                        />
+                      </div>
+                      <div>
+                        <span className="font-bold text-sm text-white block">
                           {item.title}
                         </span>
+                        <p className="text-xs text-[#8E8E93] mt-0.5">
+                          {item.desc}
+                        </p>
                       </div>
-                      <p className="text-xs text-[#8E8E93] mt-0.5 ml-7">
-                        {item.desc}
-                      </p>
                     </div>
                     {answers.dietType === item.id && (
-                      <div className="w-6 h-6 rounded-full bg-[#28DACC] text-[#000000] flex items-center justify-center font-bold">
+                      <div className="w-6 h-6 rounded-full bg-[#28DACC] text-[#000000] flex items-center justify-center font-bold shrink-0 ml-2">
                         <Check size={14} strokeWidth={3} />
                       </div>
                     )}
@@ -1751,10 +1824,10 @@ export default function AssessmentPage() {
             </motion.div>
           )}
 
-          {/* STEP 19: Q17 Muscle Focus Areas */}
-          {step === 19 && (
+          {/* STEP 18: Q17 Muscle Focus Areas */}
+          {step === 18 && (
             <motion.div
-              key="step-19"
+              key="step-18"
               initial={{ opacity: 0, x: 20 }}
               animate={{ opacity: 1, x: 0 }}
               exit={{ opacity: 0, x: -20 }}
@@ -1774,12 +1847,13 @@ export default function AssessmentPage() {
 
               <div className="space-y-2.5 my-auto">
                 {[
-                  { id: "chest" as MuscleGroup, label: "Chest", img: "/images/assets/muscle_chest.png" },
-                  { id: "shoulders" as MuscleGroup, label: "Shoulders", img: "/images/assets/muscle_shoulders.png" },
-                  { id: "arms" as MuscleGroup, label: "Arms (Biceps & Triceps)", img: "/images/assets/muscle_arms.png" },
-                  { id: "core" as MuscleGroup, label: "Abs & Core", img: "/images/assets/muscle_abs.png" },
-                  { id: "back" as MuscleGroup, label: "Back (Lats & Rhomboids)", img: "/images/assets/muscle_back.png" },
-                  { id: "legs" as MuscleGroup, label: "Legs (Quads & Hamstrings)", img: "/images/assets/muscle_legs.png" }
+                  { id: "chest" as MuscleGroup, label: "Chest", img: "/images/fit-planner/muscles/chest.jpeg" },
+                  { id: "shoulders" as MuscleGroup, label: "Shoulders", img: "/images/fit-planner/muscles/shoulders.jpeg" },
+                  { id: "arms" as MuscleGroup, label: "Arms (Biceps & Triceps)", img: "/images/fit-planner/muscles/arm.jpeg" },
+                  { id: "core" as MuscleGroup, label: "Abs & Core", img: "/images/fit-planner/muscles/abs.jpeg" },
+                  { id: "back" as MuscleGroup, label: "Back (Lats & Rhomboids)", img: "/images/fit-planner/muscles/back.jpeg" },
+                  { id: "legs" as MuscleGroup, label: "Legs (Quads & Hamstrings)", img: "/images/fit-planner/muscles/legs.jpeg" },
+                  { id: "full_body" as MuscleGroup, label: "All equally important", img: "/images/fit-planner/muscles/all.jpeg" }
                 ].map((item) => {
                   const isSelected = answers.muscleFocus?.includes(item.id);
                   return (
@@ -1787,24 +1861,29 @@ export default function AssessmentPage() {
                       key={item.id}
                       type="button"
                       onClick={() => {
-                        const current = answers.muscleFocus || [];
-                        let next: MuscleGroup[];
-                        if (isSelected) {
-                          next = current.filter((m) => m !== item.id);
-                          if (next.length === 0) next = ["full_body"];
+                        if (item.id === "full_body") {
+                          updateAnswers({ muscleFocus: ["full_body"] });
                         } else {
-                          next = [...current.filter((m) => m !== "full_body"), item.id];
+                          const current = (answers.muscleFocus || []).filter((m) => m !== "full_body");
+                          const isAlreadySelected = current.includes(item.id);
+                          let next: MuscleGroup[];
+                          if (isAlreadySelected) {
+                            next = current.filter((m) => m !== item.id);
+                            if (next.length === 0) next = ["full_body"];
+                          } else {
+                            next = [...current, item.id];
+                          }
+                          updateAnswers({ muscleFocus: next });
                         }
-                        updateAnswers({ muscleFocus: next });
                       }}
                       className={`w-full p-3 rounded-2xl border text-left flex items-center justify-between transition-all ${
                         isSelected
-                          ? "border-[#28DACC] bg-[#121212] shadow-[0_0_16px_rgba(40,218,204,0.15)] ring-1 ring-[#28DACC]"
+                          ? "border-[#28DACC] bg-[#121212] shadow-[0_0_16px_rgba(40,218,204,0.18)] ring-1 ring-[#28DACC]"
                           : "border-[#1F1F1F] bg-[#0E0E0E] hover:border-[#333333]"
                       }`}
                     >
                       <div className="flex items-center gap-3">
-                        <div className="w-10 h-10 rounded-xl overflow-hidden bg-[#1A1A1A] border border-[#2A2A2A] shrink-0">
+                        <div className="w-12 h-12 rounded-xl overflow-hidden bg-[#1A1A1A] border border-[#2A2A2A] shrink-0">
                           <img
                             src={item.img}
                             alt={item.label}
@@ -1816,34 +1895,21 @@ export default function AssessmentPage() {
                         </span>
                       </div>
                       {isSelected && (
-                        <div className="w-5 h-5 rounded-full bg-[#28DACC] text-[#000000] flex items-center justify-center font-bold">
-                          <Check size={12} strokeWidth={3} />
+                        <div className="w-6 h-6 rounded-full bg-[#28DACC] text-[#000000] flex items-center justify-center font-bold">
+                          <Check size={14} strokeWidth={3} />
                         </div>
                       )}
                     </button>
                   );
                 })}
-
-                {/* All equally important button */}
-                <button
-                  type="button"
-                  onClick={() => updateAnswers({ muscleFocus: ["full_body"] })}
-                  className={`w-full p-3 rounded-2xl border text-center transition-all ${
-                    answers.muscleFocus?.includes("full_body")
-                      ? "border-[#28DACC] bg-[#121212] text-[#28DACC]"
-                      : "border-[#1F1F1F] bg-[#0A0A0A] text-[#8E8E93] hover:text-white"
-                  }`}
-                >
-                  <span className="text-xs font-bold">All equally important ⚖️</span>
-                </button>
               </div>
             </motion.div>
           )}
 
-          {/* STEP 20: Q18 Fitness Challenge */}
-          {step === 20 && (
+          {/* STEP 19: Q18 Fitness Challenge */}
+          {step === 19 && (
             <motion.div
-              key="step-20"
+              key="step-19"
               initial={{ opacity: 0, x: 20 }}
               animate={{ opacity: 1, x: 0 }}
               exit={{ opacity: 0, x: -20 }}
@@ -1872,7 +1938,7 @@ export default function AssessmentPage() {
                   <button
                     key={item.id}
                     type="button"
-                    onClick={() => updateAnswers({ fitnessChallenge: item.id })}
+                    onClick={() => selectAndAutoAdvance({ fitnessChallenge: item.id })}
                     className={`w-full p-4 rounded-2xl border text-left flex items-center justify-between transition-all ${
                       answers.fitnessChallenge === item.id
                         ? "border-[#28DACC] bg-[#121212] shadow-[0_0_16px_rgba(40,218,204,0.2)] ring-1 ring-[#28DACC]"
@@ -1898,10 +1964,10 @@ export default function AssessmentPage() {
             </motion.div>
           )}
 
-          {/* STEP 21: Q19 Current Exercise Frequency */}
-          {step === 21 && (
+          {/* STEP 20: Q19 Current Exercise Frequency */}
+          {step === 20 && (
             <motion.div
-              key="step-21"
+              key="step-20"
               initial={{ opacity: 0, x: 20 }}
               animate={{ opacity: 1, x: 0 }}
               exit={{ opacity: 0, x: -20 }}
@@ -1930,7 +1996,7 @@ export default function AssessmentPage() {
                   <button
                     key={item.id}
                     type="button"
-                    onClick={() => updateAnswers({ currentFrequency: item.id })}
+                    onClick={() => selectAndAutoAdvance({ currentFrequency: item.id })}
                     className={`w-full p-4 rounded-2xl border text-left flex items-center justify-between transition-all ${
                       answers.currentFrequency === item.id
                         ? "border-[#28DACC] bg-[#121212] shadow-[0_0_16px_rgba(40,218,204,0.2)] ring-1 ring-[#28DACC]"
@@ -1951,10 +2017,10 @@ export default function AssessmentPage() {
             </motion.div>
           )}
 
-          {/* STEP 22: Q20 Food Intolerances */}
-          {step === 22 && (
+          {/* STEP 21: Q20 Food Intolerances */}
+          {step === 21 && (
             <motion.div
-              key="step-22"
+              key="step-21"
               initial={{ opacity: 0, x: 20 }}
               animate={{ opacity: 1, x: 0 }}
               exit={{ opacity: 0, x: -20 }}
@@ -2026,10 +2092,10 @@ export default function AssessmentPage() {
             </motion.div>
           )}
 
-          {/* STEP 23: Q21 Disliked Foods */}
-          {step === 23 && (
+          {/* STEP 22: Q21 Disliked Foods */}
+          {step === 22 && (
             <motion.div
-              key="step-23"
+              key="step-22"
               initial={{ opacity: 0, x: 20 }}
               animate={{ opacity: 1, x: 0 }}
               exit={{ opacity: 0, x: -20 }}
@@ -2052,7 +2118,7 @@ export default function AssessmentPage() {
                   <button
                     type="button"
                     onClick={() =>
-                      updateAnswers({ hasDislikedFoods: false, dislikedFoodsText: "" })
+                      selectAndAutoAdvance({ hasDislikedFoods: false, dislikedFoodsText: "" })
                     }
                     className={`p-4 rounded-2xl border text-center font-bold text-sm transition-all ${
                       !answers.hasDislikedFoods
@@ -2095,10 +2161,10 @@ export default function AssessmentPage() {
             </motion.div>
           )}
 
-          {/* STEP 24: Q22 Ideal Meals Per Day */}
-          {step === 24 && (
+          {/* STEP 23: Q22 Ideal Meals Per Day */}
+          {step === 23 && (
             <motion.div
-              key="step-24"
+              key="step-23"
               initial={{ opacity: 0, x: 20 }}
               animate={{ opacity: 1, x: 0 }}
               exit={{ opacity: 0, x: -20 }}
@@ -2127,7 +2193,7 @@ export default function AssessmentPage() {
                   <button
                     key={item.id}
                     type="button"
-                    onClick={() => updateAnswers({ mealsPerDay: item.id })}
+                    onClick={() => selectAndAutoAdvance({ mealsPerDay: item.id })}
                     className={`w-full p-4 rounded-2xl border text-left flex items-center justify-between transition-all ${
                       answers.mealsPerDay === item.id
                         ? "border-[#28DACC] bg-[#121212] shadow-[0_0_16px_rgba(40,218,204,0.2)] ring-1 ring-[#28DACC]"
@@ -2153,10 +2219,10 @@ export default function AssessmentPage() {
             </motion.div>
           )}
 
-          {/* STEP 25: Step 1 After Q22 - Analyze Answers Sequence */}
-          {step === 25 && (
+          {/* STEP 24: Step 1 After Q22 - Analyze Answers Sequence */}
+          {step === 24 && (
             <motion.div
-              key="step-25-analysis"
+              key="step-24-analysis"
               initial={{ opacity: 0, scale: 0.95 }}
               animate={{ opacity: 1, scale: 1 }}
               className="flex-1 flex flex-col justify-center items-center text-center py-6"
@@ -2220,8 +2286,8 @@ export default function AssessmentPage() {
           )}
         </AnimatePresence>
 
-        {/* Sticky iOS Bottom Action Bar */}
-        {step < 25 && (
+        {/* Sticky iOS Bottom Action Bar - Only shown for multi-select, number inputs, text, interstitials */}
+        {STEPS_WITH_CONTINUE_BUTTON.has(step) && (
           <div className="pt-4 pb-2">
             <button
               type="button"
@@ -2231,20 +2297,12 @@ export default function AssessmentPage() {
               <span>
                 {step === 5
                   ? "Continue"
-                  : step === 10
-                  ? "Got it"
-                  : step === 24
+                  : step === 23
                   ? "Generate My Plan"
                   : "Continue"}
               </span>
               <ChevronRight size={18} strokeWidth={3} />
             </button>
-
-            {step === 1 && (
-              <p className="text-[11px] text-[#666666] text-center mt-3">
-                By continuing, you agree to our Privacy Policy, Terms of Service and Disclaimer.
-              </p>
-            )}
           </div>
         )}
       </main>
