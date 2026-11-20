@@ -1,6 +1,14 @@
 import type { Metadata, Viewport } from "next";
+import { DM_Sans } from "next/font/google";
 import "./globals.css";
 import { AppProviders } from "@/components/providers/AppProviders";
+
+const dmSans = DM_Sans({
+  subsets: ["latin"],
+  weight: ["400", "500", "700"],
+  variable: "--font-dm-sans",
+  display: "swap",
+});
 
 export const viewport: Viewport = {
   width: "device-width",
@@ -12,14 +20,14 @@ export const viewport: Viewport = {
 };
 
 export const metadata: Metadata = {
-  title: "FIT Planner — Your Goals. Your Body. Your Plan.",
+  title: "Shape Radar — Your Goals. Your Body. Your Plan.",
   description:
-    "Personalized workout and nutrition planning for adults 18+. Built for athlete focus with real-time plan generation and iOS native feel.",
+    "Personalized workout and nutrition planning for adults 18+. Hostinger hPanel-inspired athlete operating system with automated progressive overload.",
   manifest: "/manifest.json",
   appleWebApp: {
     capable: true,
     statusBarStyle: "black-translucent",
-    title: "FIT Planner",
+    title: "Shape Radar",
   },
   icons: {
     icon: "/favicon.ico",
@@ -33,8 +41,8 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="en" className="dark bg-[#07151D] text-[#F4F9FA] h-full">
-      <body className="min-h-[100dvh] flex flex-col bg-[#07151D] text-[#F4F9FA] antialiased selection:bg-[#28DACC] selection:text-[#07151D]">
+    <html lang="en" className={`dark ${dmSans.variable} h-full`}>
+      <body className="min-h-[100dvh] flex flex-col font-sans antialiased selection:bg-[#673DE6] selection:text-white">
         <AppProviders>{children}</AppProviders>
       </body>
     </html>

@@ -14,25 +14,44 @@ interface ThemeContextType {
 
 const ThemeContext = createContext<ThemeContextType | undefined>(undefined);
 
-const THEME_STORAGE_KEY = "fit_planner_theme";
+const THEME_STORAGE_KEY = "shape_radar_theme";
 
 export function ThemeProvider({ children }: { children: React.ReactNode }) {
   const [theme, setThemeState] = useState<Theme>("dark");
   const [resolvedTheme, setResolvedTheme] = useState<ResolvedTheme>("dark");
-  const [mounted, setMounted] = useState(false);
 
-  // Apply theme class to document
-  const applyTheme = (targetTheme: ResolvedTheme) => {
-    const root = document.documentElement;
-    root.classList.remove("light", "dark");
-    root.classList.add(targetTheme);
-    root.setAttribute("data-theme", targetTheme);
-    root.style.colorScheme = targetTheme;
+  const applyTheme = (targetTheme: ResolvedTheme, activeSetting: Theme) => {
+    try {
+      const root = document.documentElement;
+      root.classList.remove("light", "dark");
+      root.classList.add(targetTheme);
+      root.setAttribute("data-theme", targetTheme);
+      root.style.colorScheme = targetTheme;
+
+      // Update meta theme-color
+      let metaTheme = document.querySelector('meta[name="theme-color"]');
+      if (!metaTheme) {
+        metaTheme = document.createElement("meta");
+        metaTheme.setAttribute("name", "theme-color");
+        document.head.appendChild(metaTheme);
+      }
+      metaTheme.setAttribute(
+        "content",
+        targetTheme === "dark" ? "#07151D" : "#F2F3F6"
+      );
+    } catch (e) {
+      console.warn("Theme application failed:", e);
+    }
   };
 
   useEffect(() => {
-    // Read saved theme from localStorage
-    const saved = localStorage.getItem(THEME_STORAGE_KEY) as Theme | null;
+    let saved: Theme | null = null;
+    try {
+      saved = localStorage.getItem(THEME_STORAGE_KEY) as Theme | null;
+    } catch (e) {
+      console.warn("Could not read theme from localStorage:", e);
+    }
+
     const initialTheme: Theme = saved || "dark";
     setThemeState(initialTheme);
 
@@ -41,17 +60,20 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
       initialTheme === "system" ? (systemIsDark ? "dark" : "light") : initialTheme;
 
     setResolvedTheme(initialResolved);
-    applyTheme(initialResolved);
-    setMounted(true);
+    applyTheme(initialResolved, initialTheme);
 
-    // Listen for system theme changes
     const mediaQuery = window.matchMedia("(prefers-color-scheme: dark)");
     const handleChange = (e: MediaQueryListEvent) => {
-      const current = localStorage.getItem(THEME_STORAGE_KEY) as Theme | null;
-      if (current === "system") {
+      let currentChoice: Theme | null = null;
+      try {
+        currentChoice = localStorage.getItem(THEME_STORAGE_KEY) as Theme | null;
+      } catch (err) {
+        // ignore
+      }
+      if (currentChoice === "system") {
         const nextResolved: ResolvedTheme = e.matches ? "dark" : "light";
         setResolvedTheme(nextResolved);
-        applyTheme(nextResolved);
+        applyTheme(nextResolved, "system");
       }
     };
 
@@ -61,7 +83,11 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
 
   const setTheme = (newTheme: Theme) => {
     setThemeState(newTheme);
-    localStorage.setItem(THEME_STORAGE_KEY, newTheme);
+    try {
+      localStorage.setItem(THEME_STORAGE_KEY, newTheme);
+    } catch (e) {
+      console.warn("Could not write theme to localStorage:", e);
+    }
 
     let nextResolved: ResolvedTheme;
     if (newTheme === "system") {
@@ -72,7 +98,7 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
     }
 
     setResolvedTheme(nextResolved);
-    applyTheme(nextResolved);
+    applyTheme(nextResolved, newTheme);
   };
 
   const toggleTheme = () => {

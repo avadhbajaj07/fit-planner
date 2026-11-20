@@ -3,20 +3,22 @@
 import React from "react";
 import Link from "next/link";
 import {
-  User,
+  Sparkles,
   CreditCard,
+  User,
+  Users,
   Shield,
+  Activity,
   Bell,
+  Cpu,
   Globe,
   Sun,
   Moon,
   Monitor,
+  BookOpen,
+  HelpCircle,
   LogOut,
-  Sparkles,
-  ExternalLink,
-  Users,
-  KeyRound,
-  Check
+  ExternalLink
 } from "lucide-react";
 import { useTheme } from "@/lib/theme/ThemeContext";
 import { useLanguage } from "@/lib/i18n/LanguageContext";
@@ -25,14 +27,9 @@ import { useAuth } from "@/lib/auth/authContext";
 interface UserProfileMenuProps {
   isOpen: boolean;
   onClose: () => void;
-  onOpenSocialLogin?: () => void;
 }
 
-export function UserProfileMenu({
-  isOpen,
-  onClose,
-  onOpenSocialLogin
-}: UserProfileMenuProps) {
+export function UserProfileMenu({ isOpen, onClose }: UserProfileMenuProps) {
   const { theme, setTheme, resolvedTheme } = useTheme();
   const { currentLanguage, setIsLanguageModalOpen } = useLanguage();
   const { user, logout, loginWithGoogle, loginWithFacebook } = useAuth();
@@ -43,127 +40,164 @@ export function UserProfileMenu({
     <>
       {/* Backdrop */}
       <div
-        className="fixed inset-0 z-50 bg-black/50 backdrop-blur-sm transition-opacity"
+        className="fixed inset-0 z-50 bg-black/40 backdrop-blur-sm transition-opacity"
         onClick={onClose}
       />
 
-      {/* Floating Popup Menu matching Hostinger reference (Screenshots 1 & 3) */}
-      <div className="fixed top-14 right-3 sm:right-6 z-50 w-[310px] max-w-[calc(100vw-24px)] rounded-3xl bg-[#121218] dark:bg-[#121218] light:bg-[#FFFFFF] text-white light:text-[#0F172A] border border-white/10 light:border-gray-200 shadow-[0_20px_50px_rgba(0,0,0,0.6)] p-4 text-xs select-none animate-in fade-in zoom-in-95 duration-150">
+      {/* Dropdown Container (width 330px; radius 22; scrollable) */}
+      <div
+        className="fixed top-14 right-3 sm:right-6 z-50 w-[330px] max-w-[calc(100vw-24px)] max-h-[85vh] overflow-y-auto no-scrollbar rounded-[22px] border shadow-2xl p-4 text-xs select-none animate-in fade-in zoom-in-95 duration-150"
+        style={{
+          backgroundColor: "var(--card)",
+          borderColor: "var(--bd)",
+          color: "var(--tx)",
+          boxShadow: "var(--shadow)"
+        }}
+      >
         {/* User Identity Header */}
-        <div className="pb-3 border-b border-white/10 light:border-gray-100 flex items-center justify-between">
+        <div className="pb-3 border-b flex items-center justify-between" style={{ borderColor: "var(--bd)" }}>
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-full bg-gradient-to-tr from-[#28DACC] to-[#6366F1] flex items-center justify-center font-bold text-black text-sm shadow-[0_0_12px_rgba(40,218,204,0.3)] shrink-0">
+            <div
+              className="w-10 h-10 rounded-full flex items-center justify-center font-bold text-white text-sm shrink-0"
+              style={{ backgroundColor: "var(--pr)" }}
+            >
               {user?.fullName ? user.fullName.charAt(0).toUpperCase() : "M"}
             </div>
             <div className="truncate">
-              <div className="font-bold text-sm text-white light:text-[#0F172A] truncate">
+              <div className="font-bold text-sm truncate" style={{ color: "var(--tx)" }}>
                 {user?.fullName || "Maruti Digital"}
               </div>
-              <div className="text-[11px] text-[#8E8E93] light:text-gray-500 truncate">
+              <div className="text-[11px] truncate" style={{ color: "var(--mu)" }}>
                 {user?.email || "avadhshikha@gmail.com"}
               </div>
             </div>
           </div>
         </div>
 
-        {/* Menu Items */}
+        {/* Rows with Icons */}
         <div className="py-2 space-y-0.5">
-          <div className="flex items-center justify-between px-2.5 py-2 rounded-xl hover:bg-white/5 light:hover:bg-gray-100 transition-colors cursor-pointer">
-            <div className="flex items-center gap-2.5 text-[#E0E0E0] light:text-[#1F2937]">
-              <Sparkles size={15} className="text-[#28DACC]" />
-              <span>FIT Credits</span>
+          {/* FIT credits (43) */}
+          <div className="flex items-center justify-between px-2.5 py-2 rounded-xl hover:bg-black/5 dark:hover:bg-white/5 transition-colors cursor-pointer">
+            <div className="flex items-center gap-2.5">
+              <Sparkles size={16} style={{ color: "var(--pr)" }} />
+              <span>Hostinger Credits</span>
             </div>
-            <span className="font-mono text-[11px] font-semibold text-[#8E8E93] light:text-gray-500">
+            <span className="font-mono text-[11px] font-semibold" style={{ color: "var(--mu)" }}>
               43
             </span>
           </div>
 
+          {/* Billing (red badge 1) */}
           <Link
             href="/membership"
             onClick={onClose}
-            className="flex items-center justify-between px-2.5 py-2 rounded-xl hover:bg-white/5 light:hover:bg-gray-100 transition-colors cursor-pointer"
+            className="flex items-center justify-between px-2.5 py-2 rounded-xl hover:bg-black/5 dark:hover:bg-white/5 transition-colors cursor-pointer"
           >
-            <div className="flex items-center gap-2.5 text-[#E0E0E0] light:text-[#1F2937]">
-              <CreditCard size={15} />
-              <span>Billing & Plan</span>
+            <div className="flex items-center gap-2.5">
+              <CreditCard size={16} />
+              <span>Billing</span>
             </div>
-            <span className="w-4 h-4 rounded-full bg-[#E11D48] text-white text-[9px] font-bold flex items-center justify-center">
+            <span
+              className="w-4 h-4 rounded-full text-white text-[9px] font-bold flex items-center justify-center"
+              style={{ backgroundColor: "var(--dg)" }}
+            >
               1
             </span>
           </Link>
 
+          {/* Account information */}
           <Link
             href="/app/profile"
             onClick={onClose}
-            className="flex items-center gap-2.5 px-2.5 py-2 rounded-xl hover:bg-white/5 light:hover:bg-gray-100 text-[#E0E0E0] light:text-[#1F2937] transition-colors"
+            className="flex items-center gap-2.5 px-2.5 py-2 rounded-xl hover:bg-black/5 dark:hover:bg-white/5 transition-colors"
           >
-            <User size={15} />
+            <User size={16} />
             <span>Account information</span>
           </Link>
 
-          <div className="flex items-center gap-2.5 px-2.5 py-2 rounded-xl hover:bg-white/5 light:hover:bg-gray-100 text-[#E0E0E0] light:text-[#1F2937] transition-colors cursor-pointer">
-            <Users size={15} />
+          {/* Account sharing */}
+          <div className="flex items-center gap-2.5 px-2.5 py-2 rounded-xl hover:bg-black/5 dark:hover:bg-white/5 transition-colors cursor-pointer">
+            <Users size={16} />
             <span>Account sharing</span>
           </div>
 
-          <div className="flex items-center justify-between px-2.5 py-2 rounded-xl hover:bg-white/5 light:hover:bg-gray-100 text-[#E0E0E0] light:text-[#1F2937] transition-colors cursor-pointer">
+          {/* Security */}
+          <div className="flex items-center justify-between px-2.5 py-2 rounded-xl hover:bg-black/5 dark:hover:bg-white/5 transition-colors cursor-pointer">
             <div className="flex items-center gap-2.5">
-              <Shield size={15} />
+              <Shield size={16} />
               <span>Security</span>
             </div>
-            <span className="w-2 h-2 rounded-full bg-[#E11D48]" />
+            <span className="w-2 h-2 rounded-full" style={{ backgroundColor: "var(--dg)" }} />
           </div>
 
-          <div className="flex items-center gap-2.5 px-2.5 py-2 rounded-xl hover:bg-white/5 light:hover:bg-gray-100 text-[#E0E0E0] light:text-[#1F2937] transition-colors cursor-pointer">
-            <Bell size={15} />
+          {/* Account activity */}
+          <div className="flex items-center gap-2.5 px-2.5 py-2 rounded-xl hover:bg-black/5 dark:hover:bg-white/5 transition-colors cursor-pointer">
+            <Activity size={16} />
+            <span>Account activity</span>
+          </div>
+
+          {/* Notification settings */}
+          <div className="flex items-center gap-2.5 px-2.5 py-2 rounded-xl hover:bg-black/5 dark:hover:bg-white/5 transition-colors cursor-pointer">
+            <Bell size={16} />
             <span>Notification settings</span>
+          </div>
+
+          {/* AI memory */}
+          <div className="flex items-center gap-2.5 px-2.5 py-2 rounded-xl hover:bg-black/5 dark:hover:bg-white/5 transition-colors cursor-pointer">
+            <Cpu size={16} />
+            <span>AI memory</span>
           </div>
         </div>
 
         {/* Divider */}
-        <div className="my-1.5 border-t border-white/10 light:border-gray-100" />
+        <div className="my-1.5 border-t" style={{ borderColor: "var(--bd)" }} />
 
-        {/* Language & Theme Section */}
+        {/* Language & Theme */}
         <div className="py-1 space-y-2">
-          {/* Language Selector */}
+          {/* Language (English) */}
           <button
             type="button"
             onClick={() => {
               setIsLanguageModalOpen(true);
               onClose();
             }}
-            className="w-full flex items-center justify-between px-2.5 py-1.5 rounded-xl hover:bg-white/5 light:hover:bg-gray-100 text-[#E0E0E0] light:text-[#1F2937] transition-colors"
+            className="w-full flex items-center justify-between px-2.5 py-1.5 rounded-xl hover:bg-black/5 dark:hover:bg-white/5 transition-colors"
           >
             <div className="flex items-center gap-2.5">
-              <Globe size={15} className="text-[#28DACC]" />
+              <Globe size={16} style={{ color: "var(--pr)" }} />
               <span>Language</span>
             </div>
-            <span className="text-[11px] text-[#8E8E93] light:text-gray-500 font-medium flex items-center gap-1">
+            <span className="text-[11px] font-medium flex items-center gap-1" style={{ color: "var(--mu)" }}>
               <span>{currentLanguage.flag}</span>
               <span>{currentLanguage.name}</span>
             </span>
           </button>
 
-          {/* Theme Segmented Control (Light / Dark / System) - Matches Hostinger reference */}
+          {/* Theme Segmented Control (Light/Dark/System 3-button pill) */}
           <div className="flex items-center justify-between px-2.5 py-1">
-            <div className="flex items-center gap-2.5 text-[#E0E0E0] light:text-[#1F2937]">
+            <div className="flex items-center gap-2.5">
               {resolvedTheme === "dark" ? (
-                <Moon size={15} className="text-[#28DACC]" />
+                <Moon size={16} style={{ color: "var(--prx)" }} />
               ) : (
-                <Sun size={15} className="text-[#00B4A0]" />
+                <Sun size={16} style={{ color: "var(--pr)" }} />
               )}
               <span>Theme</span>
             </div>
 
-            {/* Segmented Pill */}
-            <div className="flex items-center p-0.5 rounded-full bg-[#1E1B2E] dark:bg-[#1E1B2E] light:bg-gray-200 border border-white/5 light:border-gray-300">
+            <div
+              className="flex items-center p-0.5 rounded-full border"
+              style={{
+                backgroundColor: "var(--pill)",
+                borderColor: "var(--bd)"
+              }}
+            >
               <button
                 type="button"
                 onClick={() => setTheme("light")}
                 className={`p-1.5 rounded-full transition-all ${
                   theme === "light"
                     ? "bg-white text-black shadow-sm"
-                    : "text-[#8E8E93] light:text-gray-600 hover:text-white light:hover:text-black"
+                    : "text-[#6D7081] hover:text-black dark:text-[#A8A5B5] dark:hover:text-white"
                 }`}
                 title="Light mode"
                 aria-label="Light mode"
@@ -175,8 +209,8 @@ export function UserProfileMenu({
                 onClick={() => setTheme("dark")}
                 className={`p-1.5 rounded-full transition-all ${
                   theme === "dark"
-                    ? "bg-[#28DACC] text-black shadow-sm"
-                    : "text-[#8E8E93] light:text-gray-600 hover:text-white light:hover:text-black"
+                    ? "bg-[#673DE6] text-white shadow-sm"
+                    : "text-[#6D7081] hover:text-black dark:text-[#A8A5B5] dark:hover:text-white"
                 }`}
                 title="Dark mode"
                 aria-label="Dark mode"
@@ -189,7 +223,7 @@ export function UserProfileMenu({
                 className={`p-1.5 rounded-full transition-all ${
                   theme === "system"
                     ? "bg-white text-black shadow-sm"
-                    : "text-[#8E8E93] light:text-gray-600 hover:text-white light:hover:text-black"
+                    : "text-[#6D7081] hover:text-black dark:text-[#A8A5B5] dark:hover:text-white"
                 }`}
                 title="System theme"
                 aria-label="System theme"
@@ -201,9 +235,30 @@ export function UserProfileMenu({
         </div>
 
         {/* Divider */}
-        <div className="my-1.5 border-t border-white/10 light:border-gray-100" />
+        <div className="my-1.5 border-t" style={{ borderColor: "var(--bd)" }} />
 
-        {/* Social Login / Auth Actions */}
+        {/* Secondary Links: Learning Lab & Hire an expert */}
+        <div className="py-1 space-y-0.5">
+          <div className="flex items-center justify-between px-2.5 py-1.5 rounded-xl hover:bg-black/5 dark:hover:bg-white/5 transition-colors cursor-pointer">
+            <div className="flex items-center gap-2.5">
+              <BookOpen size={16} />
+              <span>Learning Lab</span>
+            </div>
+            <ExternalLink size={13} style={{ color: "var(--mu)" }} />
+          </div>
+
+          <div className="flex items-center justify-between px-2.5 py-1.5 rounded-xl hover:bg-black/5 dark:hover:bg-white/5 transition-colors cursor-pointer">
+            <div className="flex items-center gap-2.5">
+              <HelpCircle size={16} />
+              <span>Hire an expert</span>
+            </div>
+          </div>
+        </div>
+
+        {/* Divider */}
+        <div className="my-1.5 border-t" style={{ borderColor: "var(--bd)" }} />
+
+        {/* Log In / Log Out */}
         {!user ? (
           <div className="pt-1.5 space-y-1.5">
             <button
@@ -212,7 +267,7 @@ export function UserProfileMenu({
                 loginWithGoogle();
                 onClose();
               }}
-              className="w-full flex items-center justify-center gap-2 py-2 px-3 rounded-xl bg-white text-black font-semibold text-xs hover:bg-gray-100 transition-colors shadow-sm"
+              className="w-full flex items-center justify-center gap-2 py-2 px-3 rounded-lg bg-white text-black font-semibold text-xs hover:bg-gray-100 transition-colors shadow-sm"
             >
               <svg className="w-4 h-4" viewBox="0 0 24 24">
                 <path
@@ -241,7 +296,7 @@ export function UserProfileMenu({
                 loginWithFacebook();
                 onClose();
               }}
-              className="w-full flex items-center justify-center gap-2 py-2 px-3 rounded-xl bg-[#1877F2] text-white font-semibold text-xs hover:bg-[#166FE5] transition-colors shadow-sm"
+              className="w-full flex items-center justify-center gap-2 py-2 px-3 rounded-lg bg-[#1877F2] text-white font-semibold text-xs hover:bg-[#166FE5] transition-colors shadow-sm"
             >
               <svg className="w-4 h-4 fill-current" viewBox="0 0 24 24">
                 <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z" />
@@ -256,9 +311,9 @@ export function UserProfileMenu({
               logout();
               onClose();
             }}
-            className="w-full flex items-center gap-2 px-2.5 py-2 rounded-xl text-[#FF5C5C] hover:bg-[#FF5C5C]/10 transition-colors cursor-pointer"
+            className="w-full flex items-center gap-2 px-2.5 py-2 rounded-xl text-[#D63163] hover:bg-[#D63163]/10 transition-colors cursor-pointer"
           >
-            <LogOut size={15} />
+            <LogOut size={16} />
             <span className="font-semibold">Log out</span>
           </button>
         )}

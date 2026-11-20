@@ -1,48 +1,86 @@
 @import "tailwindcss";
 
-@theme {
-  --color-bg-primary: var(--bg-primary);
-  --color-bg-secondary: var(--bg-secondary);
-  --color-bg-card: var(--bg-card);
-  --color-bg-card-hover: var(--bg-card-hover);
-  --color-teal-primary: var(--teal-primary);
-  --color-teal-hover: var(--teal-hover);
-  --color-text-primary: var(--text-primary);
-  --color-text-secondary: var(--text-secondary);
-  --color-border-subtle: var(--border-subtle);
-  --color-semantic-success: #28DA8B;
-  --color-semantic-warning: #FFB020;
-  --color-semantic-error: #FF5C5C;
-  --font-mono-numbers: "JetBrains Mono", "SF Mono", "Fira Code", monospace;
-  --font-ios: -apple-system, BlinkMacSystemFont, "SF Pro Text", "SF Pro Display", Inter, system-ui, sans-serif;
-}
+:root {
+  --font-sans: var(--font-dm-sans), system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
 
-:root, html.light {
-  --bg-primary: #F8F9FA;
-  --bg-secondary: #FFFFFF;
-  --bg-card: #FFFFFF;
-  --bg-card-hover: #F1F3F5;
-  --teal-primary: #00B4A0;
-  --teal-hover: #009E8C;
-  --text-primary: #0F172A;
-  --text-secondary: #64748B;
-  --border-subtle: #E2E8F0;
-  --border-strong: #CBD5E1;
+  /* LIGHT THEME COLOR TOKENS */
+  --bg: #F2F3F6;
+  --card: #FFFFFF;
+  --tx: #1D1E20;
+  --mu: #6D7081;
+  --bd: #E3E4E8;
+  --pr: #673DE6;
+  --prt: #EBE4FF;
+  --prx: #673DE6;
+  --dg: #D63163;
+  --ok: #008361;
+  --dk: #1D1E20;
+  --pill: #F2F3F6;
+  --grad: linear-gradient(90deg, #B07BD8, #F4879A 55%, #FFB45E);
+  --shadow: 0 8px 30px rgba(29, 30, 32, 0.14);
+  --hero-glow: radial-gradient(120% 60% at 50% 100%, #6C4DFF 0%, #000000 70%);
+
+  /* Safe Area Insets */
   --safe-top: env(safe-area-inset-top, 0px);
   --safe-bottom: env(safe-area-inset-bottom, 0px);
 }
 
+/* SYSTEM DARK PREFERENCE (WHEN NOT EXPLICITLY SET TO LIGHT) */
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #14101C;
+    --card: #1F1A2B;
+    --tx: #FFFFFF;
+    --mu: #A8A5B5;
+    --bd: #352E45;
+    --pr: #673DE6;
+    --prt: #2C2260;
+    --prx: #A592FF;
+    --dg: #D63163;
+    --ok: #00A862;
+    --dk: #0C0912;
+    --pill: #2A2338;
+    --grad: linear-gradient(90deg, #3B2A78, #6B2F8F 60%, #A0366B);
+    --shadow: 0 8px 30px rgba(0, 0, 0, 0.5);
+  }
+}
+
+/* EXPLICIT DARK THEME */
+:root[data-theme="dark"],
 html.dark {
-  --bg-primary: #000000;
-  --bg-secondary: #0A0A0A;
-  --bg-card: #121212;
-  --bg-card-hover: #181818;
-  --teal-primary: #28DACC;
-  --teal-hover: #38D8CE;
-  --text-primary: #FFFFFF;
-  --text-secondary: #8E8E93;
-  --border-subtle: #1F1F1F;
-  --border-strong: #2A2A2A;
+  --bg: #14101C;
+  --card: #1F1A2B;
+  --tx: #FFFFFF;
+  --mu: #A8A5B5;
+  --bd: #352E45;
+  --pr: #673DE6;
+  --prt: #2C2260;
+  --prx: #A592FF;
+  --dg: #D63163;
+  --ok: #00A862;
+  --dk: #0C0912;
+  --pill: #2A2338;
+  --grad: linear-gradient(90deg, #3B2A78, #6B2F8F 60%, #A0366B);
+  --shadow: 0 8px 30px rgba(0, 0, 0, 0.5);
+}
+
+/* EXPLICIT LIGHT THEME */
+:root[data-theme="light"],
+html.light {
+  --bg: #F2F3F6;
+  --card: #FFFFFF;
+  --tx: #1D1E20;
+  --mu: #6D7081;
+  --bd: #E3E4E8;
+  --pr: #673DE6;
+  --prt: #EBE4FF;
+  --prx: #673DE6;
+  --dg: #D63163;
+  --ok: #008361;
+  --dk: #1D1E20;
+  --pill: #F2F3F6;
+  --grad: linear-gradient(90deg, #B07BD8, #F4879A 55%, #FFB45E);
+  --shadow: 0 8px 30px rgba(29, 30, 32, 0.14);
 }
 
 * {
@@ -51,153 +89,147 @@ html.dark {
 }
 
 html, body {
-  font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "SF Pro Display", Inter, system-ui, sans-serif;
+  font-family: var(--font-sans);
+  font-size: 16px;
+  line-height: 1.45;
   min-height: 100dvh;
   margin: 0;
   padding: 0;
   overflow-x: hidden;
   touch-action: manipulation;
   -webkit-font-smoothing: antialiased;
+  background-color: var(--bg);
+  color: var(--tx);
   transition: background-color 0.25s ease, color 0.25s ease;
 }
 
-html.dark, html.dark body {
-  background-color: #000000;
-  color: #FFFFFF;
-}
-
-html.light, html.light body {
-  background-color: #F8F9FA;
-  color: #0F172A;
-}
-
-/* Light mode overrides for existing dark containers */
-html.light .bg-\[\#000000\],
-html.light .bg-\[\#07151D\],
-html.light .bg-\[\#080808\],
-html.light .bg-\[\#0A0A0A\],
-html.light .bg-black {
-  background-color: #F8F9FA !important;
-}
-
-html.light .bg-\[\#000000\]\/85,
-html.light .bg-\[\#000000\]\/90,
-html.light .bg-\[\#07151D\]\/85 {
-  background-color: rgba(255, 255, 255, 0.92) !important;
-}
-
-html.light .bg-\[\#0E0E0E\],
-html.light .bg-\[\#101010\],
-html.light .bg-\[\#121212\],
-html.light .bg-\[\#141414\],
-html.light .bg-\[\#102831\],
-html.light .bg-\[\#142D35\] {
-  background-color: #FFFFFF !important;
-  box-shadow: 0 4px 20px -2px rgba(0, 0, 0, 0.05);
-}
-
-html.light .border-\[\#1A1A1A\],
-html.light .border-\[\#1F1F1F\],
-html.light .border-\[\#222222\],
-html.light .border-\[\#28525B\],
-html.light .border-\[\#28525B\]\/40,
-html.light .border-\[\#28525B\]\/50,
-html.light .border-white\/5,
-html.light .border-white\/8 {
-  border-color: #E2E8F0 !important;
-}
-
-html.light .text-white,
-html.light .text-\[\#F4F9FA\],
-html.light .text-\[\#FFFFFF\] {
-  color: #0F172A !important;
-}
-
-html.light .text-\[\#8E8E93\],
-html.light .text-\[\#A8C5CA\],
-html.light .text-\[\#666666\] {
-  color: #64748B !important;
-}
-
-/* iOS Monospace Numerals for athlete training log */
-.num-mono {
-  font-family: "JetBrains Mono", "SF Mono", "Menlo", monospace;
-  font-variant-numeric: tabular-nums;
+/* Base Headings */
+h1, .h1-title {
   letter-spacing: -0.02em;
 }
 
-/* iOS Glass Effect */
-.ios-glass {
-  background: var(--glass-bg, rgba(14, 14, 14, 0.85));
-  backdrop-filter: blur(20px);
-  -webkit-backdrop-filter: blur(20px);
-  border-color: var(--glass-border, rgba(36, 36, 36, 0.6));
+.hero-headline {
+  font-size: clamp(44px, 11vw, 84px);
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  line-height: 1.02;
 }
 
-html.light .ios-glass,
-html.light .ios-glass-card {
-  background: rgba(255, 255, 255, 0.92) !important;
-  border-color: #E2E8F0 !important;
-  box-shadow: 0 4px 24px -2px rgba(0, 0, 0, 0.06);
+.page-title {
+  font-size: 26px;
+  font-weight: 500;
+  line-height: 1.25;
 }
 
-.ios-glass-card {
-  background: rgba(18, 18, 18, 0.9);
-  backdrop-filter: blur(16px);
-  -webkit-backdrop-filter: blur(16px);
-  border: 1px solid rgba(38, 38, 38, 0.8);
+.section-title {
+  font-size: 19px;
+  font-weight: 500;
+  line-height: 1.3;
 }
 
-/* Active Teal Glow */
-.card-selected-glow {
-  border-color: #28DACC !important;
-  box-shadow: 0 0 0 1.5px #28DACC, 0 0 20px rgba(40, 218, 204, 0.28);
+/* Buttons */
+.btn-hostinger-primary {
+  background-color: var(--pr);
+  color: #FFFFFF;
+  padding: 11px 18px;
+  border-radius: 8px;
+  font-weight: 500;
+  font-size: 14px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  transition: all 0.15s ease;
+}
+.btn-hostinger-primary:hover {
+  filter: brightness(1.1);
+}
+.btn-hostinger-primary:active {
+  transform: scale(0.98);
 }
 
-html.light .card-selected-glow {
-  border-color: #00B4A0 !important;
-  box-shadow: 0 0 0 1.5px #00B4A0, 0 0 16px rgba(0, 180, 160, 0.2);
+.btn-hostinger-secondary {
+  background-color: var(--card);
+  color: var(--tx);
+  border: 1px solid var(--bd);
+  padding: 11px 18px;
+  border-radius: 8px;
+  font-weight: 500;
+  font-size: 14px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  transition: all 0.15s ease;
+}
+.btn-hostinger-secondary:hover {
+  border-color: var(--pr);
 }
 
-/* Safe areas */
+.btn-hostinger-on-dark {
+  background-color: #FFFFFF;
+  color: #1D1E20;
+  padding: 11px 18px;
+  border-radius: 8px;
+  font-weight: 500;
+  font-size: 14px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  transition: all 0.15s ease;
+}
+.btn-hostinger-on-dark:hover {
+  background-color: #F2F3F6;
+}
+
+/* Chips */
+.chip-purple {
+  background-color: var(--prt);
+  color: var(--prx);
+  font-size: 14px;
+  font-weight: 500;
+  padding: 4px 12px;
+  border-radius: 999px;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+/* Radii & Shadows */
+.radius-card {
+  border-radius: 24px;
+}
+.radius-button {
+  border-radius: 8px;
+}
+.radius-pill {
+  border-radius: 999px;
+}
+.radius-drawer-item {
+  border-radius: 12px;
+}
+
+.shadow-hostinger {
+  box-shadow: var(--shadow);
+}
+
+/* Visible Keyboard Focus */
+:focus-visible {
+  outline: 2px solid var(--pr);
+  outline-offset: 2px;
+}
+
+/* Safe areas & bottom padding to PREVENT ANY FOOTER OVERLAP */
 .pb-safe {
-  padding-bottom: calc(env(safe-area-inset-bottom, 0px) + 72px);
+  padding-bottom: calc(env(safe-area-inset-bottom, 0px) + 88px);
 }
 
 .pt-safe {
   padding-top: max(env(safe-area-inset-top, 0px), 12px);
 }
 
-/* iOS Inset Group */
-.ios-inset-group {
-  background: #121212;
-  border-radius: 18px;
-  border: 1px solid #222222;
-  overflow: hidden;
-}
-
-html.light .ios-inset-group {
-  background: #FFFFFF !important;
-  border-color: #E2E8F0 !important;
-}
-
-.ios-inset-row {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 14px 16px;
-  border-bottom: 1px solid rgba(34, 34, 34, 0.8);
-}
-
-html.light .ios-inset-row {
-  border-bottom-color: #F1F5F9 !important;
-}
-
-.ios-inset-row:last-child {
-  border-bottom: none;
-}
-
-/* Hide scrollbars for slick mobile view */
+/* Hide scrollbars */
 .no-scrollbar::-webkit-scrollbar {
   display: none;
 }

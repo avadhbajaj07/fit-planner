@@ -5,19 +5,21 @@ import Link from "next/link";
 import {
   X,
   Home,
+  Bot,
   Dumbbell,
-  LineChart,
   Apple,
-  Award,
-  HelpCircle,
+  LineChart,
+  Heart,
+  Grid,
   ChevronRight,
+  ChevronDown,
+  Wand2,
+  Mail,
+  MessageSquare,
   Globe,
   User,
   Sparkles,
-  ArrowRight,
-  Flame,
-  CheckCircle2,
-  ChevronDown
+  Award
 } from "lucide-react";
 import { useLanguage } from "@/lib/i18n/LanguageContext";
 import { useAuth } from "@/lib/auth/authContext";
@@ -31,159 +33,256 @@ interface MobileDrawerProps {
 export function MobileDrawer({ isOpen, onClose, onOpenProfile }: MobileDrawerProps) {
   const { currentLanguage, setIsLanguageModalOpen } = useLanguage();
   const { user } = useAuth();
-  const [openSection, setOpenSection] = useState<string | null>("features");
+  const [plannerOpen, setPlannerOpen] = useState(true);
+  const [marketingOpen, setMarketingOpen] = useState(false);
 
   if (!isOpen) return null;
 
   return (
     <div className="fixed inset-0 z-50 flex">
-      {/* Backdrop */}
+      {/* Dark scrim 40% behind it */}
       <div
-        className="fixed inset-0 bg-black/60 backdrop-blur-sm transition-opacity"
+        className="fixed inset-0 bg-black/40 backdrop-blur-sm transition-opacity"
         onClick={onClose}
       />
 
-      {/* Slide-out Drawer (Hostinger Mobile App Reference Screenshots 2 & 7) */}
-      <div className="relative w-[320px] max-w-[85vw] bg-[#0E0E14] dark:bg-[#0E0E14] light:bg-[#FFFFFF] text-white light:text-[#0F172A] h-full flex flex-col justify-between border-r border-white/10 light:border-gray-200 shadow-2xl z-10 select-none animate-in slide-in-from-left duration-200">
-        <div className="overflow-y-auto no-scrollbar p-5 space-y-5">
+      {/* Side Drawer (slides from left, 320px) */}
+      <div
+        className="relative w-[320px] max-w-[85vw] h-full flex flex-col justify-between border-r shadow-2xl z-10 select-none animate-in slide-in-from-left duration-200"
+        style={{
+          backgroundColor: "var(--card)",
+          borderColor: "var(--bd)",
+          color: "var(--tx)"
+        }}
+      >
+        <div className="overflow-y-auto no-scrollbar p-4 space-y-4">
           {/* Header */}
-          <div className="flex items-center justify-between pb-3 border-b border-white/10 light:border-gray-100">
+          <div className="flex items-center justify-between pb-3 border-b" style={{ borderColor: "var(--bd)" }}>
             <Link href="/" onClick={onClose} className="flex items-center gap-2">
-              <span className="font-extrabold text-lg tracking-tight text-white light:text-gray-900">
-                FIT<span className="text-[#28DACC]">PLANNER</span>
-              </span>
-              <span className="text-[10px] font-mono text-[#28DACC] px-2 py-0.5 rounded-full bg-[#28DACC]/10 border border-[#28DACC]/20 tracking-widest uppercase">
-                OS
+              <div
+                className="w-8 h-8 rounded-lg flex items-center justify-center font-bold text-white text-sm"
+                style={{ backgroundColor: "var(--pr)" }}
+              >
+                SR
+              </div>
+              <span className="font-bold text-base tracking-tight" style={{ color: "var(--tx)" }}>
+                Shape Radar
               </span>
             </Link>
             <button
               type="button"
               onClick={onClose}
-              className="p-1.5 rounded-full bg-white/5 light:bg-gray-100 hover:bg-white/10 text-[#8E8E93] light:text-gray-500 hover:text-white light:hover:text-black transition-colors"
+              className="w-8 h-8 rounded-full flex items-center justify-center hover:bg-black/5 dark:hover:bg-white/5 transition-colors"
+              style={{ color: "var(--mu)" }}
             >
               <X size={18} />
             </button>
           </div>
 
-          {/* Promo Action Banners (Screenshot 2: Sale of the Year / Free Products) */}
+          {/* Banners */}
           <div className="space-y-2">
-            <Link
-              href="/assessment"
+            {/* Gradient SALE OF THE YEAR Banner */}
+            <div
+              className="p-3.5 rounded-[16px] text-white cursor-pointer transition-transform active:scale-[0.99] relative overflow-hidden"
+              style={{
+                background: "linear-gradient(135deg, #1D1536 0%, #2E1B58 50%, #4D2678 100%)",
+                border: "1px solid rgba(165, 146, 255, 0.3)"
+              }}
               onClick={onClose}
-              className="block p-3 rounded-2xl bg-gradient-to-r from-[#28DACC]/20 to-[#6366F1]/20 border border-[#28DACC]/30 hover:border-[#28DACC] transition-all group"
             >
               <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2 text-xs font-bold text-white light:text-gray-900">
-                  <Flame size={14} className="text-[#28DACC]" />
-                  <span>START 12-WEEK PLAN</span>
+                <div>
+                  <div className="text-[11px] font-bold tracking-wider uppercase flex items-center gap-1.5 text-white/90">
+                    <Sparkles size={12} className="text-[#A592FF]" />
+                    <span>SALE OF THE YEAR</span>
+                  </div>
+                  <div className="text-sm font-medium text-white/90 mt-0.5">Grab your deals</div>
                 </div>
-                <ChevronRight size={14} className="text-[#28DACC] group-hover:translate-x-0.5 transition-transform" />
+                <ChevronRight size={16} className="text-white/80" />
               </div>
-              <p className="text-[10px] text-[#A8C5CA] light:text-gray-500 mt-1">
-                Generate your personalized progressive overload plan
-              </p>
-            </Link>
+            </div>
 
-            <Link
-              href="/membership"
+            {/* Green FREE PLANS / PRODUCTS Banner */}
+            <div
+              className="p-3.5 rounded-[16px] text-white cursor-pointer transition-transform active:scale-[0.99]"
+              style={{
+                backgroundColor: "#008361",
+                border: "1px solid rgba(255, 255, 255, 0.2)"
+              }}
               onClick={onClose}
-              className="block p-3 rounded-2xl bg-[#102831]/60 dark:bg-[#102831]/60 light:bg-gray-50 border border-white/5 light:border-gray-200 transition-all group"
             >
               <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2 text-xs font-semibold text-white light:text-gray-900">
-                  <Sparkles size={14} className="text-[#FFB020]" />
-                  <span>ATHLETE PRO MEMBERSHIP</span>
+                <div>
+                  <div className="text-[11px] font-bold tracking-wider uppercase text-white/90">
+                    FREE PLANS
+                  </div>
+                  <div className="text-sm font-medium text-white/90 mt-0.5">Grab your 2 free plans</div>
                 </div>
-                <ChevronRight size={14} className="text-[#8E8E93] group-hover:translate-x-0.5 transition-transform" />
+                <ChevronRight size={16} className="text-white/80" />
               </div>
-              <p className="text-[10px] text-[#8E8E93] light:text-gray-500 mt-1">
-                7-day trial · 100% money-back guarantee
-              </p>
-            </Link>
+            </div>
           </div>
 
-          {/* Navigation Links */}
-          <nav className="space-y-1 text-xs">
+          {/* Navigation Items (Home, Agent, Workouts, Nutrition, Progress, Recovery, More services) */}
+          <nav className="space-y-1 text-sm font-medium">
             <Link
               href="/"
               onClick={onClose}
-              className="flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-white/5 light:hover:bg-gray-100 text-[#E0E0E0] light:text-gray-700 font-medium transition-colors"
+              className="flex items-center gap-3 px-3 py-2.5 rounded-[12px] font-bold transition-colors"
+              style={{
+                backgroundColor: "var(--bg)",
+                color: "var(--pr)"
+              }}
             >
-              <Home size={17} className="text-[#28DACC]" />
+              <Home size={18} />
               <span>Home</span>
+            </Link>
+
+            <Link
+              href="/app/today"
+              onClick={onClose}
+              className="flex items-center justify-between px-3 py-2.5 rounded-[12px] hover:bg-black/5 dark:hover:bg-white/5 transition-colors"
+            >
+              <div className="flex items-center gap-3">
+                <Bot size={18} style={{ color: "var(--prx)" }} />
+                <span>Agent</span>
+              </div>
+              <span className="text-[10px] font-mono px-1.5 py-0.5 rounded-full" style={{ backgroundColor: "var(--prt)", color: "var(--prx)" }}>
+                Beta
+              </span>
             </Link>
 
             <Link
               href="/#workout-plan"
               onClick={onClose}
-              className="flex items-center justify-between px-3 py-2.5 rounded-xl hover:bg-white/5 light:hover:bg-gray-100 text-[#E0E0E0] light:text-gray-700 font-medium transition-colors"
+              className="flex items-center justify-between px-3 py-2.5 rounded-[12px] hover:bg-black/5 dark:hover:bg-white/5 transition-colors"
             >
               <div className="flex items-center gap-3">
-                <Dumbbell size={17} />
-                <span>Workout Plan</span>
+                <Dumbbell size={18} />
+                <span>Workouts</span>
               </div>
-              <ChevronRight size={14} className="text-[#8E8E93]" />
-            </Link>
-
-            <Link
-              href="/#progressive-overload"
-              onClick={onClose}
-              className="flex items-center justify-between px-3 py-2.5 rounded-xl hover:bg-white/5 light:hover:bg-gray-100 text-[#E0E0E0] light:text-gray-700 font-medium transition-colors"
-            >
-              <div className="flex items-center gap-3">
-                <LineChart size={17} />
-                <span>Progressive Overload Chart</span>
-              </div>
-              <ChevronRight size={14} className="text-[#8E8E93]" />
+              <ChevronRight size={15} style={{ color: "var(--mu)" }} />
             </Link>
 
             <Link
               href="/#nutrition"
               onClick={onClose}
-              className="flex items-center justify-between px-3 py-2.5 rounded-xl hover:bg-white/5 light:hover:bg-gray-100 text-[#E0E0E0] light:text-gray-700 font-medium transition-colors"
+              className="flex items-center justify-between px-3 py-2.5 rounded-[12px] hover:bg-black/5 dark:hover:bg-white/5 transition-colors"
             >
               <div className="flex items-center gap-3">
-                <Apple size={17} />
-                <span>Nutrition & Recipes</span>
+                <Apple size={18} />
+                <span>Nutrition</span>
               </div>
-              <ChevronRight size={14} className="text-[#8E8E93]" />
+              <ChevronRight size={15} style={{ color: "var(--mu)" }} />
+            </Link>
+
+            <Link
+              href="/#progressive-overload"
+              onClick={onClose}
+              className="flex items-center justify-between px-3 py-2.5 rounded-[12px] hover:bg-black/5 dark:hover:bg-white/5 transition-colors"
+            >
+              <div className="flex items-center gap-3">
+                <LineChart size={18} />
+                <span>Progress</span>
+              </div>
+              <ChevronRight size={15} style={{ color: "var(--mu)" }} />
             </Link>
 
             <Link
               href="/#pros"
               onClick={onClose}
-              className="flex items-center justify-between px-3 py-2.5 rounded-xl hover:bg-white/5 light:hover:bg-gray-100 text-[#E0E0E0] light:text-gray-700 font-medium transition-colors"
+              className="flex items-center justify-between px-3 py-2.5 rounded-[12px] hover:bg-black/5 dark:hover:bg-white/5 transition-colors"
             >
               <div className="flex items-center gap-3">
-                <Award size={17} />
-                <span>Experiences of Pros</span>
+                <Heart size={18} />
+                <span>Recovery</span>
               </div>
-              <ChevronRight size={14} className="text-[#8E8E93]" />
+              <ChevronRight size={15} style={{ color: "var(--mu)" }} />
             </Link>
 
-            <Link
-              href="/#faq"
-              onClick={onClose}
-              className="flex items-center justify-between px-3 py-2.5 rounded-xl hover:bg-white/5 light:hover:bg-gray-100 text-[#E0E0E0] light:text-gray-700 font-medium transition-colors"
-            >
+            <div className="flex items-center justify-between px-3 py-2.5 rounded-[12px] hover:bg-black/5 dark:hover:bg-white/5 transition-colors cursor-pointer">
               <div className="flex items-center gap-3">
-                <HelpCircle size={17} />
-                <span>FAQ</span>
+                <Grid size={18} />
+                <span>More services</span>
               </div>
-              <ChevronRight size={14} className="text-[#8E8E93]" />
-            </Link>
+              <ChevronRight size={15} style={{ color: "var(--mu)" }} />
+            </div>
           </nav>
+
+          {/* Group: Planner tools (AI Builder) */}
+          <div className="pt-2 border-t" style={{ borderColor: "var(--bd)" }}>
+            <button
+              type="button"
+              onClick={() => setPlannerOpen(!plannerOpen)}
+              className="w-full flex items-center justify-between py-1.5 px-3 text-xs font-semibold uppercase tracking-wider"
+              style={{ color: "var(--mu)" }}
+            >
+              <span>Planner tools</span>
+              <ChevronDown
+                size={14}
+                className={`transition-transform ${plannerOpen ? "" : "-rotate-90"}`}
+              />
+            </button>
+            {plannerOpen && (
+              <div className="space-y-1 mt-1 pl-1">
+                <div className="flex items-center justify-between px-3 py-2 rounded-[12px] hover:bg-black/5 dark:hover:bg-white/5 text-sm cursor-pointer">
+                  <div className="flex items-center gap-3">
+                    <Wand2 size={16} style={{ color: "var(--pr)" }} />
+                    <span>AI Builder</span>
+                  </div>
+                  <ChevronRight size={14} style={{ color: "var(--mu)" }} />
+                </div>
+              </div>
+            )}
+          </div>
+
+          {/* Group: Marketing (Email and WhatsApp) */}
+          <div className="pt-2 border-t" style={{ borderColor: "var(--bd)" }}>
+            <button
+              type="button"
+              onClick={() => setMarketingOpen(!marketingOpen)}
+              className="w-full flex items-center justify-between py-1.5 px-3 text-xs font-semibold uppercase tracking-wider"
+              style={{ color: "var(--mu)" }}
+            >
+              <span>Marketing</span>
+              <ChevronDown
+                size={14}
+                className={`transition-transform ${marketingOpen ? "" : "-rotate-90"}`}
+              />
+            </button>
+            {marketingOpen && (
+              <div className="space-y-1 mt-1 pl-1 text-sm">
+                <div className="flex items-center justify-between px-3 py-2 rounded-[12px] hover:bg-black/5 dark:hover:bg-white/5 cursor-pointer">
+                  <div className="flex items-center gap-3">
+                    <MessageSquare size={16} />
+                    <span>Email &amp; WhatsApp</span>
+                  </div>
+                  <ChevronRight size={14} style={{ color: "var(--mu)" }} />
+                </div>
+              </div>
+            )}
+          </div>
         </div>
 
-        {/* Bottom Bar matching Screenshot 7: Language + My Account */}
-        <div className="p-4 border-t border-white/10 light:border-gray-100 bg-[#0A0A0E] dark:bg-[#0A0A0E] light:bg-gray-50 flex items-center justify-between text-xs">
+        {/* Bottom Bar: Language + My account */}
+        <div
+          className="p-4 border-t flex items-center justify-between text-xs"
+          style={{
+            borderColor: "var(--bd)",
+            backgroundColor: "var(--pill)"
+          }}
+        >
           <button
             type="button"
             onClick={() => {
               setIsLanguageModalOpen(true);
               onClose();
             }}
-            className="flex items-center gap-2 px-3 py-2 rounded-xl bg-white/5 light:bg-gray-200 text-[#E0E0E0] light:text-gray-800 font-semibold hover:bg-white/10 transition-colors"
+            className="flex items-center gap-2 px-3 py-2 rounded-lg font-medium border"
+            style={{
+              backgroundColor: "var(--card)",
+              borderColor: "var(--bd)"
+            }}
           >
             <span>{currentLanguage.flag}</span>
             <span>{currentLanguage.code.toUpperCase()}</span>
@@ -195,10 +294,11 @@ export function MobileDrawer({ isOpen, onClose, onOpenProfile }: MobileDrawerPro
               onClose();
               onOpenProfile();
             }}
-            className="flex items-center gap-2 px-3 py-2 rounded-xl bg-[#28DACC]/15 text-[#28DACC] font-bold hover:bg-[#28DACC]/25 transition-colors"
+            className="flex items-center gap-2 px-3 py-2 rounded-lg font-medium text-white"
+            style={{ backgroundColor: "var(--pr)" }}
           >
             <User size={15} />
-            <span>{user ? "My Account" : "Sign In / Profile"}</span>
+            <span>{user ? "My account" : "Sign in"}</span>
           </button>
         </div>
       </div>

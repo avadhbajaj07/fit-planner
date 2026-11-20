@@ -13,6 +13,7 @@ import {
 
 export const IosTabBar: React.FC = () => {
   const pathname = usePathname();
+  const isDashboard = pathname === "/app/today";
 
   const tabs = [
     {
@@ -45,41 +46,43 @@ export const IosTabBar: React.FC = () => {
   return (
     <>
       {/* MOBILE BOTTOM TAB BAR (49px + Safe Area Bottom) */}
-      <nav
-        aria-label="Mobile Navigation"
-        className="lg:hidden fixed bottom-0 left-0 right-0 z-50 bg-[#000000]/90 backdrop-blur-2xl border-t border-[#1A1A1A] pb-safe"
-      >
-        <div className="h-[49px] flex items-center justify-around px-2 max-w-md mx-auto">
-          {tabs.map((tab) => {
-            const isActive = pathname.startsWith(tab.href);
-            const Icon = tab.icon;
+      {!isDashboard && (
+        <nav
+          aria-label="Mobile Navigation"
+          className="lg:hidden fixed bottom-0 left-0 right-0 z-50 bg-[#000000]/90 backdrop-blur-2xl border-t border-[#1A1A1A] pb-safe"
+        >
+          <div className="h-[49px] flex items-center justify-around px-2 max-w-md mx-auto">
+            {tabs.map((tab) => {
+              const isActive = pathname.startsWith(tab.href);
+              const Icon = tab.icon;
 
-            return (
-              <Link
-                key={tab.name}
-                href={tab.href}
-                className={`flex-1 flex flex-col items-center justify-center py-1 transition-colors select-none ${
-                  isActive ? "text-[#28DACC]" : "text-[#8E8E93] hover:text-white"
-                }`}
-              >
-                <Icon
-                  size={22}
-                  className={`transition-transform duration-200 ${
-                    isActive ? "scale-110 stroke-[2.5]" : "stroke-[1.8]"
-                  }`}
-                />
-                <span
-                  className={`text-[10px] mt-0.5 tracking-tight ${
-                    isActive ? "font-semibold" : "font-normal"
+              return (
+                <Link
+                  key={tab.name}
+                  href={tab.href}
+                  className={`flex-1 flex flex-col items-center justify-center py-1 transition-colors select-none ${
+                    isActive ? "text-[#28DACC]" : "text-[#8E8E93] hover:text-white"
                   }`}
                 >
-                  {tab.name}
-                </span>
-              </Link>
-            );
-          })}
-        </div>
-      </nav>
+                  <Icon
+                    size={22}
+                    className={`transition-transform duration-200 ${
+                      isActive ? "scale-110 stroke-[2.5]" : "stroke-[1.8]"
+                    }`}
+                  />
+                  <span
+                    className={`text-[10px] mt-0.5 tracking-tight ${
+                      isActive ? "font-semibold" : "font-normal"
+                    }`}
+                  >
+                    {tab.name}
+                  </span>
+                </Link>
+              );
+            })}
+          </div>
+        </nav>
+      )}
 
       {/* DESKTOP SIDEBAR (Large Screens) */}
       <aside className="hidden lg:flex flex-col w-64 bg-[#0A0A0A] backdrop-blur-xl border-r border-[#1F1F1F] p-6 min-h-screen shrink-0">

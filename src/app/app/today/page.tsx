@@ -1,299 +1,566 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import Link from "next/link";
 import {
-  Play,
-  Flame,
-  Award,
+  Bell,
+  DollarSign,
+  ChevronLeft,
   ChevronRight,
+  X,
+  Shield,
+  MessageSquare,
+  Users,
   CheckCircle2,
-  AlertCircle,
+  Circle,
   Dumbbell,
-  Clock,
-  Sparkles,
-  TrendingDown,
-  Info
+  Apple,
+  TrendingUp,
+  AlertTriangle,
+  ArrowRight,
+  Sparkles
 } from "lucide-react";
-import { IosNavBar } from "@/components/layout/IosNavBar";
-import { WeeklyRingStrip } from "@/components/workout/WeeklyRingStrip";
-import { loadAssessmentProgress } from "@/lib/assessment/storage";
-import { generateWorkoutPlan } from "@/lib/engine/recommendation";
-import { GeneratedPlan, PlannedSession } from "@/lib/engine/types";
+import { UserProfileMenu } from "@/components/navigation/UserProfileMenu";
+import { MobileDrawer } from "@/components/navigation/MobileDrawer";
+import { MobileFloatingBar } from "@/components/navigation/MobileFloatingBar";
+import { LanguageModal } from "@/components/navigation/LanguageModal";
 import { useAuth } from "@/lib/auth/authContext";
+import { useTheme } from "@/lib/theme/ThemeContext";
 
-export default function TodayPage() {
+export default function DashboardPage() {
   const { user } = useAuth();
-  const [plan, setPlan] = useState<GeneratedPlan | null>(null);
-  const [activeDayIdx, setActiveDayIdx] = useState(0); // 0 = Mon
+  const { resolvedTheme } = useTheme();
+
+  const [isProfileOpen, setIsProfileOpen] = useState(false);
+  const [isDrawerOpen, setIsDrawerOpen] = useState(false);
+  const [activeSlide, setActiveSlide] = useState(0);
+  const [isPromoVisible, setIsPromoVisible] = useState(true);
+
+  // Checklist state
   const [checklist, setChecklist] = useState({
-    answeredStageA: true,
-    savedPlan: true,
-    loggedWeight: true,
-    addedFocusMuscles: false,
-    completedFirstSession: false
+    assessment: true,
+    equipment: true,
+    workout: false,
+    email: false
   });
 
-  const [hasStageBCompleted, setHasStageBCompleted] = useState(false);
-
-  useEffect(() => {
-    const answers = loadAssessmentProgress();
-    const generated = generateWorkoutPlan(answers);
-    setPlan(generated);
-
-    if (answers.heightCm || (answers.muscleFocus && answers.muscleFocus.length > 0)) {
-      setHasStageBCompleted(true);
+  const promoSlides = [
+    {
+      id: 1,
+      icon: Shield,
+      title: "Protect your plan, back up your progress.",
+      oldPrice: "₹ 4,598.00",
+      newPrice: "₹ 1,069.00",
+      period: "/1st yr",
+      discount: "77% off",
+      cta: "Find matches"
+    },
+    {
+      id: 2,
+      icon: MessageSquare,
+      title: "Workout reminders on WhatsApp and email.",
+      oldPrice: "₹ 3,999.00",
+      newPrice: "₹ 899.00",
+      period: "/1st yr",
+      discount: "75% off",
+      cta: "Enable alerts"
+    },
+    {
+      id: 3,
+      icon: Users,
+      title: "Invite a coach or workout partner.",
+      oldPrice: "₹ 5,200.00",
+      newPrice: "₹ 1,299.00",
+      period: "/1st yr",
+      discount: "75% off",
+      cta: "Invite partner"
     }
-
-    // Default to today's day of week (0=Mon ... 6=Sun)
-    const dayOfWeek = (new Date().getDay() + 6) % 7;
-    setActiveDayIdx(dayOfWeek);
-  }, []);
-
-  const todaySession: PlannedSession =
-    plan?.weeklySessions[activeDayIdx] || {
-      id: "session_today",
-      dayNumber: 1,
-      dayName: "Today",
-      title: "Full Body Strength",
-      focusMuscles: ["chest", "legs", "core"],
-      estimatedDuration: 40,
-      isRestDay: false,
-      warmupMinutes: 5,
-      exercises: []
-    };
-
-  // Ring strip data (Demo athlete ring state)
-  const ringDays = [
-    { dayName: "Monday", shortName: "Mon", isToday: activeDayIdx === 0, isScheduled: true, isCompleted: true, completionPercent: 100 },
-    { dayName: "Tuesday", shortName: "Tue", isToday: activeDayIdx === 1, isScheduled: false, isCompleted: false, completionPercent: 0 },
-    { dayName: "Wednesday", shortName: "Wed", isToday: activeDayIdx === 2, isScheduled: true, isCompleted: activeDayIdx > 2, completionPercent: activeDayIdx > 2 ? 100 : 0 },
-    { dayName: "Thursday", shortName: "Thu", isToday: activeDayIdx === 3, isScheduled: false, isCompleted: false, completionPercent: 0 },
-    { dayName: "Friday", shortName: "Fri", isToday: activeDayIdx === 4, isScheduled: true, isCompleted: false, completionPercent: 0 },
-    { dayName: "Saturday", shortName: "Sat", isToday: activeDayIdx === 5, isScheduled: true, isCompleted: false, completionPercent: 0 },
-    { dayName: "Sunday", shortName: "Sun", isToday: activeDayIdx === 6, isScheduled: false, isCompleted: false, completionPercent: 0 }
   ];
 
+  const currentSlide = promoSlides[activeSlide];
+
+  const handleNextSlide = () => {
+    setActiveSlide((prev) => (prev + 1) % promoSlides.length);
+  };
+
+  const handlePrevSlide = () => {
+    setActiveSlide((prev) => (prev - 1 + promoSlides.length) % promoSlides.length);
+  };
+
+  const toggleChecklistItem = (key: keyof typeof checklist) => {
+    setChecklist((prev) => ({ ...prev, [key]: !prev[key] }));
+  };
+
   return (
-    <div className="flex-1 max-w-4xl w-full mx-auto p-4 md:p-6 space-y-5">
-      {/* iOS Large-Title Header */}
-      <IosNavBar
-        title="Today"
-        subtitle={`Welcome back, ${user?.fullName || "Athlete"}`}
-        action={
+    <div
+      className="min-h-screen flex flex-col justify-between selection:bg-[#673DE6] selection:text-white pb-32 sm:pb-16"
+      style={{
+        backgroundColor: "var(--bg)",
+        color: "var(--tx)"
+      }}
+    >
+      {/* 1. STICKY HEADER (--grad background) */}
+      <header
+        className="sticky top-0 z-40 px-4 py-3 shadow-sm select-none"
+        style={{
+          background: "var(--grad)"
+        }}
+      >
+        <div className="max-w-[760px] mx-auto flex items-center justify-between">
+          {/* Left: SALE! pill (black 45%, white text, weight 700) */}
+          <Link
+            href="/membership"
+            className="px-3.5 py-1.5 rounded-full text-white font-bold text-xs flex items-center gap-1.5 transition-transform active:scale-95"
+            style={{ backgroundColor: "rgba(0, 0, 0, 0.45)" }}
+          >
+            <span>SALE!</span>
+            <ArrowRight size={13} strokeWidth={3} />
+          </Link>
+
+          {/* Right Action Icons: Credits ($), Bell with red "2" badge, Avatar */}
           <div className="flex items-center gap-2">
-            <span className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-[#102831] text-[#A8C5CA] border border-[#28525B]">
-              Demo data
-            </span>
+            {/* Dark Round Credits Button ($ icon) */}
+            <button
+              type="button"
+              className="w-9 h-9 rounded-full flex items-center justify-center text-white font-bold text-sm shadow-sm transition-transform active:scale-95"
+              style={{ backgroundColor: "rgba(0, 0, 0, 0.45)" }}
+              aria-label="FIT credits"
+            >
+              <DollarSign size={16} strokeWidth={2.5} />
+            </button>
+
+            {/* Bell button with red "2" badge */}
+            <button
+              type="button"
+              className="w-9 h-9 rounded-full flex items-center justify-center text-white relative shadow-sm transition-transform active:scale-95"
+              style={{ backgroundColor: "rgba(0, 0, 0, 0.45)" }}
+              aria-label="Notifications"
+            >
+              <Bell size={16} />
+              <span
+                className="absolute -top-0.5 -right-0.5 w-4 h-4 rounded-full text-white text-[9px] font-bold flex items-center justify-center"
+                style={{ backgroundColor: "#D63163" }}
+              >
+                2
+              </span>
+            </button>
+
+            {/* Avatar button (opens account dropdown) */}
+            <button
+              type="button"
+              onClick={() => setIsProfileOpen(!isProfileOpen)}
+              className="w-9 h-9 rounded-full flex items-center justify-center text-white font-bold text-xs shadow-sm ring-2 ring-white/30 transition-transform active:scale-95"
+              style={{ backgroundColor: "#673DE6" }}
+              aria-label="My Account"
+            >
+              {user?.fullName ? user.fullName.charAt(0).toUpperCase() : "M"}
+            </button>
           </div>
-        }
+        </div>
+      </header>
+
+      {/* 2. CONTENT SHEET (--bg, radius 28px 28px 0 0, overlaps header by 18px, max-width 760px) */}
+      <main className="w-full max-w-[760px] mx-auto px-4 -mt-[18px] relative z-20 space-y-6">
+        <div
+          className="rounded-t-[28px] p-5 sm:p-6 shadow-sm space-y-6 border-t"
+          style={{
+            backgroundColor: "var(--bg)",
+            borderColor: "rgba(255, 255, 255, 0.05)"
+          }}
+        >
+          {/* Title: "Ah, here we go again" */}
+          <div className="pt-2">
+            <h1
+              className="text-2xl sm:text-3xl font-normal tracking-tight"
+              style={{ color: "var(--tx)" }}
+            >
+              Ah, here we go again
+            </h1>
+          </div>
+
+          {/* 3. PROMO CAROUSEL (3 slides, counter "1/3") */}
+          {isPromoVisible && (
+            <div
+              className="relative rounded-[24px] p-6 text-white overflow-hidden shadow-xl"
+              style={{
+                backgroundColor: "#1D1E20",
+                minHeight: 240,
+                backgroundImage:
+                  "radial-gradient(circle at 100% 100%, rgba(103, 61, 230, 0.45) 0%, transparent 60%)"
+              }}
+            >
+              {/* Close X (38px, #333) */}
+              <button
+                type="button"
+                onClick={() => setIsPromoVisible(false)}
+                className="absolute top-4 right-4 w-[38px] h-[38px] rounded-full flex items-center justify-center hover:bg-white/10 transition-colors"
+                style={{ backgroundColor: "rgba(255, 255, 255, 0.1)" }}
+                aria-label="Dismiss promo"
+              >
+                <X size={18} className="text-white" />
+              </button>
+
+              {/* Purple rounded icon at top-left */}
+              <div
+                className="w-11 h-11 rounded-2xl flex items-center justify-center text-white mb-4 shadow-md"
+                style={{ backgroundColor: "#673DE6" }}
+              >
+                {React.createElement(currentSlide.icon, { size: 22 })}
+              </div>
+
+              {/* Body text 19px, max 30ch */}
+              <p className="text-[19px] font-medium text-white max-w-[30ch] leading-snug">
+                {currentSlide.title}
+              </p>
+
+              {/* Pricing row: Struck-through old price, red "77% off" chip, new price "/1st yr" */}
+              <div className="flex flex-wrap items-center gap-2.5 mt-5">
+                <span className="line-through text-xs text-[#8E8E93]">
+                  {currentSlide.oldPrice}
+                </span>
+                <span
+                  className="px-2 py-0.5 rounded-full text-white text-[11px] font-bold"
+                  style={{ backgroundColor: "#D63163" }}
+                >
+                  {currentSlide.discount}
+                </span>
+                <div className="text-base font-bold text-white">
+                  {currentSlide.newPrice}{" "}
+                  <span className="text-xs font-normal text-[#8E8E93]">
+                    {currentSlide.period}
+                  </span>
+                </div>
+              </div>
+
+              {/* Full-width white button */}
+              <div className="mt-5">
+                <button
+                  type="button"
+                  className="w-full py-3.5 px-4 rounded-xl bg-white text-black font-semibold text-sm hover:bg-[#F2F3F6] transition-transform active:scale-[0.99] shadow-md"
+                >
+                  {currentSlide.cta}
+                </button>
+              </div>
+
+              {/* Centered pager pill with < 1/3 > */}
+              <div className="flex items-center justify-center gap-3 mt-4 text-xs font-mono text-[#8E8E93]">
+                <button
+                  type="button"
+                  onClick={handlePrevSlide}
+                  className="p-1 hover:text-white transition-colors"
+                  aria-label="Previous slide"
+                >
+                  <ChevronLeft size={16} />
+                </button>
+                <span className="text-white font-medium">
+                  {activeSlide + 1} / {promoSlides.length}
+                </span>
+                <button
+                  type="button"
+                  onClick={handleNextSlide}
+                  className="p-1 hover:text-white transition-colors"
+                  aria-label="Next slide"
+                >
+                  <ChevronRight size={16} />
+                </button>
+              </div>
+            </div>
+          )}
+
+          {/* 4. CHECKLIST "Get your plan up and running" */}
+          <div className="space-y-3">
+            <h2 className="text-base font-medium" style={{ color: "var(--tx)" }}>
+              Get your plan up and running
+            </h2>
+
+            <div
+              className="rounded-[24px] border divide-y overflow-hidden shadow-sm"
+              style={{
+                backgroundColor: "var(--card)",
+                borderColor: "var(--bd)"
+              }}
+            >
+              {/* Item 1: Finish the 1-minute assessment */}
+              <div
+                className="p-4 flex items-center justify-between cursor-pointer hover:bg-black/5 dark:hover:bg-white/5 transition-colors"
+                onClick={() => toggleChecklistItem("assessment")}
+              >
+                <div className="flex items-center gap-3">
+                  {checklist.assessment ? (
+                    <CheckCircle2 size={20} style={{ color: "var(--ok)" }} />
+                  ) : (
+                    <Circle size={20} style={{ color: "var(--mu)" }} />
+                  )}
+                  <span
+                    className={`text-sm ${
+                      checklist.assessment ? "line-through opacity-70" : "font-medium"
+                    }`}
+                  >
+                    Finish the 1-minute assessment
+                  </span>
+                </div>
+                <ChevronRight size={16} style={{ color: "var(--mu)" }} />
+              </div>
+
+              {/* Item 2: Set your gym or home equipment */}
+              <div
+                className="p-4 flex items-center justify-between cursor-pointer hover:bg-black/5 dark:hover:bg-white/5 transition-colors"
+                onClick={() => toggleChecklistItem("equipment")}
+              >
+                <div className="flex items-center gap-3">
+                  {checklist.equipment ? (
+                    <CheckCircle2 size={20} style={{ color: "var(--ok)" }} />
+                  ) : (
+                    <Circle size={20} style={{ color: "var(--mu)" }} />
+                  )}
+                  <span
+                    className={`text-sm ${
+                      checklist.equipment ? "line-through opacity-70" : "font-medium"
+                    }`}
+                  >
+                    Set your gym or home equipment
+                  </span>
+                </div>
+                <ChevronRight size={16} style={{ color: "var(--mu)" }} />
+              </div>
+
+              {/* Item 3: Log your first workout */}
+              <div
+                className="p-4 flex items-center justify-between cursor-pointer hover:bg-black/5 dark:hover:bg-white/5 transition-colors"
+                onClick={() => toggleChecklistItem("workout")}
+              >
+                <div className="flex items-center gap-3">
+                  {checklist.workout ? (
+                    <CheckCircle2 size={20} style={{ color: "var(--ok)" }} />
+                  ) : (
+                    <Circle size={20} style={{ color: "var(--mu)" }} />
+                  )}
+                  <span
+                    className={`text-sm ${
+                      checklist.workout ? "line-through opacity-70" : "font-medium"
+                    }`}
+                  >
+                    Log your first workout
+                  </span>
+                </div>
+                <ChevronRight size={16} style={{ color: "var(--mu)" }} />
+              </div>
+
+              {/* Item 4: Verify your email */}
+              <div
+                className="p-4 flex items-center justify-between cursor-pointer hover:bg-black/5 dark:hover:bg-white/5 transition-colors"
+                onClick={() => toggleChecklistItem("email")}
+              >
+                <div className="flex items-center gap-3">
+                  {checklist.email ? (
+                    <CheckCircle2 size={20} style={{ color: "var(--ok)" }} />
+                  ) : (
+                    <Circle size={20} style={{ color: "var(--mu)" }} />
+                  )}
+                  <span
+                    className={`text-sm ${
+                      checklist.email ? "line-through opacity-70" : "font-medium"
+                    }`}
+                  >
+                    Verify your email
+                  </span>
+                </div>
+                <ChevronRight size={16} style={{ color: "var(--mu)" }} />
+              </div>
+            </div>
+          </div>
+
+          {/* 5. "YOUR PLANS" CARDS (radius 24, card) */}
+          <div className="space-y-3">
+            <h2 className="text-base font-medium" style={{ color: "var(--tx)" }}>
+              Your plans
+            </h2>
+
+            <div className="space-y-3.5">
+              {/* Plan Card 1: Push/Pull/Legs 12-week block */}
+              <div
+                className="rounded-[24px] p-5 border shadow-sm space-y-4"
+                style={{
+                  backgroundColor: "var(--card)",
+                  borderColor: "var(--bd)"
+                }}
+              >
+                <div className="flex items-start justify-between gap-3">
+                  <div className="flex items-center gap-3.5">
+                    <div
+                      className="w-12 h-12 rounded-2xl flex items-center justify-center text-white shrink-0 shadow-sm"
+                      style={{ backgroundColor: "#673DE6" }}
+                    >
+                      <Dumbbell size={22} />
+                    </div>
+                    <div>
+                      <h3 className="font-bold text-sm" style={{ color: "var(--tx)" }}>
+                        Push / Pull / Legs Block
+                      </h3>
+                      <p className="text-xs mt-0.5" style={{ color: "var(--mu)" }}>
+                        12-week progressive overload split · Week 1 of 12
+                      </p>
+                    </div>
+                  </div>
+
+                  <Link
+                    href="/app/plan"
+                    className="btn-hostinger-secondary text-xs shrink-0 py-2 px-3"
+                  >
+                    Manage plan
+                  </Link>
+                </div>
+
+                {/* Optional Warning Strip */}
+                <div
+                  className="p-3 rounded-xl flex items-center gap-2 text-xs"
+                  style={{
+                    backgroundColor: "var(--prt)",
+                    color: "var(--prx)"
+                  }}
+                >
+                  <Sparkles size={14} className="shrink-0" />
+                  <span>Double-progression will automatically increment weight after 2 successful sessions.</span>
+                </div>
+
+                {/* Chip Row */}
+                <div className="flex flex-wrap items-center gap-2 pt-1 border-t" style={{ borderColor: "var(--bd)" }}>
+                  <button
+                    type="button"
+                    className="chip-purple text-xs cursor-pointer hover:opacity-90"
+                  >
+                    + Add reminder
+                  </button>
+                  <button
+                    type="button"
+                    className="chip-purple text-xs cursor-pointer hover:opacity-90"
+                  >
+                    + Share with coach
+                  </button>
+                </div>
+              </div>
+
+              {/* Plan Card 2: Nutrition and Macros */}
+              <div
+                className="rounded-[24px] p-5 border shadow-sm space-y-4"
+                style={{
+                  backgroundColor: "var(--card)",
+                  borderColor: "var(--bd)"
+                }}
+              >
+                <div className="flex items-start justify-between gap-3">
+                  <div className="flex items-center gap-3.5">
+                    <div
+                      className="w-12 h-12 rounded-2xl flex items-center justify-center text-white shrink-0 shadow-sm"
+                      style={{ backgroundColor: "#008361" }}
+                    >
+                      <Apple size={22} />
+                    </div>
+                    <div>
+                      <h3 className="font-bold text-sm" style={{ color: "var(--tx)" }}>
+                        Nutrition &amp; Macro Targets
+                      </h3>
+                      <p className="text-xs mt-0.5" style={{ color: "var(--mu)" }}>
+                        2,450 kcal / day · 165g Protein · High protein athletic split
+                      </p>
+                    </div>
+                  </div>
+
+                  <Link
+                    href="/app/nutrition"
+                    className="btn-hostinger-secondary text-xs shrink-0 py-2 px-3"
+                  >
+                    Manage plan
+                  </Link>
+                </div>
+
+                {/* Chip Row */}
+                <div className="flex flex-wrap items-center gap-2 pt-1 border-t" style={{ borderColor: "var(--bd)" }}>
+                  <button
+                    type="button"
+                    className="chip-purple text-xs cursor-pointer hover:opacity-90"
+                  >
+                    + Log daily calories
+                  </button>
+                  <button
+                    type="button"
+                    className="chip-purple text-xs cursor-pointer hover:opacity-90"
+                  >
+                    + View 300+ recipes
+                  </button>
+                </div>
+              </div>
+
+              {/* Plan Card 3: Bodyweight & Progress Log */}
+              <div
+                className="rounded-[24px] p-5 border shadow-sm space-y-4"
+                style={{
+                  backgroundColor: "var(--card)",
+                  borderColor: "var(--bd)"
+                }}
+              >
+                <div className="flex items-start justify-between gap-3">
+                  <div className="flex items-center gap-3.5">
+                    <div
+                      className="w-12 h-12 rounded-2xl flex items-center justify-center text-white shrink-0 shadow-sm"
+                      style={{ backgroundColor: "#2C2260" }}
+                    >
+                      <TrendingUp size={22} style={{ color: "#A592FF" }} />
+                    </div>
+                    <div>
+                      <h3 className="font-bold text-sm" style={{ color: "var(--tx)" }}>
+                        Strength &amp; Bodyweight Log
+                      </h3>
+                      <p className="text-xs mt-0.5" style={{ color: "var(--mu)" }}>
+                        Weekly moving average: 78.4 kg (-0.4 kg this cycle)
+                      </p>
+                    </div>
+                  </div>
+
+                  <Link
+                    href="/app/progress"
+                    className="btn-hostinger-secondary text-xs shrink-0 py-2 px-3"
+                  >
+                    Manage plan
+                  </Link>
+                </div>
+
+                {/* Chip Row */}
+                <div className="flex flex-wrap items-center gap-2 pt-1 border-t" style={{ borderColor: "var(--bd)" }}>
+                  <button
+                    type="button"
+                    className="chip-purple text-xs cursor-pointer hover:opacity-90"
+                  >
+                    + Log today's weight
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </main>
+
+      {/* 6. FIXED FLOATING BOTTOM BAR (Hostinger inspiration Screenshots 4 & 5) */}
+      <MobileFloatingBar
+        onToggleDrawer={() => setIsDrawerOpen(true)}
+        onToggleProfile={() => setIsProfileOpen(true)}
       />
 
-      {/* Bento Grid Layout */}
-      <div className="grid grid-cols-1 md:grid-cols-12 gap-4">
-        {/* HERO TILE: Today's Scheduled Session (8 cols) */}
-        <div className="md:col-span-8 ios-glass-card rounded-3xl p-6 border border-[#222222] relative overflow-hidden flex flex-col justify-between">
-          <div className="absolute -top-16 -right-16 w-44 h-44 bg-[#28DACC]/10 rounded-full blur-3xl pointer-events-none" />
+      {/* 7. SIDE DRAWER */}
+      <MobileDrawer
+        isOpen={isDrawerOpen}
+        onClose={() => setIsDrawerOpen(false)}
+        onOpenProfile={() => setIsProfileOpen(true)}
+      />
 
-          {/* Background workout athlete texture */}
-          <div className="absolute right-0 top-0 bottom-0 w-1/3 opacity-25 pointer-events-none overflow-hidden hidden sm:block">
-            <img
-              src="/images/fit-planner/focused_heavy_squat_in_the_gym_4.png"
-              alt="Active workout"
-              className="w-full h-full object-cover"
-            />
-            <div className="absolute inset-0 bg-gradient-to-r from-[#121212] via-[#121212]/60 to-transparent" />
-          </div>
+      {/* 8. MY ACCOUNT DROPDOWN */}
+      <UserProfileMenu
+        isOpen={isProfileOpen}
+        onClose={() => setIsProfileOpen(false)}
+      />
 
-          <div>
-            <div className="flex items-center justify-between mb-3">
-              <span className="inline-flex items-center gap-1.5 text-xs font-semibold px-2.5 py-1 rounded-full bg-[#28DACC]/15 text-[#28DACC] border border-[#28DACC]/30">
-                <Dumbbell size={13} />
-                <span>{todaySession.isRestDay ? "Rest & Recovery" : "Today's Workout"}</span>
-              </span>
-              <span className="text-xs text-[#A8C5CA] font-mono">
-                {todaySession.dayName}
-              </span>
-            </div>
-
-            <h3 className="text-2xl font-extrabold text-[#F4F9FA] tracking-tight">
-              {todaySession.title}
-            </h3>
-
-            <p className="text-xs text-[#A8C5CA] mt-1.5 leading-relaxed">
-              {todaySession.isRestDay
-                ? "Active recovery day. Take a light 20-minute walk, hydrate, and allow muscular tissues to rebuild."
-                : `Targeting ${todaySession.focusMuscles.join(", ") || "full body"}. Designed for progressive overload with 5-minute dynamic warmup.`}
-            </p>
-
-            {!todaySession.isRestDay && (
-              <div className="flex items-center gap-4 mt-4 text-xs font-mono">
-                <div className="flex items-center gap-1.5 text-[#28DACC]">
-                  <Clock size={14} />
-                  <span>{todaySession.estimatedDuration} min</span>
-                </div>
-                <div className="flex items-center gap-1.5 text-[#F4F9FA]">
-                  <Dumbbell size={14} className="text-[#28DACC]" />
-                  <span>{todaySession.exercises.length || 4} Exercises</span>
-                </div>
-              </div>
-            )}
-          </div>
-
-          <div className="mt-6 pt-4 border-t border-[#28525B]/40 flex items-center justify-between">
-            {todaySession.isRestDay ? (
-              <span className="text-xs text-[#A8C5CA]">Next training session tomorrow</span>
-            ) : (
-              <Link
-                href={`/app/workout/${todaySession.id}`}
-                className="w-full sm:w-auto px-6 h-12 rounded-[14px] bg-[#28DACC] text-[#07151D] font-bold text-sm flex items-center justify-center gap-2 shadow-[0_0_20px_rgba(40,218,204,0.3)] active:scale-[0.98] transition-all hover:bg-[#41E9DC]"
-              >
-                <Play size={16} fill="currentColor" />
-                <span>Start Workout Session</span>
-              </Link>
-            )}
-          </div>
-        </div>
-
-        {/* METRICS TILE: Streak & Consistency (4 cols) */}
-        <div className="md:col-span-4 grid grid-cols-2 md:grid-cols-1 gap-4">
-          <div className="ios-glass-card rounded-3xl p-5 border border-[#28525B] flex flex-col justify-between">
-            <div className="flex items-center justify-between">
-              <span className="text-xs text-[#A8C5CA] font-medium">Training Streak</span>
-              <div className="w-8 h-8 rounded-xl bg-[#FFB020]/20 text-[#FFB020] flex items-center justify-center">
-                <Flame size={18} />
-              </div>
-            </div>
-            <div className="mt-3">
-              <div className="text-3xl font-extrabold num-mono text-[#F4F9FA]">
-                3 <span className="text-sm font-normal text-[#A8C5CA]">days</span>
-              </div>
-              <div className="text-[11px] text-[#28DA8B] mt-1 font-mono">
-                +1 from last week
-              </div>
-            </div>
-          </div>
-
-          <div className="ios-glass-card rounded-3xl p-5 border border-[#28525B] flex flex-col justify-between">
-            <div className="flex items-center justify-between">
-              <span className="text-xs text-[#A8C5CA] font-medium">Weight Trend</span>
-              <div className="w-8 h-8 rounded-xl bg-[#28DACC]/20 text-[#28DACC] flex items-center justify-center">
-                <TrendingDown size={18} />
-              </div>
-            </div>
-            <div className="mt-3">
-              <div className="text-3xl font-extrabold num-mono text-[#28DACC]">
-                74.2 <span className="text-sm font-normal text-[#A8C5CA]">kg</span>
-              </div>
-              <div className="text-[11px] text-[#A8C5CA] mt-1 font-mono">
-                -0.6 kg this month (Demo)
-              </div>
-            </div>
-          </div>
-        </div>
-
-        {/* FULL WIDTH TILE: Weekly Ring Strip */}
-        <div className="md:col-span-12">
-          <WeeklyRingStrip
-            days={ringDays}
-            selectedIndex={activeDayIdx}
-            onSelectDay={(idx) => setActiveDayIdx(idx)}
-          />
-        </div>
-
-        {/* PROFILE COMPLETION CHECKLIST TILE (12 cols) */}
-        <div className="md:col-span-12 ios-glass-card rounded-3xl p-5 md:p-6 border border-[#28525B]">
-          <div className="flex items-center justify-between mb-3">
-            <div>
-              <span className="text-[11px] uppercase font-mono tracking-wider text-[#28DACC]">
-                Onboarding Progress
-              </span>
-              <h4 className="text-base font-bold text-[#F4F9FA]">
-                Complete Your Fitness Profile
-              </h4>
-            </div>
-            <span className="text-xs font-mono num-mono text-[#28DACC] font-semibold">
-              {hasStageBCompleted ? "4 of 5 Done (80%)" : "3 of 5 Done (60%)"}
-            </span>
-          </div>
-
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 mt-4">
-            <div className="p-3.5 rounded-2xl bg-[#102831] border border-[#28525B]/50 flex items-center gap-3">
-              <CheckCircle2 size={18} className="text-[#28DA8B] shrink-0" />
-              <div>
-                <div className="text-xs font-semibold text-[#F4F9FA]">Stage A Completed</div>
-                <div className="text-[10px] text-[#A8C5CA]">Primary training split built</div>
-              </div>
-            </div>
-
-            <div className="p-3.5 rounded-2xl bg-[#102831] border border-[#28525B]/50 flex items-center gap-3">
-              <CheckCircle2 size={18} className="text-[#28DA8B] shrink-0" />
-              <div>
-                <div className="text-xs font-semibold text-[#F4F9FA]">Health Consent Logged</div>
-                <div className="text-[10px] text-[#A8C5CA]">Protocol v1.2 recorded</div>
-              </div>
-            </div>
-
-            <div className="p-3.5 rounded-2xl bg-[#102831] border border-[#28525B]/50 flex items-center gap-3">
-              <CheckCircle2 size={18} className="text-[#28DA8B] shrink-0" />
-              <div>
-                <div className="text-xs font-semibold text-[#F4F9FA]">Baseline Weight Saved</div>
-                <div className="text-[10px] text-[#A8C5CA]">Tracked in progress logs</div>
-              </div>
-            </div>
-
-            {hasStageBCompleted ? (
-              <div className="p-3.5 rounded-2xl bg-[#102831] border border-[#28525B]/50 flex items-center justify-between">
-                <div className="flex items-center gap-3">
-                  <CheckCircle2 size={18} className="text-[#28DA8B] shrink-0" />
-                  <div>
-                    <div className="text-xs font-semibold text-[#F4F9FA]">Stage B Completed</div>
-                    <div className="text-[10px] text-[#A8C5CA]">Biometrics & muscles calibrated</div>
-                  </div>
-                </div>
-                <Link
-                  href="/app/profile/checklist"
-                  className="text-[11px] font-semibold text-[#28DACC] hover:underline"
-                >
-                  Edit
-                </Link>
-              </div>
-            ) : (
-              <Link
-                href="/app/profile/checklist"
-                className="p-3.5 rounded-2xl bg-[#102831] border border-[#28DACC]/40 hover:border-[#28DACC] transition-colors flex items-center justify-between"
-              >
-                <div className="flex items-center gap-3">
-                  <div className="w-4 h-4 rounded-full border border-[#28DACC] flex items-center justify-center text-[9px] text-[#28DACC]">
-                    4
-                  </div>
-                  <div>
-                    <div className="text-xs font-semibold text-[#28DACC]">Stage B Fine-Tuning</div>
-                    <div className="text-[10px] text-[#A8C5CA]">Muscle focus & sleep target</div>
-                  </div>
-                </div>
-                <ChevronRight size={16} className="text-[#28DACC]" />
-              </Link>
-            )}
-
-            <Link
-              href="/app/nutrition"
-              className="p-3.5 rounded-2xl bg-[#102831] border border-[#28525B]/50 hover:border-[#28DACC]/40 transition-colors flex items-center justify-between"
-            >
-              <div className="flex items-center gap-3">
-                <div className="w-4 h-4 rounded-full border border-[#28525B] flex items-center justify-center text-[9px] text-[#A8C5CA]">
-                  5
-                </div>
-                <div>
-                  <div className="text-xs font-semibold text-[#F4F9FA]">Stage C Nutrition Setup</div>
-                  <div className="text-[10px] text-[#A8C5CA]">Allergen & macro filter</div>
-                </div>
-              </div>
-              <ChevronRight size={16} className="text-[#A8C5CA]" />
-            </Link>
-          </div>
-        </div>
-      </div>
+      {/* 9. LANGUAGE MODAL */}
+      <LanguageModal />
     </div>
   );
 }
