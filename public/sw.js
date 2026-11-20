@@ -1,11 +1,10 @@
-// FIT Planner PWA Service Worker (Offline Support)
-const CACHE_NAME = "fit-planner-v1";
+// Shape Radar PWA Service Worker (Offline Support & Fresh Navigation)
+const CACHE_NAME = "shape-radar-v2";
 const OFFLINE_URLS = [
   "/",
   "/app/today",
   "/app/plan",
   "/app/progress",
-  "/globals.css",
   "/manifest.json"
 ];
 
@@ -38,21 +37,32 @@ self.addEventListener("activate", (event) => {
 self.addEventListener("fetch", (event) => {
   if (event.request.method !== "GET") return;
 
-  event.respondWith(
-    caches.match(event.request).then((cached) => {
-      const networked = fetch(event.request)
+  // Network-first for HTML pages so users always get the freshest version
+  if (event.request.mode === "navigate") {
+    event.respondWith(
+      fetch(event.request)
         .then((response) => {
-          if (response && response.status === 200 && response.type === "basic") {
+          if (response && response.status === 200) {
             const copy = response.clone();
-            caches.open(CACHE_NAME).then((cache) => {
-              cache.put(event.request, copy);
-            });
+            caches.open(CACHE_NAME).then((cache) => cache.put(event.request, copy));
           }
           return response;
         })
-        .catch(() => cached);
+        .catch(() => caches.match(event.request))
+    );
+    return;
+  }
 
-      return cached || networked;
-    })
+  // Stale-while-revalidate / network-first for other assets
+  event.respondWith(
+    fetch(event.request)
+      .then((response) => {
+        if (response && response.status === 200 && response.type === "basic") {
+          const copy = response.clone();
+          caches.open(CACHE_NAME).then((cache) => cache.put(event.request, copy));
+        }
+        return response;
+      })
+      .catch(() => caches.match(event.request))
   );
 });
