@@ -19,6 +19,8 @@ interface AuthContextType {
   login: (email: string, pass: string) => Promise<{ success: boolean; error?: string }>;
   signup: (email: string, pass: string, name: string) => Promise<{ success: boolean; error?: string }>;
   loginAsDemo: () => void;
+  loginWithGoogle: () => Promise<void>;
+  loginWithFacebook: () => Promise<void>;
   logout: () => void;
 }
 
@@ -112,6 +114,34 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     localStorage.setItem(USER_STORAGE_KEY, JSON.stringify(DEMO_USER));
   };
 
+  const loginWithGoogle = async () => {
+    const googleUser: UserProfile = {
+      id: "google_maruti_digital",
+      email: "avadhshikha@gmail.com",
+      fullName: "Maruti Digital",
+      role: "customer",
+      isDemoAccount: true,
+      membershipStatus: "active",
+      createdAt: new Date().toISOString()
+    };
+    setUser(googleUser);
+    localStorage.setItem(USER_STORAGE_KEY, JSON.stringify(googleUser));
+  };
+
+  const loginWithFacebook = async () => {
+    const fbUser: UserProfile = {
+      id: "fb_maruti_digital",
+      email: "avadhshikha@gmail.com",
+      fullName: "Maruti Digital",
+      role: "customer",
+      isDemoAccount: true,
+      membershipStatus: "active",
+      createdAt: new Date().toISOString()
+    };
+    setUser(fbUser);
+    localStorage.setItem(USER_STORAGE_KEY, JSON.stringify(fbUser));
+  };
+
   const logout = () => {
     setUser(null);
     localStorage.removeItem(USER_STORAGE_KEY);
@@ -126,6 +156,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         login,
         signup,
         loginAsDemo,
+        loginWithGoogle,
+        loginWithFacebook,
         logout
       }}
     >

@@ -11,16 +11,19 @@ import {
   DEMO_METRICS,
   DEMO_CHART_CONFIG
 } from "@/lib/chart/demoData";
-
-const DynamicStrengthChart = dynamic(
-  () =>
-    import("@/components/charts/StrengthProgressChart").then((mod) => mod.StrengthProgressChart),
-  {
-    ssr: false,
-    loading: () => <StrengthChartSkeleton />
-  }
-);
+import { UserProfileMenu } from "@/components/navigation/UserProfileMenu";
+import { MobileDrawer } from "@/components/navigation/MobileDrawer";
+import { MobileFloatingBar } from "@/components/navigation/MobileFloatingBar";
+import { LanguageModal } from "@/components/navigation/LanguageModal";
+import { useTheme } from "@/lib/theme/ThemeContext";
+import { useLanguage } from "@/lib/i18n/LanguageContext";
+import { useAuth } from "@/lib/auth/authContext";
 import {
+  Sun,
+  Moon,
+  Globe,
+  Menu,
+  User as UserIcon,
   Sparkles,
   ArrowRight,
   Dumbbell,
@@ -43,8 +46,22 @@ import {
   Check
 } from "lucide-react";
 
+const DynamicStrengthChart = dynamic(
+  () =>
+    import("@/components/charts/StrengthProgressChart").then((mod) => mod.StrengthProgressChart),
+  {
+    ssr: false,
+    loading: () => <StrengthChartSkeleton />
+  }
+);
+
 export default function HomePage() {
   const [openFaq, setOpenFaq] = useState<number | null>(null);
+  const [isDrawerOpen, setIsDrawerOpen] = useState(false);
+  const [isProfileMenuOpen, setIsProfileMenuOpen] = useState(false);
+  const { resolvedTheme, toggleTheme } = useTheme();
+  const { currentLanguage, setIsLanguageModalOpen } = useLanguage();
+  const { user } = useAuth();
 
   const faqs = [
     {
@@ -78,14 +95,26 @@ export default function HomePage() {
       {/* 1. PUBLIC HEADER (MyFitCoach Style) */}
       <header className="sticky top-0 z-50 bg-[#000000]/85 backdrop-blur-xl border-b border-[#1A1A1A] px-4 md:px-8 py-3.5">
         <div className="max-w-6xl mx-auto flex items-center justify-between">
-          <Link href="/" className="flex items-center gap-2">
-            <span className="font-extrabold text-lg md:text-xl tracking-tight text-white">
-              FIT<span className="text-[#28DACC]">PLANNER</span>
-            </span>
-            <span className="hidden sm:inline-block text-[10px] font-mono text-[#28DACC] px-2 py-0.5 rounded-full bg-[#28DACC]/10 border border-[#28DACC]/20 tracking-widest uppercase">
-              Pro OS
-            </span>
-          </Link>
+          <div className="flex items-center gap-2.5">
+            {/* Mobile Hamburger Menu Button (Drawer) */}
+            <button
+              type="button"
+              onClick={() => setIsDrawerOpen(true)}
+              className="md:hidden p-2 -ml-2 rounded-xl text-[#8E8E93] hover:text-white hover:bg-white/5 transition-colors"
+              aria-label="Open navigation menu"
+            >
+              <Menu size={20} />
+            </button>
+
+            <Link href="/" className="flex items-center gap-2">
+              <span className="font-extrabold text-lg md:text-xl tracking-tight text-white">
+                FIT<span className="text-[#28DACC]">PLANNER</span>
+              </span>
+              <span className="hidden sm:inline-block text-[10px] font-mono text-[#28DACC] px-2 py-0.5 rounded-full bg-[#28DACC]/10 border border-[#28DACC]/20 tracking-widest uppercase">
+                Pro OS
+              </span>
+            </Link>
+          </div>
 
           <nav className="hidden md:flex items-center gap-8 text-xs text-[#8E8E93] font-medium">
             <a href="#workout-plan" className="hover:text-white transition-colors">
@@ -105,18 +134,53 @@ export default function HomePage() {
             </a>
           </nav>
 
-          <div className="flex items-center gap-3">
-            <Link
-              href="/auth/login"
-              className="text-xs text-[#8E8E93] hover:text-white font-medium px-2 py-1"
+          <div className="flex items-center gap-2 sm:gap-3">
+            {/* Language Selector Button */}
+            <button
+              type="button"
+              onClick={() => setIsLanguageModalOpen(true)}
+              className="hidden sm:flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl bg-white/5 hover:bg-white/10 text-xs text-[#E0E0E0] border border-white/5 transition-colors"
+              title="Select Language"
             >
-              Log in
-            </Link>
+              <span>{currentLanguage.flag}</span>
+              <span className="font-mono text-[11px] font-semibold">{currentLanguage.code.toUpperCase()}</span>
+            </button>
+
+            {/* Working Theme Toggle Button (Light / Dark) */}
+            <button
+              type="button"
+              onClick={toggleTheme}
+              className="p-2 rounded-xl bg-white/5 hover:bg-white/10 text-[#8E8E93] hover:text-[#28DACC] transition-colors border border-white/5"
+              title={resolvedTheme === "dark" ? "Switch to Light Mode" : "Switch to Dark Mode"}
+              aria-label="Toggle theme"
+            >
+              {resolvedTheme === "dark" ? <Sun size={15} /> : <Moon size={15} />}
+            </button>
+
+            {/* User Profile / Account Menu Button (Hostinger Reference) */}
+            <button
+              type="button"
+              onClick={() => setIsProfileMenuOpen(!isProfileMenuOpen)}
+              className="p-1 rounded-full hover:ring-2 hover:ring-[#28DACC]/50 transition-all relative"
+              aria-label="User account and theme settings"
+            >
+              {user ? (
+                <div className="w-8 h-8 rounded-full bg-gradient-to-tr from-[#28DACC] to-[#6366F1] flex items-center justify-center font-bold text-black text-xs shadow-sm">
+                  {user.fullName ? user.fullName.charAt(0).toUpperCase() : "M"}
+                </div>
+              ) : (
+                <div className="w-8 h-8 rounded-full bg-white/10 flex items-center justify-center text-[#28DACC]">
+                  <UserIcon size={16} />
+                </div>
+              )}
+              <span className="absolute -top-0.5 -right-0.5 w-2.5 h-2.5 rounded-full bg-[#28DACC] border-2 border-black" />
+            </button>
+
             <Link
               href="/assessment"
-              className="px-4 py-2 rounded-xl bg-[#28DACC] hover:bg-[#38D8CE] text-[#000000] font-extrabold text-xs tracking-wide shadow-[0_0_16px_rgba(40,218,204,0.3)] active:scale-95 transition-all flex items-center gap-1"
+              className="px-3.5 sm:px-4 py-2 rounded-xl bg-[#28DACC] hover:bg-[#38D8CE] text-[#000000] font-extrabold text-xs tracking-wide shadow-[0_0_16px_rgba(40,218,204,0.3)] active:scale-95 transition-all flex items-center gap-1 shrink-0"
             >
-              <span>Start now</span>
+              <span>Start</span>
               <ArrowRight size={13} strokeWidth={3} />
             </Link>
           </div>
@@ -667,7 +731,7 @@ export default function HomePage() {
       </section>
 
       {/* 10. CLEAN MINIMAL FOOTER */}
-      <footer className="bg-black border-t border-[#1A1A1A] px-4 md:px-8 py-8 text-xs text-[#666666]">
+      <footer className="bg-black border-t border-[#1A1A1A] px-4 md:px-8 py-8 pb-24 lg:pb-8 text-xs text-[#666666]">
         <div className="max-w-6xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-4">
           <div className="flex items-center gap-2">
             <span className="font-extrabold text-white tracking-tight">FIT<span className="text-[#28DACC]">PLANNER</span></span>
@@ -693,6 +757,28 @@ export default function HomePage() {
           </div>
         </div>
       </footer>
+
+      {/* 11. MOBILE APP BOTTOM FLOATING BAR (Hostinger Mobile Inspiration Screenshots 4 & 5) */}
+      <MobileFloatingBar
+        onToggleDrawer={() => setIsDrawerOpen(true)}
+        onToggleProfile={() => setIsProfileMenuOpen(true)}
+      />
+
+      {/* 12. MOBILE SIDEBAR DRAWER (Hostinger Mobile Inspiration Screenshots 2 & 7) */}
+      <MobileDrawer
+        isOpen={isDrawerOpen}
+        onClose={() => setIsDrawerOpen(false)}
+        onOpenProfile={() => setIsProfileMenuOpen(true)}
+      />
+
+      {/* 13. USER PROFILE POPUP MENU WITH WORKING THEME TOGGLE (Hostinger Mobile Inspiration Screenshots 1 & 3) */}
+      <UserProfileMenu
+        isOpen={isProfileMenuOpen}
+        onClose={() => setIsProfileMenuOpen(false)}
+      />
+
+      {/* 14. LANGUAGE MODAL (Dummy Languages) */}
+      <LanguageModal />
     </div>
   );
 }

@@ -27,6 +27,7 @@ import {
   Sparkles,
   Check,
   Moon,
+  Sun,
   Coffee,
   X,
   Plus,
@@ -54,6 +55,7 @@ import {
   saveAssessmentProgress
 } from "@/lib/assessment/storage";
 import { ConsentModal } from "@/components/assessment/ConsentModal";
+import { useTheme } from "@/lib/theme/ThemeContext";
 
 // 22 main questions + 2 interstitial motivation slides + 1 analysis sequence
 // Steps:
@@ -178,6 +180,7 @@ export const FEMALE_BODY_SHAPES: {
 
 export default function AssessmentPage() {
   const router = useRouter();
+  const { resolvedTheme, toggleTheme } = useTheme();
 
   const [step, setStep] = useState(1);
   const [answers, setAnswers] = useState<AssessmentAnswers>({
@@ -340,16 +343,27 @@ export default function AssessmentPage() {
             </div>
           </div>
 
-          <div className="w-12 text-right">
-            {getQuestionNumberDisplay() ? (
-              <span className="text-xs font-mono font-semibold text-[#A8C5CA]">
-                {getQuestionNumberDisplay()}
-              </span>
-            ) : (
-              <span className="text-[10px] font-mono tracking-wider uppercase text-[#28DACC]">
-                FIT
-              </span>
-            )}
+          <div className="flex items-center gap-2">
+            <button
+              type="button"
+              onClick={toggleTheme}
+              className="p-1.5 rounded-xl bg-white/5 hover:bg-white/10 text-[#8E8E93] hover:text-[#28DACC] transition-colors border border-white/5"
+              title={resolvedTheme === "dark" ? "Switch to Light Mode" : "Switch to Dark Mode"}
+              aria-label="Toggle theme"
+            >
+              {resolvedTheme === "dark" ? <Sun size={14} /> : <Moon size={14} />}
+            </button>
+            <div className="w-12 text-right">
+              {getQuestionNumberDisplay() ? (
+                <span className="text-xs font-mono font-semibold text-[#A8C5CA]">
+                  {getQuestionNumberDisplay()}
+                </span>
+              ) : (
+                <span className="text-[10px] font-mono tracking-wider uppercase text-[#28DACC]">
+                  FIT
+                </span>
+              )}
+            </div>
           </div>
         </div>
       </header>

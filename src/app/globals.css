@@ -1,15 +1,15 @@
 @import "tailwindcss";
 
 @theme {
-  --color-bg-primary: #000000;
-  --color-bg-secondary: #0A0A0A;
-  --color-bg-card: #121212;
-  --color-bg-card-hover: #181818;
-  --color-teal-primary: #28DACC;
-  --color-teal-hover: #38D8CE;
-  --color-text-primary: #FFFFFF;
-  --color-text-secondary: #8E8E93;
-  --color-border-subtle: #1F1F1F;
+  --color-bg-primary: var(--bg-primary);
+  --color-bg-secondary: var(--bg-secondary);
+  --color-bg-card: var(--bg-card);
+  --color-bg-card-hover: var(--bg-card-hover);
+  --color-teal-primary: var(--teal-primary);
+  --color-teal-hover: var(--teal-hover);
+  --color-text-primary: var(--text-primary);
+  --color-text-secondary: var(--text-secondary);
+  --color-border-subtle: var(--border-subtle);
   --color-semantic-success: #28DA8B;
   --color-semantic-warning: #FFB020;
   --color-semantic-error: #FF5C5C;
@@ -17,17 +17,32 @@
   --font-ios: -apple-system, BlinkMacSystemFont, "SF Pro Text", "SF Pro Display", Inter, system-ui, sans-serif;
 }
 
-:root {
+:root, html.light {
+  --bg-primary: #F8F9FA;
+  --bg-secondary: #FFFFFF;
+  --bg-card: #FFFFFF;
+  --bg-card-hover: #F1F3F5;
+  --teal-primary: #00B4A0;
+  --teal-hover: #009E8C;
+  --text-primary: #0F172A;
+  --text-secondary: #64748B;
+  --border-subtle: #E2E8F0;
+  --border-strong: #CBD5E1;
+  --safe-top: env(safe-area-inset-top, 0px);
+  --safe-bottom: env(safe-area-inset-bottom, 0px);
+}
+
+html.dark {
   --bg-primary: #000000;
   --bg-secondary: #0A0A0A;
   --bg-card: #121212;
+  --bg-card-hover: #181818;
   --teal-primary: #28DACC;
   --teal-hover: #38D8CE;
   --text-primary: #FFFFFF;
   --text-secondary: #8E8E93;
   --border-subtle: #1F1F1F;
-  --safe-top: env(safe-area-inset-top, 0px);
-  --safe-bottom: env(safe-area-inset-bottom, 0px);
+  --border-strong: #2A2A2A;
 }
 
 * {
@@ -36,8 +51,6 @@
 }
 
 html, body {
-  background-color: #000000;
-  color: #FFFFFF;
   font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "SF Pro Display", Inter, system-ui, sans-serif;
   min-height: 100dvh;
   margin: 0;
@@ -45,6 +58,65 @@ html, body {
   overflow-x: hidden;
   touch-action: manipulation;
   -webkit-font-smoothing: antialiased;
+  transition: background-color 0.25s ease, color 0.25s ease;
+}
+
+html.dark, html.dark body {
+  background-color: #000000;
+  color: #FFFFFF;
+}
+
+html.light, html.light body {
+  background-color: #F8F9FA;
+  color: #0F172A;
+}
+
+/* Light mode overrides for existing dark containers */
+html.light .bg-\[\#000000\],
+html.light .bg-\[\#07151D\],
+html.light .bg-\[\#080808\],
+html.light .bg-\[\#0A0A0A\],
+html.light .bg-black {
+  background-color: #F8F9FA !important;
+}
+
+html.light .bg-\[\#000000\]\/85,
+html.light .bg-\[\#000000\]\/90,
+html.light .bg-\[\#07151D\]\/85 {
+  background-color: rgba(255, 255, 255, 0.92) !important;
+}
+
+html.light .bg-\[\#0E0E0E\],
+html.light .bg-\[\#101010\],
+html.light .bg-\[\#121212\],
+html.light .bg-\[\#141414\],
+html.light .bg-\[\#102831\],
+html.light .bg-\[\#142D35\] {
+  background-color: #FFFFFF !important;
+  box-shadow: 0 4px 20px -2px rgba(0, 0, 0, 0.05);
+}
+
+html.light .border-\[\#1A1A1A\],
+html.light .border-\[\#1F1F1F\],
+html.light .border-\[\#222222\],
+html.light .border-\[\#28525B\],
+html.light .border-\[\#28525B\]\/40,
+html.light .border-\[\#28525B\]\/50,
+html.light .border-white\/5,
+html.light .border-white\/8 {
+  border-color: #E2E8F0 !important;
+}
+
+html.light .text-white,
+html.light .text-\[\#F4F9FA\],
+html.light .text-\[\#FFFFFF\] {
+  color: #0F172A !important;
+}
+
+html.light .text-\[\#8E8E93\],
+html.light .text-\[\#A8C5CA\],
+html.light .text-\[\#666666\] {
+  color: #64748B !important;
 }
 
 /* iOS Monospace Numerals for athlete training log */
@@ -56,10 +128,17 @@ html, body {
 
 /* iOS Glass Effect */
 .ios-glass {
-  background: rgba(14, 14, 14, 0.85);
+  background: var(--glass-bg, rgba(14, 14, 14, 0.85));
   backdrop-filter: blur(20px);
   -webkit-backdrop-filter: blur(20px);
-  border-color: rgba(36, 36, 36, 0.6);
+  border-color: var(--glass-border, rgba(36, 36, 36, 0.6));
+}
+
+html.light .ios-glass,
+html.light .ios-glass-card {
+  background: rgba(255, 255, 255, 0.92) !important;
+  border-color: #E2E8F0 !important;
+  box-shadow: 0 4px 24px -2px rgba(0, 0, 0, 0.06);
 }
 
 .ios-glass-card {
@@ -75,9 +154,14 @@ html, body {
   box-shadow: 0 0 0 1.5px #28DACC, 0 0 20px rgba(40, 218, 204, 0.28);
 }
 
+html.light .card-selected-glow {
+  border-color: #00B4A0 !important;
+  box-shadow: 0 0 0 1.5px #00B4A0, 0 0 16px rgba(0, 180, 160, 0.2);
+}
+
 /* Safe areas */
 .pb-safe {
-  padding-bottom: calc(env(safe-area-inset-bottom, 0px) + 64px);
+  padding-bottom: calc(env(safe-area-inset-bottom, 0px) + 72px);
 }
 
 .pt-safe {
@@ -92,12 +176,21 @@ html, body {
   overflow: hidden;
 }
 
+html.light .ios-inset-group {
+  background: #FFFFFF !important;
+  border-color: #E2E8F0 !important;
+}
+
 .ios-inset-row {
   display: flex;
   align-items: center;
   justify-content: space-between;
   padding: 14px 16px;
   border-bottom: 1px solid rgba(34, 34, 34, 0.8);
+}
+
+html.light .ios-inset-row {
+  border-bottom-color: #F1F5F9 !important;
 }
 
 .ios-inset-row:last-child {
