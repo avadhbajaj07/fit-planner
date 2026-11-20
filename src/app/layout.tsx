@@ -22,7 +22,7 @@ export const viewport: Viewport = {
 export const metadata: Metadata = {
   title: "Shape Radar — Your Goals. Your Body. Your Plan.",
   description:
-    "Personalized workout and nutrition planning for adults 18+. Hostinger hPanel-inspired athlete operating system with automated progressive overload.",
+    "Personalized workout and nutrition planning for adults 18+. Modern athlete operating system with automated progressive overload.",
   manifest: "/manifest.json",
   appleWebApp: {
     capable: true,

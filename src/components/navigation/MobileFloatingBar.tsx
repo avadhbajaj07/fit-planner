@@ -31,7 +31,7 @@ export function MobileFloatingBar({
           <Menu size={22} />
         </button>
 
-        {/* Pill Input: "Ask FIT AI" with sparkle icon, mic icon and purple send circle */}
+        {/* Pill Input: "Ask Shape Radar" with sparkle icon, mic icon and purple send circle */}
         <div
           className="flex-1 h-14 px-4 rounded-full border shadow-lg flex items-center justify-between text-sm cursor-pointer transition-colors"
           style={{
@@ -44,7 +44,7 @@ export function MobileFloatingBar({
           <div className="flex items-center gap-2.5 truncate">
             <Sparkles size={18} style={{ color: "var(--pr)" }} className="shrink-0" />
             <span className="truncate text-xs sm:text-sm font-medium" style={{ color: "var(--mu)" }}>
-              Ask FIT AI
+              Ask Shape Radar
             </span>
           </div>
 

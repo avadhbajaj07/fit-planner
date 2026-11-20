@@ -1,25 +1,19 @@
 "use client";
 
-import React, { useState } from "react";
+import React from "react";
 import Link from "next/link";
 import {
   X,
   Home,
-  Bot,
   Dumbbell,
   Apple,
   LineChart,
   Heart,
-  Grid,
   ChevronRight,
-  ChevronDown,
-  Wand2,
-  Mail,
-  MessageSquare,
   Globe,
   User,
   Sparkles,
-  Award
+  ClipboardList
 } from "lucide-react";
 import { useLanguage } from "@/lib/i18n/LanguageContext";
 import { useAuth } from "@/lib/auth/authContext";
@@ -33,8 +27,6 @@ interface MobileDrawerProps {
 export function MobileDrawer({ isOpen, onClose, onOpenProfile }: MobileDrawerProps) {
   const { currentLanguage, setIsLanguageModalOpen } = useLanguage();
   const { user } = useAuth();
-  const [plannerOpen, setPlannerOpen] = useState(true);
-  const [marketingOpen, setMarketingOpen] = useState(false);
 
   if (!isOpen) return null;
 
@@ -144,12 +136,10 @@ export function MobileDrawer({ isOpen, onClose, onOpenProfile }: MobileDrawerPro
               className="flex items-center justify-between px-3 py-2.5 rounded-[12px] hover:bg-black/5 dark:hover:bg-white/5 transition-colors"
             >
               <div className="flex items-center gap-3">
-                <Bot size={18} style={{ color: "var(--prx)" }} />
-                <span>Agent</span>
+                <Dumbbell size={18} style={{ color: "var(--prx)" }} />
+                <span>Today's Workout</span>
               </div>
-              <span className="text-[10px] font-mono px-1.5 py-0.5 rounded-full" style={{ backgroundColor: "var(--prt)", color: "var(--prx)" }}>
-                Beta
-              </span>
+              <ChevronRight size={15} style={{ color: "var(--mu)" }} />
             </Link>
 
             <Link
@@ -159,7 +149,7 @@ export function MobileDrawer({ isOpen, onClose, onOpenProfile }: MobileDrawerPro
             >
               <div className="flex items-center gap-3">
                 <Dumbbell size={18} />
-                <span>Workouts</span>
+                <span>Workouts &amp; Splits</span>
               </div>
               <ChevronRight size={15} style={{ color: "var(--mu)" }} />
             </Link>
@@ -171,7 +161,7 @@ export function MobileDrawer({ isOpen, onClose, onOpenProfile }: MobileDrawerPro
             >
               <div className="flex items-center gap-3">
                 <Apple size={18} />
-                <span>Nutrition</span>
+                <span>Nutrition &amp; Macros</span>
               </div>
               <ChevronRight size={15} style={{ color: "var(--mu)" }} />
             </Link>
@@ -183,7 +173,7 @@ export function MobileDrawer({ isOpen, onClose, onOpenProfile }: MobileDrawerPro
             >
               <div className="flex items-center gap-3">
                 <LineChart size={18} />
-                <span>Progress</span>
+                <span>Strength Progress</span>
               </div>
               <ChevronRight size={15} style={{ color: "var(--mu)" }} />
             </Link>
@@ -195,73 +185,23 @@ export function MobileDrawer({ isOpen, onClose, onOpenProfile }: MobileDrawerPro
             >
               <div className="flex items-center gap-3">
                 <Heart size={18} />
-                <span>Recovery</span>
+                <span>Recovery &amp; Rest</span>
               </div>
               <ChevronRight size={15} style={{ color: "var(--mu)" }} />
             </Link>
 
-            <div className="flex items-center justify-between px-3 py-2.5 rounded-[12px] hover:bg-black/5 dark:hover:bg-white/5 transition-colors cursor-pointer">
+            <Link
+              href="/assessment"
+              onClick={onClose}
+              className="flex items-center justify-between px-3 py-2.5 rounded-[12px] hover:bg-black/5 dark:hover:bg-white/5 transition-colors"
+            >
               <div className="flex items-center gap-3">
-                <Grid size={18} />
-                <span>More services</span>
+                <ClipboardList size={18} />
+                <span>Fitness Assessment</span>
               </div>
               <ChevronRight size={15} style={{ color: "var(--mu)" }} />
-            </div>
+            </Link>
           </nav>
-
-          {/* Group: Planner tools (AI Builder) */}
-          <div className="pt-2 border-t" style={{ borderColor: "var(--bd)" }}>
-            <button
-              type="button"
-              onClick={() => setPlannerOpen(!plannerOpen)}
-              className="w-full flex items-center justify-between py-1.5 px-3 text-xs font-semibold uppercase tracking-wider"
-              style={{ color: "var(--mu)" }}
-            >
-              <span>Planner tools</span>
-              <ChevronDown
-                size={14}
-                className={`transition-transform ${plannerOpen ? "" : "-rotate-90"}`}
-              />
-            </button>
-            {plannerOpen && (
-              <div className="space-y-1 mt-1 pl-1">
-                <div className="flex items-center justify-between px-3 py-2 rounded-[12px] hover:bg-black/5 dark:hover:bg-white/5 text-sm cursor-pointer">
-                  <div className="flex items-center gap-3">
-                    <Wand2 size={16} style={{ color: "var(--pr)" }} />
-                    <span>AI Builder</span>
-                  </div>
-                  <ChevronRight size={14} style={{ color: "var(--mu)" }} />
-                </div>
-              </div>
-            )}
-          </div>
-
-          {/* Group: Marketing (Email and WhatsApp) */}
-          <div className="pt-2 border-t" style={{ borderColor: "var(--bd)" }}>
-            <button
-              type="button"
-              onClick={() => setMarketingOpen(!marketingOpen)}
-              className="w-full flex items-center justify-between py-1.5 px-3 text-xs font-semibold uppercase tracking-wider"
-              style={{ color: "var(--mu)" }}
-            >
-              <span>Marketing</span>
-              <ChevronDown
-                size={14}
-                className={`transition-transform ${marketingOpen ? "" : "-rotate-90"}`}
-              />
-            </button>
-            {marketingOpen && (
-              <div className="space-y-1 mt-1 pl-1 text-sm">
-                <div className="flex items-center justify-between px-3 py-2 rounded-[12px] hover:bg-black/5 dark:hover:bg-white/5 cursor-pointer">
-                  <div className="flex items-center gap-3">
-                    <MessageSquare size={16} />
-                    <span>Email &amp; WhatsApp</span>
-                  </div>
-                  <ChevronRight size={14} style={{ color: "var(--mu)" }} />
-                </div>
-              </div>
-            )}
-          </div>
         </div>
 
         {/* Bottom Bar: Language + My account */}

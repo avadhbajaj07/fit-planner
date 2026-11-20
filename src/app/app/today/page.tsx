@@ -4,12 +4,10 @@ import React, { useState } from "react";
 import Link from "next/link";
 import {
   Bell,
-  DollarSign,
   ChevronLeft,
   ChevronRight,
   X,
   Shield,
-  MessageSquare,
   Users,
   CheckCircle2,
   Circle,
@@ -48,22 +46,22 @@ export default function DashboardPage() {
     {
       id: 1,
       icon: Shield,
-      title: "Protect your plan, back up your progress.",
+      title: "Save and sync your workout progress history.",
       oldPrice: "₹ 4,598.00",
       newPrice: "₹ 1,069.00",
       period: "/1st yr",
       discount: "77% off",
-      cta: "Find matches"
+      cta: "View plan"
     },
     {
       id: 2,
-      icon: MessageSquare,
-      title: "Workout reminders on WhatsApp and email.",
+      icon: Bell,
+      title: "Daily workout and macro habit reminders.",
       oldPrice: "₹ 3,999.00",
       newPrice: "₹ 899.00",
       period: "/1st yr",
       discount: "75% off",
-      cta: "Enable alerts"
+      cta: "Set reminders"
     },
     {
       id: 3,
@@ -117,18 +115,8 @@ export default function DashboardPage() {
             <ArrowRight size={13} strokeWidth={3} />
           </Link>
 
-          {/* Right Action Icons: Credits ($), Bell with red "2" badge, Avatar */}
+          {/* Right Action Icons: Bell with red "2" badge, Avatar */}
           <div className="flex items-center gap-2">
-            {/* Dark Round Credits Button ($ icon) */}
-            <button
-              type="button"
-              className="w-9 h-9 rounded-full flex items-center justify-center text-white font-bold text-sm shadow-sm transition-transform active:scale-95"
-              style={{ backgroundColor: "rgba(0, 0, 0, 0.45)" }}
-              aria-label="FIT credits"
-            >
-              <DollarSign size={16} strokeWidth={2.5} />
-            </button>
-
             {/* Bell button with red "2" badge */}
             <button
               type="button"

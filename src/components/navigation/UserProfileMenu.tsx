@@ -3,22 +3,17 @@
 import React from "react";
 import Link from "next/link";
 import {
-  Sparkles,
   CreditCard,
   User,
   Users,
   Shield,
   Activity,
   Bell,
-  Cpu,
   Globe,
   Sun,
   Moon,
   Monitor,
-  BookOpen,
-  HelpCircle,
-  LogOut,
-  ExternalLink
+  LogOut
 } from "lucide-react";
 import { useTheme } from "@/lib/theme/ThemeContext";
 import { useLanguage } from "@/lib/i18n/LanguageContext";
@@ -61,14 +56,14 @@ export function UserProfileMenu({ isOpen, onClose }: UserProfileMenuProps) {
               className="w-10 h-10 rounded-full flex items-center justify-center font-bold text-white text-sm shrink-0"
               style={{ backgroundColor: "var(--pr)" }}
             >
-              {user?.fullName ? user.fullName.charAt(0).toUpperCase() : "M"}
+              {user?.fullName ? user.fullName.charAt(0).toUpperCase() : "S"}
             </div>
             <div className="truncate">
               <div className="font-bold text-sm truncate" style={{ color: "var(--tx)" }}>
-                {user?.fullName || "Maruti Digital"}
+                {user?.fullName || "Shape Radar Athlete"}
               </div>
               <div className="text-[11px] truncate" style={{ color: "var(--mu)" }}>
-                {user?.email || "avadhshikha@gmail.com"}
+                {user?.email || "athlete@shaperadar.com"}
               </div>
             </div>
           </div>
@@ -76,17 +71,6 @@ export function UserProfileMenu({ isOpen, onClose }: UserProfileMenuProps) {
 
         {/* Rows with Icons */}
         <div className="py-2 space-y-0.5">
-          {/* FIT credits (43) */}
-          <div className="flex items-center justify-between px-2.5 py-2 rounded-xl hover:bg-black/5 dark:hover:bg-white/5 transition-colors cursor-pointer">
-            <div className="flex items-center gap-2.5">
-              <Sparkles size={16} style={{ color: "var(--pr)" }} />
-              <span>Hostinger Credits</span>
-            </div>
-            <span className="font-mono text-[11px] font-semibold" style={{ color: "var(--mu)" }}>
-              43
-            </span>
-          </div>
-
           {/* Billing (red badge 1) */}
           <Link
             href="/membership"
@@ -95,7 +79,7 @@ export function UserProfileMenu({ isOpen, onClose }: UserProfileMenuProps) {
           >
             <div className="flex items-center gap-2.5">
               <CreditCard size={16} />
-              <span>Billing</span>
+              <span>Billing &amp; Membership</span>
             </div>
             <span
               className="w-4 h-4 rounded-full text-white text-[9px] font-bold flex items-center justify-center"
@@ -118,7 +102,7 @@ export function UserProfileMenu({ isOpen, onClose }: UserProfileMenuProps) {
           {/* Account sharing */}
           <div className="flex items-center gap-2.5 px-2.5 py-2 rounded-xl hover:bg-black/5 dark:hover:bg-white/5 transition-colors cursor-pointer">
             <Users size={16} />
-            <span>Account sharing</span>
+            <span>Invite workout partner</span>
           </div>
 
           {/* Security */}
@@ -127,25 +111,19 @@ export function UserProfileMenu({ isOpen, onClose }: UserProfileMenuProps) {
               <Shield size={16} />
               <span>Security</span>
             </div>
-            <span className="w-2 h-2 rounded-full" style={{ backgroundColor: "var(--dg)" }} />
+            <span className="w-2 h-2 rounded-full" style={{ backgroundColor: "var(--ok)" }} />
           </div>
 
           {/* Account activity */}
           <div className="flex items-center gap-2.5 px-2.5 py-2 rounded-xl hover:bg-black/5 dark:hover:bg-white/5 transition-colors cursor-pointer">
             <Activity size={16} />
-            <span>Account activity</span>
+            <span>Workout activity log</span>
           </div>
 
           {/* Notification settings */}
           <div className="flex items-center gap-2.5 px-2.5 py-2 rounded-xl hover:bg-black/5 dark:hover:bg-white/5 transition-colors cursor-pointer">
             <Bell size={16} />
             <span>Notification settings</span>
-          </div>
-
-          {/* AI memory */}
-          <div className="flex items-center gap-2.5 px-2.5 py-2 rounded-xl hover:bg-black/5 dark:hover:bg-white/5 transition-colors cursor-pointer">
-            <Cpu size={16} />
-            <span>AI memory</span>
           </div>
         </div>
 
@@ -230,27 +208,6 @@ export function UserProfileMenu({ isOpen, onClose }: UserProfileMenuProps) {
               >
                 <Monitor size={13} />
               </button>
-            </div>
-          </div>
-        </div>
-
-        {/* Divider */}
-        <div className="my-1.5 border-t" style={{ borderColor: "var(--bd)" }} />
-
-        {/* Secondary Links: Learning Lab & Hire an expert */}
-        <div className="py-1 space-y-0.5">
-          <div className="flex items-center justify-between px-2.5 py-1.5 rounded-xl hover:bg-black/5 dark:hover:bg-white/5 transition-colors cursor-pointer">
-            <div className="flex items-center gap-2.5">
-              <BookOpen size={16} />
-              <span>Learning Lab</span>
-            </div>
-            <ExternalLink size={13} style={{ color: "var(--mu)" }} />
-          </div>
-
-          <div className="flex items-center justify-between px-2.5 py-1.5 rounded-xl hover:bg-black/5 dark:hover:bg-white/5 transition-colors cursor-pointer">
-            <div className="flex items-center gap-2.5">
-              <HelpCircle size={16} />
-              <span>Hire an expert</span>
             </div>
           </div>
         </div>

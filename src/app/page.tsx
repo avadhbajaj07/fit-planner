@@ -36,8 +36,7 @@ import {
   Heart,
   Award,
   Zap,
-  Flame,
-  Bot
+  Flame
 } from "lucide-react";
 
 const DynamicStrengthChart = dynamic(
@@ -59,7 +58,7 @@ export default function LandingPage() {
   const faqs = [
     {
       q: "How does Shape Radar work?",
-      a: "Shape Radar delivers evidence-based progressive overload algorithms wrapped in a clean, high-performance hostinger-inspired interface. It features a complete 22-question assessment, pure deterministic workout generation, hard allergen nutrition filtering, and native Focus Mode rest timers."
+      a: "Shape Radar delivers evidence-based progressive overload algorithms wrapped in a clean, high-performance interface. It features a complete 22-question assessment, pure deterministic workout generation, hard allergen nutrition filtering, and native Focus Mode rest timers."
     },
     {
       q: "How is my workout plan generated?",
@@ -109,19 +108,6 @@ export default function LandingPage() {
               <span className="font-extrabold text-lg md:text-xl tracking-tight text-white">
                 Shape Radar
               </span>
-            </Link>
-
-            {/* Outlined "Agent" pill (1px #8C7BFF) */}
-            <Link
-              href="/app/today"
-              className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-medium transition-colors"
-              style={{
-                border: "1px solid #8C7BFF",
-                color: "#A592FF"
-              }}
-            >
-              <Bot size={13} />
-              <span>Agent</span>
             </Link>
           </div>
 
@@ -220,7 +206,7 @@ export default function LandingPage() {
 
           {/* One-line subtext */}
           <p className="text-base sm:text-lg text-[#A8A5B5] max-w-xl mx-auto font-normal leading-relaxed">
-            Launch and grow your strength with one agentic platform, from $1.99/mo.
+            Build strength and transform your physique with one personalized plan, from $1.99/mo.
           </p>
 
           {/* White "Claim deal" button & guarantee */}
