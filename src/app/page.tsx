@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import dynamic from "next/dynamic";
@@ -31,6 +31,7 @@ import {
   Calendar,
   Lock,
   ChevronRight,
+  ChevronLeft,
   Apple,
   TrendingUp,
   Heart,
@@ -52,8 +53,109 @@ export default function LandingPage() {
   const [openFaq, setOpenFaq] = useState<number | null>(null);
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
   const [isProfileMenuOpen, setIsProfileMenuOpen] = useState(false);
+  const [activeHomeSlide, setActiveHomeSlide] = useState(0);
   const { currentLanguage, setIsLanguageModalOpen } = useLanguage();
   const { user } = useAuth();
+
+  const homeSlides = [
+    {
+      id: 1,
+      tag: "SMART TRACKING",
+      shortTitle: "Smart Tracking",
+      title: "Log Every Lift & Set With Zero Friction",
+      description: "Live Focus Mode timers, automated rest alerts, and instant plate math so you never have to guess your weights.",
+      stat: "+18% Average strength increase in 12 weeks",
+      image: "/images/home/imgi_29_Smart-tracking-hero-1024x686.png"
+    },
+    {
+      id: 2,
+      tag: "DYNAMIC SPLITS",
+      shortTitle: "Split Architecture",
+      title: "Hyper-Personalized Muscle Split Architecture",
+      description: "Target priority muscle groups like chest, shoulders, or lats with science-calibrated volume and fatigue management.",
+      stat: "300+ Exercises calibrated for gym or home",
+      image: "/images/home/imgi_34_hyper-personalized-hero-801x1024.png"
+    },
+    {
+      id: 3,
+      tag: "RECOVERY SCIENCE",
+      shortTitle: "Muscle Recovery",
+      title: "Train Hard Without CNS Fatigue or Burnout",
+      description: "Dynamic muscle fatigue tracking monitors recovery status across Chest, Lats, Quads, and Core before re-training.",
+      stat: "48h–72h Calibrated muscle rebuilding windows",
+      image: "/images/home/imgi_39_Recovery-hero-850x1024.png"
+    },
+    {
+      id: 4,
+      tag: "NUTRITION MATRIX",
+      shortTitle: "Macro Nutrition",
+      title: "Hit Your Exact Calorie & Protein Targets Daily",
+      description: "Synchronized nutrition plans with automatic macro protein distribution and allergen-safe whole-food recipes.",
+      stat: "2.0g/kg Precision protein recommendations",
+      image: "/images/home/imgi_17_nutrition_updated.png"
+    },
+    {
+      id: 5,
+      tag: "PERSONAL RECORDS",
+      shortTitle: "PR Milestones",
+      title: "Celebrate Strength PRs With Mathematical Proof",
+      description: "Automatic 1RM calculations, volume load progression, and visual badges celebrate every lift milestone you conquer.",
+      stat: "100% Deterministic sports-science algorithms",
+      image: "/images/home/imgi_16_records_v1.png"
+    }
+  ];
+
+  const objectives = [
+    {
+      id: "hypertrophy",
+      badge: "Hypertrophy",
+      title: "Muscle Gain & Volume",
+      desc: "Optimized for maximum muscle cross-sectional growth with 8–12 rep hypertrophy brackets.",
+      metric: "8–12 Reps · High Volume",
+      image: "/images/home/imgi_195_workoutgen-onboarding-objective-card-for-muscle-gain_dabfd862.png"
+    },
+    {
+      id: "strength",
+      badge: "Raw Strength",
+      title: "Peak Strength & Power",
+      desc: "Heavy compound lift progression designed to boost e1RM on squat, bench press, and deadlift.",
+      metric: "3–6 Reps · Heavy Load",
+      image: "/images/home/imgi_204_workoutgen-onboarding-objective-card-for-strength_c27c3c7d.png"
+    },
+    {
+      id: "fat_loss",
+      badge: "Recomposition",
+      title: "Fat Loss & Conditioning",
+      desc: "High density training paired with moderate calorie deficits to burn fat while safeguarding lean muscle.",
+      metric: "10–15 Reps · High Density",
+      image: "/images/home/imgi_201_workoutgen-onboarding-objective-card-for-weight-loss_2a3ed471.png"
+    },
+    {
+      id: "longevity",
+      badge: "Stamina",
+      title: "Athletic Longevity",
+      desc: "Full-body functional balance, joint mobility, cardiovascular capacity, and steady weekly progression.",
+      metric: "12–15 Reps · Endurance",
+      image: "/images/home/imgi_198_workoutgen-onboarding-objective-card-for-general-fitness_589e88c2.png"
+    }
+  ];
+
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setActiveHomeSlide((prev) => (prev + 1) % homeSlides.length);
+    }, 5500);
+    return () => clearInterval(timer);
+  }, [homeSlides.length]);
+
+  const handlePrevHomeSlide = () => {
+    setActiveHomeSlide((prev) => (prev - 1 + homeSlides.length) % homeSlides.length);
+  };
+
+  const handleNextHomeSlide = () => {
+    setActiveHomeSlide((prev) => (prev + 1) % homeSlides.length);
+  };
+
+  const currentHomeSlide = homeSlides[activeHomeSlide];
 
   const faqs = [
     {
@@ -224,6 +326,52 @@ export default function LandingPage() {
             <ShieldCheck size={16} className="text-[#00A862]" />
             <span>30-day money-back guarantee</span>
           </div>
+
+          {/* Floating App Mockup with Stats Pills */}
+          <div className="pt-8 max-w-2xl mx-auto relative">
+            <div className="relative mx-auto max-w-sm sm:max-w-md">
+              <Image
+                src="/images/home/imgi_21_01-Hero-Mockup_v4.png"
+                alt="Shape Radar Athlete OS App Mockup"
+                width={700}
+                height={800}
+                priority
+                className="w-full h-auto drop-shadow-[0_25px_60px_rgba(103,61,230,0.4)] transition-transform hover:scale-[1.01]"
+              />
+              {/* Floating Pill Left */}
+              <div
+                className="hidden sm:flex items-center gap-2 px-3.5 py-2 rounded-2xl border shadow-xl absolute -left-8 top-1/4 backdrop-blur-md"
+                style={{
+                  backgroundColor: "rgba(21, 19, 28, 0.9)",
+                  borderColor: "rgba(103, 61, 230, 0.4)"
+                }}
+              >
+                <div className="w-7 h-7 rounded-lg bg-[#673DE6]/20 flex items-center justify-center text-[#A592FF]">
+                  <TrendingUp size={16} />
+                </div>
+                <div className="text-left">
+                  <div className="text-[10px] text-[#A8A5B5] uppercase font-mono">Dynamic E1RM</div>
+                  <div className="text-xs font-bold text-white">+18.4% Strength Growth</div>
+                </div>
+              </div>
+              {/* Floating Pill Right */}
+              <div
+                className="hidden sm:flex items-center gap-2 px-3.5 py-2 rounded-2xl border shadow-xl absolute -right-8 bottom-1/3 backdrop-blur-md"
+                style={{
+                  backgroundColor: "rgba(21, 19, 28, 0.9)",
+                  borderColor: "rgba(0, 168, 98, 0.4)"
+                }}
+              >
+                <div className="w-7 h-7 rounded-lg bg-[#008361]/20 flex items-center justify-center text-[#00A862]">
+                  <Check size={16} strokeWidth={3} />
+                </div>
+                <div className="text-left">
+                  <div className="text-[10px] text-[#A8A5B5] uppercase font-mono">Auto Overload</div>
+                  <div className="text-xs font-bold text-white">Double Progression</div>
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
       </section>
 
@@ -292,6 +440,137 @@ export default function LandingPage() {
         </div>
       </section>
 
+      {/* 4.5. INTERACTIVE FEATURE SLIDESHOW CAROUSEL */}
+      <section className="py-16 md:py-24 px-4 md:px-8 border-t border-white/5 relative overflow-hidden" style={{ backgroundColor: "#0C0912" }}>
+        <div className="max-w-6xl mx-auto space-y-8">
+          <div className="flex flex-col md:flex-row md:items-end justify-between gap-4">
+            <div className="space-y-2">
+              <span
+                className="chip-purple text-xs"
+                style={{ backgroundColor: "#2C2260", color: "#A592FF" }}
+              >
+                Intelligent Training System
+              </span>
+              <h2 className="text-3xl sm:text-4xl font-extrabold text-white tracking-tight">
+                ENGINEERED FOR SERIOUS RESULTS
+              </h2>
+              <p className="text-xs sm:text-sm text-[#A8A5B5] max-w-xl">
+                Explore the five pillars that turn chaotic gym sessions into automated, repeatable strength milestones.
+              </p>
+            </div>
+
+            {/* Slider Controls (Prev, Next, Counter) */}
+            <div className="flex items-center gap-3">
+              <div
+                className="px-3 py-1.5 rounded-full font-mono text-xs font-bold border"
+                style={{ backgroundColor: "#15131C", borderColor: "#2c2740", color: "#A592FF" }}
+              >
+                {String(activeHomeSlide + 1).padStart(2, "0")} / {String(homeSlides.length).padStart(2, "0")}
+              </div>
+              <button
+                type="button"
+                onClick={handlePrevHomeSlide}
+                className="w-10 h-10 rounded-full border flex items-center justify-center text-white hover:bg-white/10 transition-colors active:scale-95 cursor-pointer"
+                style={{ backgroundColor: "#15131C", borderColor: "#2c2740" }}
+                aria-label="Previous slide"
+              >
+                <ChevronLeft size={18} />
+              </button>
+              <button
+                type="button"
+                onClick={handleNextHomeSlide}
+                className="w-10 h-10 rounded-full border flex items-center justify-center text-white hover:bg-white/10 transition-colors active:scale-95 cursor-pointer"
+                style={{ backgroundColor: "#15131C", borderColor: "#2c2740" }}
+                aria-label="Next slide"
+              >
+                <ChevronRight size={18} />
+              </button>
+            </div>
+          </div>
+
+          {/* Active Slide Card */}
+          <div
+            className="rounded-[28px] border overflow-hidden grid grid-cols-1 lg:grid-cols-12 shadow-2xl transition-all duration-500"
+            style={{
+              backgroundColor: "#15131C",
+              borderColor: "#2c2740"
+            }}
+          >
+            {/* Left: Text & Key Specs */}
+            <div className="lg:col-span-5 p-8 md:p-12 flex flex-col justify-between space-y-6">
+              <div className="space-y-4">
+                <span
+                  className="px-3 py-1 rounded-full text-[11px] font-mono font-bold tracking-wider uppercase inline-block"
+                  style={{
+                    backgroundColor: "#2C2260",
+                    color: "#A592FF"
+                  }}
+                >
+                  {currentHomeSlide.tag}
+                </span>
+                <h3 className="text-2xl sm:text-3xl font-extrabold text-white tracking-tight leading-snug">
+                  {currentHomeSlide.title}
+                </h3>
+                <p className="text-sm text-[#A8A5B5] leading-relaxed">
+                  {currentHomeSlide.description}
+                </p>
+              </div>
+
+              <div className="pt-6 border-t border-white/10 space-y-4">
+                <div className="flex items-center gap-3">
+                  <div className="w-8 h-8 rounded-lg bg-[#673DE6]/20 flex items-center justify-center text-[#A592FF] shrink-0 font-bold">
+                    ✓
+                  </div>
+                  <span className="text-xs sm:text-sm font-semibold text-white/90">
+                    {currentHomeSlide.stat}
+                  </span>
+                </div>
+                <Link
+                  href="/assessment"
+                  className="inline-flex items-center gap-2 text-xs font-bold transition-colors hover:underline"
+                  style={{ color: "#A592FF" }}
+                >
+                  <span>Build your plan around this</span>
+                  <ArrowRight size={14} />
+                </Link>
+              </div>
+            </div>
+
+            {/* Right: Rich Image Showcase */}
+            <div className="lg:col-span-7 relative bg-gradient-to-br from-[#1F1A2B] to-[#0C0912] flex items-center justify-center p-6 md:p-10 border-t lg:border-t-0 lg:border-l border-white/10">
+              <div className="relative w-full max-w-lg overflow-hidden rounded-2xl shadow-xl">
+                <Image
+                  src={currentHomeSlide.image}
+                  alt={currentHomeSlide.title}
+                  width={900}
+                  height={650}
+                  className="w-full h-auto object-cover rounded-2xl transition-all duration-700 hover:scale-105"
+                />
+              </div>
+            </div>
+          </div>
+
+          {/* Slide Indicator Tabs */}
+          <div className="grid grid-cols-2 sm:grid-cols-5 gap-2 pt-2">
+            {homeSlides.map((slide, idx) => (
+              <button
+                key={slide.id}
+                type="button"
+                onClick={() => setActiveHomeSlide(idx)}
+                className={`p-3 rounded-xl border text-left transition-all cursor-pointer ${
+                  activeHomeSlide === idx
+                    ? "border-[#673DE6] bg-[#2C2260]/40 text-white shadow-lg"
+                    : "border-white/5 bg-[#15131C] text-[#A8A5B5] hover:border-white/10"
+                }`}
+              >
+                <div className="text-[10px] font-mono text-[#A592FF]">0{idx + 1}</div>
+                <div className="text-xs font-bold truncate mt-0.5">{slide.shortTitle}</div>
+              </button>
+            ))}
+          </div>
+        </div>
+      </section>
+
       {/* 5. FEATURE SECTION 2: STRONGER WITH EVERY WORKOUT */}
       <section id="progressive-overload" className="py-16 md:py-24 px-4 md:px-8 border-t border-white/5">
         <div className="max-w-6xl mx-auto grid grid-cols-1 lg:grid-cols-12 gap-12 items-center">
@@ -339,9 +618,18 @@ export default function LandingPage() {
             </ul>
           </div>
 
-          <div className="lg:col-span-6 order-1 lg:order-2 flex justify-center">
+          <div className="lg:col-span-6 order-1 lg:order-2 flex flex-col sm:flex-row items-center justify-center gap-6">
+            <div className="w-full max-w-[220px] shrink-0 hidden sm:block">
+              <Image
+                src="/images/home/imgi_68_phone-define.webp"
+                alt="Shape Radar Mobile App Workout View"
+                width={300}
+                height={550}
+                className="w-full h-auto drop-shadow-2xl rounded-2xl transition-transform hover:scale-105"
+              />
+            </div>
             <div
-              className="w-full max-w-md rounded-[24px] border p-5 shadow-2xl"
+              className="w-full max-w-sm rounded-[24px] border p-5 shadow-2xl"
               style={{ backgroundColor: "#15131C", borderColor: "#2c2740" }}
             >
               <div className="flex items-center justify-between mb-4 pb-3 border-b border-white/10">
@@ -517,6 +805,75 @@ export default function LandingPage() {
         </div>
       </section>
 
+      {/* 7.5. TRAINING OBJECTIVES SHOWCASE */}
+      <section className="py-16 md:py-24 px-4 md:px-8 border-t border-white/5">
+        <div className="max-w-6xl mx-auto space-y-12">
+          <div className="text-center max-w-2xl mx-auto space-y-3">
+            <span
+              className="chip-purple text-xs"
+              style={{ backgroundColor: "#2C2260", color: "#A592FF" }}
+            >
+              Choose Your Trajectory
+            </span>
+            <h2 className="text-3xl sm:text-4xl font-extrabold text-white tracking-tight">
+              FOUR EVIDENCE-BASED TARGETS
+            </h2>
+            <p className="text-xs sm:text-sm text-[#A8A5B5]">
+              Every body responds differently. Select your goal during onboarding to generate the ideal rep bracket and nutrition target.
+            </p>
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
+            {objectives.map((obj) => (
+              <div
+                key={obj.id}
+                className="rounded-[24px] border overflow-hidden flex flex-col justify-between transition-all hover:-translate-y-1.5 shadow-xl group"
+                style={{ backgroundColor: "#15131C", borderColor: "#2c2740" }}
+              >
+                <div className="relative h-44 w-full overflow-hidden bg-black/40">
+                  <Image
+                    src={obj.image}
+                    alt={obj.title}
+                    fill
+                    className="object-cover group-hover:scale-105 transition-transform duration-500"
+                  />
+                  <div className="absolute inset-0 bg-gradient-to-t from-[#15131C] via-transparent to-transparent" />
+                  <span
+                    className="absolute top-3 left-3 px-2.5 py-1 rounded-full text-[10px] font-mono font-bold tracking-wider uppercase text-white shadow-md backdrop-blur-md"
+                    style={{ backgroundColor: "rgba(103, 61, 230, 0.85)" }}
+                  >
+                    {obj.badge}
+                  </span>
+                </div>
+
+                <div className="p-5 flex-1 flex flex-col justify-between space-y-4">
+                  <div className="space-y-1.5">
+                    <h3 className="text-base font-bold text-white group-hover:text-[#A592FF] transition-colors">
+                      {obj.title}
+                    </h3>
+                    <p className="text-xs text-[#A8A5B5] leading-relaxed">
+                      {obj.desc}
+                    </p>
+                  </div>
+
+                  <div className="pt-3 border-t border-white/10 flex items-center justify-between">
+                    <span className="text-[11px] font-mono text-white/70">{obj.metric}</span>
+                    <Link
+                      href="/assessment"
+                      className="text-xs font-bold flex items-center gap-1 transition-colors hover:underline"
+                      style={{ color: "#A592FF" }}
+                    >
+                      <span>Choose</span>
+                      <ArrowRight size={13} />
+                    </Link>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
       {/* 8. ATHLETE EXPERIENCES */}
       <section id="pros" className="py-16 md:py-24 px-4 md:px-8 border-t border-white/5" style={{ backgroundColor: "#0C0912" }}>
         <div className="max-w-6xl mx-auto space-y-10 text-center">
@@ -533,6 +890,50 @@ export default function LandingPage() {
             <p className="text-xs sm:text-sm text-[#A8A5B5]">
               Real lifters and athletes training with structured progressive overload.
             </p>
+          </div>
+
+          {/* Featured Athlete Transformation Banner */}
+          <div
+            className="rounded-[28px] border overflow-hidden grid grid-cols-1 md:grid-cols-12 shadow-2xl items-center text-left"
+            style={{ backgroundColor: "#15131C", borderColor: "#2c2740" }}
+          >
+            <div className="md:col-span-5 relative h-64 md:h-full min-h-[260px]">
+              <Image
+                src="/images/home/imgi_2_hilary-hero-desktop-v6.jpg"
+                alt="Featured Athlete Hilary Transformation"
+                fill
+                className="object-cover"
+              />
+              <div className="absolute inset-0 bg-gradient-to-t md:bg-gradient-to-r from-transparent to-[#15131C]/90 md:to-[#15131C]" />
+            </div>
+            <div className="md:col-span-7 p-6 sm:p-8 space-y-4">
+              <div className="flex flex-wrap items-center gap-2">
+                <span className="px-2.5 py-1 rounded-full text-[10px] font-mono font-bold tracking-wider uppercase text-white" style={{ backgroundColor: "#008361" }}>
+                  Verified 12-Week Transformation
+                </span>
+                <span className="text-xs text-[#A8A5B5] font-mono">5 Sessions / Week · Hybrid Gym</span>
+              </div>
+              <h3 className="text-xl sm:text-2xl font-extrabold text-white">
+                "Added 35kg to my working squat and dropped 6% body fat with zero plateaus."
+              </h3>
+              <p className="text-xs text-[#A8A5B5] leading-relaxed">
+                Hilary followed Shape Radar's 12-week powerbuilding block. By respecting the auto-calculated deload weeks and sticking to her personalized protein target, she achieved her lifetime PRs injury-free.
+              </p>
+              <div className="grid grid-cols-3 gap-3 pt-2 border-t border-white/10 font-mono text-center">
+                <div className="p-2 rounded-xl bg-black/30 border border-white/5">
+                  <div className="text-[10px] text-[#A8A5B5]">SQUAT PR</div>
+                  <div className="text-sm font-bold text-white">+35 kg</div>
+                </div>
+                <div className="p-2 rounded-xl bg-black/30 border border-white/5">
+                  <div className="text-[10px] text-[#A8A5B5]">BODY FAT</div>
+                  <div className="text-sm font-bold text-[#00A862]">-6.2%</div>
+                </div>
+                <div className="p-2 rounded-xl bg-black/30 border border-white/5">
+                  <div className="text-[10px] text-[#A8A5B5]">ADHERENCE</div>
+                  <div className="text-sm font-bold text-[#A592FF]">94.8%</div>
+                </div>
+              </div>
+            </div>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6 text-left">
