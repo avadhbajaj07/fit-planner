@@ -167,6 +167,27 @@ export interface Exercise {
   defaultSets: number;
   defaultReps: string;
   defaultRestSeconds: number;
+
+  // RepDB & Master Library Integration fields
+  startImage?: string;
+  peakImage?: string;
+  mainImage?: string;
+  rawEquipment?: string;
+  rawPrimaryMuscles?: string[];
+  rawSecondaryMuscles?: string[];
+  category?: "strength" | "stretching" | "cardio" | "plyometrics" | "olympic";
+  mechanic?: "compound" | "isolation";
+  forceType?: "push" | "pull" | "static" | "hinge";
+  bodyPart?: string;
+  tips?: string[];
+  goals?: string[];
+  tags?: string[];
+  isBodyweight?: boolean;
+  isUnilateral?: boolean;
+  reviewStatus?: "approved" | "pending_review" | "rejected";
+  sourceProvider?: string;
+  sourceVersion?: string;
+  attribution?: string;
 }
 
 export interface PlannedExercise {
@@ -179,6 +200,11 @@ export interface PlannedExercise {
   equipmentNeeded: EquipmentOption;
   safetyNote?: string;
   alternatives: string[];
+  image?: string;
+  startImage?: string;
+  peakImage?: string;
+  mainImage?: string;
+  attribution?: string;
 }
 
 export interface PlannedSession {
@@ -231,3 +257,47 @@ export interface CompletedWorkoutSession {
   durationMinutes: number;
   exerciseLogs: ExerciseLog[];
 }
+
+export interface WorkoutTemplateExercise {
+  exerciseId: string;
+  exerciseName: string;
+  sets: number;
+  reps: string;
+  restSeconds: number;
+  primaryMuscle: MuscleGroup;
+  equipmentNeeded: EquipmentOption;
+  safetyNote?: string;
+  alternatives: string[];
+}
+
+export interface WorkoutTemplateSession {
+  dayNumber: number;
+  dayName: string;
+  title: string;
+  focusMuscles: MuscleGroup[];
+  estimatedDuration: number;
+  isRestDay: boolean;
+  warmupMinutes: number;
+  exercises: WorkoutTemplateExercise[];
+}
+
+export interface WorkoutTemplate {
+  id: string;
+  title: string;
+  description: string;
+  goals: Goal[];
+  fitnessLevels: FitnessLevel[];
+  requiredEquipment: EquipmentOption[];
+  location: WorkoutLocation;
+  daysPerWeek: number[];
+  split: WorkoutSplit;
+  durationMinutes: number;
+  safeForRestrictions: RestrictionType[];
+  warmupRoutine: string[];
+  recoveryRules: string[];
+  reviewStatus: "approved" | "pending_review" | "rejected";
+  reviewer: string;
+  approvedAt: string;
+  sessions: WorkoutTemplateSession[];
+}
+

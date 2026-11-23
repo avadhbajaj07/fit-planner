@@ -8,7 +8,8 @@ import {
   Dumbbell,
   LineChart,
   Apple,
-  User
+  User,
+  BookOpen
 } from "lucide-react";
 
 export const IosTabBar: React.FC = () => {
@@ -25,6 +26,11 @@ export const IosTabBar: React.FC = () => {
       name: "Plan",
       href: "/app/plan",
       icon: CalendarDays
+    },
+    {
+      name: "Library",
+      href: "/app/exercises",
+      icon: BookOpen
     },
     {
       name: "Progress",
@@ -45,13 +51,13 @@ export const IosTabBar: React.FC = () => {
 
   return (
     <>
-      {/* MOBILE BOTTOM TAB BAR (49px + Safe Area Bottom) */}
+      {/* MOBILE BOTTOM TAB BAR (Fixed directly to bottom of viewport) */}
       {!isDashboard && (
         <nav
           aria-label="Mobile Navigation"
-          className="lg:hidden fixed bottom-0 left-0 right-0 z-50 bg-[#000000]/90 backdrop-blur-2xl border-t border-[#1A1A1A] pb-safe"
+          className="lg:hidden fixed bottom-0 left-0 right-0 z-50 bg-[#07151D]/95 backdrop-blur-2xl border-t border-[#28525B]/50 pb-[max(env(safe-area-inset-bottom,0px),6px)] pt-1 shadow-[0_-8px_24px_rgba(0,0,0,0.6)]"
         >
-          <div className="h-[49px] flex items-center justify-around px-2 max-w-md mx-auto">
+          <div className="h-[50px] flex items-center justify-around px-2 max-w-md mx-auto">
             {tabs.map((tab) => {
               const isActive = pathname.startsWith(tab.href);
               const Icon = tab.icon;

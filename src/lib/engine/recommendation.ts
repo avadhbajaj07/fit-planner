@@ -11,9 +11,11 @@ import {
   Exercise
 } from "./types";
 import { EXERCISE_LIBRARY } from "./exercises";
+import { getExerciseById, MASTER_EXERCISE_LIBRARY } from "../data/exerciseLibrary";
+import { matchApprovedTemplate } from "./templates";
 
 /**
- * Filter exercises matching user's equipment and location
+ * Filter exercises matching user's equipment and location from both baseline & master library
  */
 function getEligibleExercises(
   userEquipment: EquipmentOption[] = ["bodyweight"],
@@ -24,7 +26,17 @@ function getEligibleExercises(
 
   const hasRestriction = restrictions.filter((r) => r !== "none");
 
-  const matchingEquipment = EXERCISE_LIBRARY.filter((ex) =>
+  // Merge baseline library and approved master library exercises
+  const combinedPool = [...EXERCISE_LIBRARY, ...MASTER_EXERCISE_LIBRARY.filter(e => e.reviewStatus === "approved")];
+  // Deduplicate by ID
+  const uniquePoolMap = new Map<string, Exercise>();
+  for (const ex of combinedPool) {
+    if (!uniquePoolMap.has(ex.id)) {
+      uniquePoolMap.set(ex.id, ex);
+    }
+  }
+
+  const matchingEquipment = Array.from(uniquePoolMap.values()).filter((ex) =>
     ex.equipmentNeeded.some((eq) => equipmentSet.has(eq))
   );
 
@@ -77,6 +89,28 @@ export function calculateExerciseCount(durationMinutes: number = 40): number {
 }
 
 /**
+ * Enriches a PlannedExercise with RepDB WebP illustrations and attribution
+ */
+export function enrichWithRepDb(ex: PlannedExercise): PlannedExercise {
+  const master = getExerciseById(ex.exerciseId);
+  if (!master) {
+    return {
+      ...ex,
+      image: "/images/flat/push-up-start.webp",
+      attribution: "Exercise data by RepDB (repdb.co)"
+    };
+  }
+  return {
+    ...ex,
+    image: master.mainImage || master.startImage || master.peakImage,
+    startImage: master.startImage,
+    peakImage: master.peakImage,
+    mainImage: master.mainImage,
+    attribution: master.attribution || "Exercise data by RepDB (repdb.co)"
+  };
+}
+
+/**
  * Pure deterministic recommendation engine.
  * Same inputs guaranteed to return the exact same plan.
  */
@@ -105,6 +139,16 @@ export function generateWorkoutPlan(input: AssessmentAnswers): GeneratedPlan {
 
   // Fallback safe pool if strict filters are overly narrow
   const exercisePool = safe.length > 0 ? safe : EXERCISE_LIBRARY.filter(e => e.isLowImpact);
+
+  // Check approved template match
+  const matchedTemplate = matchApprovedTemplate({
+    goal,
+    fitnessLevel,
+    location: input.location,
+    equipment: userEquip,
+    daysPerWeek,
+    restrictions: userRestrictions
+  });
 
   // Rationale explanations
   const rationale: string[] = [];
@@ -135,17 +179,17 @@ export function generateWorkoutPlan(input: AssessmentAnswers): GeneratedPlan {
   }
 
   rationale.push(
-    `Training schedule set to ${daysPerWeek} days/week utilizing a ${split.replace("_", " ").toUpperCase()} split for optimal muscular recovery.`
+    `Matched to clinically approved template: "${matchedTemplate.title}" using a ${split.replace("_", " ").toUpperCase()} split for optimal muscular recovery.`
   );
 
   rationale.push(
-    `Session length calibrated for ${duration} minutes with ${exerciseCountPerSession} primary exercises and dedicated dynamic warm-up.`
+    `Session length calibrated for ${duration} minutes with dedicated dynamic warm-up.`
   );
 
   if (hasActiveRestrictions) {
     const names = userRestrictions.filter((r) => r !== "none").join(", ");
     rationale.push(
-      `Active physical restriction noted for: [${names}]. Excluded ${excludedDueToRestrictions.length} high-impact/stress movements and substituted low-impact alternatives.`
+      `Active physical restriction noted for: [${names}]. Excluded ${excludedDueToRestrictions.length} high-impact movements and substituted joint-safe protocol alternatives.`
     );
   } else {
     rationale.push(
@@ -187,7 +231,7 @@ export function generateWorkoutPlan(input: AssessmentAnswers): GeneratedPlan {
       const ex = pool[index];
       if (!usedIds.has(ex.id)) {
         usedIds.add(ex.id);
-        chosen.push({
+        const planned: PlannedExercise = {
           exerciseId: ex.id,
           exerciseName: ex.name,
           sets: defaultSets,
@@ -197,7 +241,8 @@ export function generateWorkoutPlan(input: AssessmentAnswers): GeneratedPlan {
           equipmentNeeded: ex.equipmentNeeded[0],
           safetyNote: ex.safetyNotes,
           alternatives: ex.alternativeExerciseIds
-        });
+        };
+        chosen.push(enrichWithRepDb(planned));
       }
     }
     return chosen;
@@ -241,6 +286,36 @@ export function generateWorkoutPlan(input: AssessmentAnswers): GeneratedPlan {
     }
 
     sessionCount++;
+
+    // Check if template has an approved session for this training session index
+    const templateTrainingSessions = matchedTemplate.sessions.filter(s => !s.isRestDay);
+    const templateSession = templateTrainingSessions[(sessionCount - 1) % templateTrainingSessions.length];
+
+    if (templateSession && templateSession.exercises.length > 0) {
+      // Use approved template session exercises, capped by exerciseCountPerSession
+      const selectedTemplateExercises = templateSession.exercises
+        .slice(0, exerciseCountPerSession)
+        .map(ex => enrichWithRepDb({
+          ...ex,
+          sets: defaultSets,
+          reps: ex.reps || repScheme,
+          restSeconds: restSeconds
+        }));
+
+      weeklySessions.push({
+        id: `session_day_${dayIdx + 1}`,
+        dayNumber: dayIdx + 1,
+        dayName,
+        title: templateSession.title || `Session ${sessionCount}`,
+        focusMuscles: templateSession.focusMuscles,
+        estimatedDuration: duration,
+        isRestDay: false,
+        warmupMinutes: templateSession.warmupMinutes || 5,
+        exercises: selectedTemplateExercises
+      });
+      continue;
+    }
+
     let sessionTitle = `Session ${sessionCount}`;
     let focusMuscles: MuscleGroup[] = [];
 

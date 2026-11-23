@@ -180,6 +180,15 @@ export const FocusModeModal: React.FC<FocusModeModalProps> = ({
           <div className="space-y-5 animate-fade-in">
             {/* Exercise Name & Target */}
             <div>
+              {ex.image && (
+                <div className="w-28 h-28 mx-auto mb-3 rounded-2xl bg-[#D8F1FD] border border-[#28525B] overflow-hidden flex items-center justify-center shadow-lg">
+                  <img
+                    src={ex.image}
+                    alt={ex.exerciseName}
+                    className="w-full h-full object-cover"
+                  />
+                </div>
+              )}
               <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#102831] border border-[#28525B] text-xs font-mono text-[#28DACC] mb-3">
                 <Dumbbell size={13} />
                 <span className="capitalize">{ex.primaryMuscle} Target</span>

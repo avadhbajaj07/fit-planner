@@ -10,7 +10,6 @@ import {
   LineChart,
   Heart,
   ChevronRight,
-  Globe,
   User,
   Sparkles,
   ClipboardList
@@ -140,6 +139,20 @@ export function MobileDrawer({ isOpen, onClose, onOpenProfile }: MobileDrawerPro
                 <span>Today's Workout</span>
               </div>
               <ChevronRight size={15} style={{ color: "var(--mu)" }} />
+            </Link>
+
+            <Link
+              href="/app/exercises"
+              onClick={onClose}
+              className="flex items-center justify-between px-3 py-2.5 rounded-[12px] hover:bg-black/5 dark:hover:bg-white/5 transition-colors"
+            >
+              <div className="flex items-center gap-3">
+                <Dumbbell size={18} style={{ color: "var(--prx)" }} />
+                <span>Exercise Library</span>
+              </div>
+              <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-[var(--prt)] text-[var(--prx)]">
+                708
+              </span>
             </Link>
 
             <Link

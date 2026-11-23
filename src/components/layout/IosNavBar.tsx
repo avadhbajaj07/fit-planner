@@ -2,7 +2,7 @@
 
 import React from "react";
 import Link from "next/link";
-import { ChevronLeft, Sun, Moon, Globe } from "lucide-react";
+import { ChevronLeft, Sun, Moon } from "lucide-react";
 import { useTheme } from "@/lib/theme/ThemeContext";
 import { useLanguage } from "@/lib/i18n/LanguageContext";
 
@@ -25,7 +25,7 @@ export const IosNavBar: React.FC<IosNavBarProps> = ({
   const { currentLanguage, setIsLanguageModalOpen } = useLanguage();
 
   return (
-    <div className="w-full pt-safe pb-3 px-4 md:px-6">
+    <div className="w-full pt-safe pb-2">
       {/* Small top row with back button & action / theme toggles */}
       <div className="flex items-center justify-between min-h-[36px] mb-2">
         {backHref ? (

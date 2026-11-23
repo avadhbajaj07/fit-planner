@@ -48,7 +48,7 @@ export default function MembershipPage() {
       const data = await res.json();
 
       if (data.status === "redirect" && data.checkoutUrl) {
-        window.location.href = data.checkoutUrl;
+        window.location.assign(data.checkoutUrl);
       } else if (data.status === "setup_required") {
         setSetupNotice(data.errorMessage);
       } else {

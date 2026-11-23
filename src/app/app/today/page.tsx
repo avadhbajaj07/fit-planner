@@ -16,7 +16,8 @@ import {
   TrendingUp,
   AlertTriangle,
   ArrowRight,
-  Sparkles
+  Sparkles,
+  BookOpen
 } from "lucide-react";
 import { UserProfileMenu } from "@/components/navigation/UserProfileMenu";
 import { MobileDrawer } from "@/components/navigation/MobileDrawer";
@@ -479,7 +480,64 @@ export default function DashboardPage() {
                 </div>
               </div>
 
-              {/* Plan Card 3: Bodyweight & Progress Log */}
+              {/* Plan Card 3: Master Exercise Library (708 RepDB Movements) */}
+              <div
+                className="rounded-[24px] p-5 border shadow-sm space-y-4"
+                style={{
+                  backgroundColor: "var(--card)",
+                  borderColor: "var(--bd)"
+                }}
+              >
+                <div className="flex items-start justify-between gap-3">
+                  <div className="flex items-center gap-3.5">
+                    <div
+                      className="w-12 h-12 rounded-2xl flex items-center justify-center font-bold shrink-0 shadow-sm"
+                      style={{ backgroundColor: "#28DACC", color: "#07151D" }}
+                    >
+                      <BookOpen size={22} />
+                    </div>
+                    <div>
+                      <h3 className="font-bold text-sm" style={{ color: "var(--tx)" }}>
+                        Master Exercise Library
+                      </h3>
+                      <p className="text-xs mt-0.5" style={{ color: "var(--mu)" }}>
+                        708 RepDB movements with start &amp; peak WebP illustrations
+                      </p>
+                    </div>
+                  </div>
+
+                  <Link
+                    href="/app/exercises"
+                    className="btn-hostinger-secondary text-xs shrink-0 py-2 px-3"
+                  >
+                    Browse library
+                  </Link>
+                </div>
+
+                {/* Chip Row */}
+                <div className="flex flex-wrap items-center gap-2 pt-1 border-t" style={{ borderColor: "var(--bd)" }}>
+                  <Link
+                    href="/app/exercises"
+                    className="chip-purple text-xs cursor-pointer hover:opacity-90"
+                  >
+                    Bodyweight (217)
+                  </Link>
+                  <Link
+                    href="/app/exercises"
+                    className="chip-purple text-xs cursor-pointer hover:opacity-90"
+                  >
+                    Dumbbells &amp; Barbells
+                  </Link>
+                  <Link
+                    href="/app/exercises"
+                    className="chip-purple text-xs cursor-pointer hover:opacity-90"
+                  >
+                    Stretching &amp; Mobility
+                  </Link>
+                </div>
+              </div>
+
+              {/* Plan Card 4: Bodyweight & Progress Log */}
               <div
                 className="rounded-[24px] p-5 border shadow-sm space-y-4"
                 style={{

@@ -17,11 +17,14 @@ import { loadAssessmentProgress } from "@/lib/assessment/storage";
 import { generateWorkoutPlan } from "@/lib/engine/recommendation";
 import { PlannedSession } from "@/lib/engine/types";
 import { FocusModeModal } from "@/components/workout/FocusModeModal";
+import { useAuth } from "@/lib/auth/authContext";
+import { supabase } from "@/lib/supabase/client";
 
 function WorkoutSessionContent() {
   const router = useRouter();
   const params = useParams();
   const sessionId = params ? (params.id as string) : "";
+  const { user } = useAuth();
 
   const [session, setSession] = useState<PlannedSession | null>(null);
   const [completedSets, setCompletedSets] = useState<Record<string, boolean>>({});
@@ -65,6 +68,44 @@ function WorkoutSessionContent() {
       });
     } catch (e) {
       // ignore
+    }
+
+    // Persist workout log locally and sync to Supabase
+    try {
+      const logEntry = {
+        sessionId,
+        sessionTitle: session?.title || "Workout Session",
+        durationMinutes: session?.estimatedDuration || 40,
+        completedAt: new Date().toISOString(),
+        exercises: session?.exercises.map((ex) => ({
+          exerciseId: ex.exerciseId,
+          exerciseName: ex.exerciseName,
+          sets: Array.from({ length: ex.sets }).map((_, idx) => ({
+            setNumber: idx + 1,
+            completed: Boolean(completedSets[`${ex.exerciseId}_${idx}`]),
+            reps: ex.reps
+          }))
+        }))
+      };
+
+      const existingLogs = JSON.parse(localStorage.getItem("fit_planner_workout_logs") || "[]");
+      existingLogs.unshift(logEntry);
+      localStorage.setItem("fit_planner_workout_logs", JSON.stringify(existingLogs.slice(0, 50)));
+
+      if (supabase && user && !user.isDemoAccount) {
+        Promise.resolve(
+          supabase.from("workout_logs").insert({
+            user_id: user.id,
+            session_id: sessionId,
+            session_title: session?.title || "Workout Session",
+            duration_minutes: session?.estimatedDuration || 40,
+            exercise_logs_json: logEntry.exercises,
+            completed_at: new Date().toISOString()
+          })
+        ).catch((err: unknown) => console.warn("Sync to Supabase logs failed:", err));
+      }
+    } catch (err) {
+      console.warn("Saving workout log failed", err);
     }
   };
 
@@ -183,18 +224,30 @@ function WorkoutSessionContent() {
                 className="ios-glass-card rounded-2xl p-4 md:p-5 border border-[#28525B]"
               >
                 <div className="flex items-start justify-between mb-3">
-                  <div>
-                    <div className="flex items-center gap-2">
-                      <span className="w-5 h-5 rounded-md bg-[#102831] text-[10px] font-mono font-bold text-[#28DACC] flex items-center justify-center border border-[#28525B]">
-                        {exIdx + 1}
-                      </span>
-                      <h3 className="text-base font-bold text-[#F4F9FA]">
-                        {item.exerciseName}
-                      </h3>
-                    </div>
-                    <div className="text-xs text-[#A8C5CA] mt-0.5 ml-7">
-                      <span className="capitalize">{item.primaryMuscle}</span> ·{" "}
-                      <span className="capitalize">{item.equipmentNeeded.replace(/_/g, " ")}</span>
+                  <div className="flex items-start gap-3">
+                    {item.image && (
+                      <div className="w-14 h-14 rounded-xl bg-[#D8F1FD] border border-[#28525B] overflow-hidden flex items-center justify-center shrink-0 shadow-sm">
+                        <img
+                          src={item.image}
+                          alt={item.exerciseName}
+                          className="w-full h-full object-cover"
+                          loading="lazy"
+                        />
+                      </div>
+                    )}
+                    <div>
+                      <div className="flex items-center gap-2">
+                        <span className="w-5 h-5 rounded-md bg-[#102831] text-[10px] font-mono font-bold text-[#28DACC] flex items-center justify-center border border-[#28525B]">
+                          {exIdx + 1}
+                        </span>
+                        <h3 className="text-base font-bold text-[#F4F9FA]">
+                          {item.exerciseName}
+                        </h3>
+                      </div>
+                      <div className="text-xs text-[#A8C5CA] mt-0.5">
+                        <span className="capitalize">{item.primaryMuscle}</span> ·{" "}
+                        <span className="capitalize">{item.equipmentNeeded.replace(/_/g, " ")}</span>
+                      </div>
                     </div>
                   </div>
 
