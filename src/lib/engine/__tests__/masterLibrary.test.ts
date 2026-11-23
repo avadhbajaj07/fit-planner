@@ -150,6 +150,49 @@ describe("Approved Workout Templates & Personalization Matching", () => {
     expect(templatePpl.split).toBe("push_pull_legs");
   });
 
+  it("matches resistance bands profile to dedicated resistance band template", () => {
+    const template = matchApprovedTemplate({
+      goal: "improve_fitness",
+      fitnessLevel: "beginner",
+      location: "home",
+      equipment: ["resistance_bands"],
+      daysPerWeek: 3,
+      restrictions: ["none"]
+    });
+
+    expect(template.id).toBe("template_home_resistance_bands");
+    expect(template.requiredEquipment).toContain("resistance_bands");
+    const allEx = template.sessions.flatMap((s) => s.exercises);
+    expect(allEx.every((e) => e.equipmentNeeded === "resistance_bands")).toBe(true);
+  });
+
+  it("generates resistance band plan with WebP illustrations when user chooses only resistance bands", () => {
+    const answers: AssessmentAnswers = {
+      goal: "improve_fitness",
+      fitnessLevel: "beginner",
+      location: "home",
+      equipment: ["resistance_bands"],
+      daysPerWeek: 3,
+      durationMinutes: 40,
+      restrictions: ["none"]
+    };
+
+    const plan = generateWorkoutPlan(answers);
+    const activeSessions = plan.weeklySessions.filter((s) => !s.isRestDay);
+    expect(activeSessions.length).toBe(3);
+
+    for (const session of activeSessions) {
+      expect(session.exercises.length).toBeGreaterThanOrEqual(4);
+      // Verify that every single exercise in the session uses resistance bands
+      for (const ex of session.exercises) {
+        expect(ex.equipmentNeeded).toBe("resistance_bands");
+        expect(ex.image).toBeDefined();
+        expect(ex.image?.endsWith(".webp")).toBe(true);
+        expect(ex.attribution).toBe("Exercise data by RepDB (repdb.co)");
+      }
+    }
+  });
+
   it("prioritizes knee-safe protocol when knee restriction is reported", () => {
     const template = matchApprovedTemplate({
       goal: "improve_fitness",

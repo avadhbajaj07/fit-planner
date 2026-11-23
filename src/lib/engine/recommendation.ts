@@ -223,6 +223,17 @@ export function generateWorkoutPlan(input: AssessmentAnswers): GeneratedPlan {
     // If not enough matches, pad with other safe exercises
     const pool = matched.length >= limit ? matched : [...matched, ...exercisePool];
 
+    // When user specifically has resistance bands, prioritize movements that use them before bodyweight
+    if (userEquip.includes("resistance_bands")) {
+      pool.sort((a, b) => {
+        const aBand = a.equipmentNeeded.includes("resistance_bands");
+        const bBand = b.equipmentNeeded.includes("resistance_bands");
+        if (aBand && !bBand) return -1;
+        if (!aBand && bBand) return 1;
+        return 0;
+      });
+    }
+
     const chosen: PlannedExercise[] = [];
     const usedIds = new Set<string>();
 
@@ -295,12 +306,73 @@ export function generateWorkoutPlan(input: AssessmentAnswers): GeneratedPlan {
       // Use approved template session exercises, capped by exerciseCountPerSession
       const selectedTemplateExercises = templateSession.exercises
         .slice(0, exerciseCountPerSession)
-        .map(ex => enrichWithRepDb({
-          ...ex,
-          sets: defaultSets,
-          reps: ex.reps || repScheme,
-          restSeconds: restSeconds
-        }));
+        .map((ex) => {
+          let targetEx = ex;
+          // If exercise requires dumbbells or gym machinery, but user only has resistance bands, adapt to safe band equivalent
+          if (
+            userEquip.includes("resistance_bands") &&
+            !userEquip.includes("dumbbells") &&
+            !userEquip.includes("fully_equipped_gym") &&
+            (ex.equipmentNeeded === "dumbbells" || ex.equipmentNeeded === "fully_equipped_gym")
+          ) {
+            if (ex.primaryMuscle === "chest") {
+              targetEx = {
+                exerciseId: "banded-push-up",
+                exerciseName: "Banded Push-Up",
+                sets: ex.sets,
+                reps: ex.reps,
+                restSeconds: ex.restSeconds,
+                primaryMuscle: "chest",
+                equipmentNeeded: "resistance_bands",
+                safetyNote: ex.safetyNote || "Maintain flat spine and push steadily against band.",
+                alternatives: ["push-up", "incline-push-up"]
+              };
+            } else if (ex.primaryMuscle === "back") {
+              targetEx = {
+                exerciseId: "banded-standing-row",
+                exerciseName: "Banded Standing Row",
+                sets: ex.sets,
+                reps: ex.reps,
+                restSeconds: ex.restSeconds,
+                primaryMuscle: "back",
+                equipmentNeeded: "resistance_bands",
+                safetyNote: ex.safetyNote || "Squeeze shoulder blades smoothly; low spinal loading.",
+                alternatives: ["band-assisted-pull-ups", "band-pull-apart"]
+              };
+            } else if (ex.primaryMuscle === "shoulders") {
+              targetEx = {
+                exerciseId: "band-pull-apart",
+                exerciseName: "Band Pull Apart",
+                sets: ex.sets,
+                reps: ex.reps,
+                restSeconds: ex.restSeconds,
+                primaryMuscle: "shoulders",
+                equipmentNeeded: "resistance_bands",
+                safetyNote: ex.safetyNote || "Safe horizontal pull protecting rotator cuff.",
+                alternatives: ["band-shoulder-external-rotation"]
+              };
+            } else if (ex.primaryMuscle === "legs") {
+              targetEx = {
+                exerciseId: "banded-glute-bridge",
+                exerciseName: "Banded Glute Bridge",
+                sets: ex.sets,
+                reps: ex.reps,
+                restSeconds: ex.restSeconds,
+                primaryMuscle: "legs",
+                equipmentNeeded: "resistance_bands",
+                safetyNote: ex.safetyNote || "Zero knee shear; strong glute contraction.",
+                alternatives: ["glute-bridge"]
+              };
+            }
+          }
+
+          return enrichWithRepDb({
+            ...targetEx,
+            sets: defaultSets,
+            reps: targetEx.reps || repScheme,
+            restSeconds: restSeconds
+          });
+        });
 
       weeklySessions.push({
         id: `session_day_${dayIdx + 1}`,

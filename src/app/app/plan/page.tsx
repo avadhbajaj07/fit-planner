@@ -60,6 +60,17 @@ export default function PlanPage() {
 
   useEffect(() => {
     const answers = loadAssessmentProgress();
+    if (typeof window !== "undefined") {
+      const params = new URLSearchParams(window.location.search);
+      const equipParam = params.get("equipment");
+      if (equipParam) {
+        answers.equipment = equipParam.split(",") as any;
+      }
+      const locParam = params.get("location");
+      if (locParam) {
+        answers.location = locParam as any;
+      }
+    }
     const generated = generateWorkoutPlan(answers);
     setPlan(generated);
   }, []);

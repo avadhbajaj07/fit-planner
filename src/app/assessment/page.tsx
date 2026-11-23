@@ -196,8 +196,8 @@ export default function AssessmentPage() {
     targetWeightKg: 82,
     bodyShape: "average",
     estimatedBodyFat: 20,
-    location: "gym",
-    equipment: ["dumbbells", "bodyweight"],
+    location: "home",
+    equipment: ["bodyweight"],
     daysPerWeek: 4,
     durationMinutes: 45,
     dailyActivity: "moderately_active",
@@ -1324,12 +1324,17 @@ export default function AssessmentPage() {
                       onClick={() => {
                         const current = answers.equipment || [];
                         let next: EquipmentOption[];
-                        if (isSelected) {
-                          next = current.filter((x) => x !== item.id);
-                          if (next.length === 0) next = ["bodyweight"];
+                        if (item.id === "bodyweight") {
+                          next = isSelected ? [] : ["bodyweight"];
                         } else {
-                          next = [...current, item.id];
+                          const withoutBw = current.filter((x) => x !== "bodyweight");
+                          if (isSelected) {
+                            next = withoutBw.filter((x) => x !== item.id);
+                          } else {
+                            next = [...withoutBw, item.id];
+                          }
                         }
+                        if (next.length === 0) next = ["bodyweight"];
                         updateAnswers({ equipment: next });
                       }}
                       className={`w-full p-3.5 rounded-2xl border text-left flex items-center justify-between transition-all ${

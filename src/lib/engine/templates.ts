@@ -260,6 +260,308 @@ export const APPROVED_WORKOUT_TEMPLATES: WorkoutTemplate[] = [
     ]
   },
 
+  // 1B. Home Resistance Band Full-Body & Toning (2-6x/week)
+  {
+    id: "template_home_resistance_bands",
+    title: "Home Resistance Band Toning & Sculpt",
+    description: "Progressive full-body resistance program powered by loop and tube resistance bands. Delivers continuous muscle tension, builds lean definition, and improves posture with minimal joint impact.",
+    goals: ["build_muscle", "lose_weight", "improve_fitness", "gain_weight", "maintain"],
+    fitnessLevels: ["complete_beginner", "beginner", "intermediate", "advanced"],
+    requiredEquipment: ["resistance_bands"],
+    location: "home",
+    daysPerWeek: [2, 3, 4, 5, 6],
+    split: "full_body",
+    durationMinutes: 40,
+    safeForRestrictions: ["none"],
+    warmupRoutine: [
+      "Dynamic arm circles & torso twists (60 seconds)",
+      "Band pull-aparts with light tension (15 reps)",
+      "Bodyweight hip hinge & glute activation (10 reps)",
+      "Light banded squats for mobility (10 reps)"
+    ],
+    recoveryRules: [
+      "Hydrate well: drink 2.5-3L water daily.",
+      "Control the eccentric phase for 2 seconds to maximize muscle stimulus.",
+      "Rest 48 hours between strenuous target sessions."
+    ],
+    reviewStatus: "approved",
+    reviewer: "Senior Exercise Physiologist (FIT Planner Medical Board)",
+    approvedAt: "2026-11-20T10:00:00Z",
+    sessions: [
+      {
+        dayNumber: 1,
+        dayName: "Monday",
+        title: "Band Full-Body Power A",
+        focusMuscles: ["legs", "chest", "back", "shoulders", "core"],
+        estimatedDuration: 40,
+        isRestDay: false,
+        warmupMinutes: 5,
+        exercises: [
+          {
+            exerciseId: "banded-squat",
+            exerciseName: "Banded Squat",
+            sets: 3,
+            reps: "12-15",
+            restSeconds: 60,
+            primaryMuscle: "legs",
+            equipmentNeeded: "resistance_bands",
+            safetyNote: "Stand on band with feet shoulder-width, loop band over shoulders or hold at chest. Keep chest tall.",
+            alternatives: ["bodyweight-squat", "banded-good-morning"]
+          },
+          {
+            exerciseId: "banded-push-up",
+            exerciseName: "Banded Push-Up",
+            sets: 3,
+            reps: "10-12",
+            restSeconds: 60,
+            primaryMuscle: "chest",
+            equipmentNeeded: "resistance_bands",
+            safetyNote: "Loop band across upper back and secure under palms. Push steadily against ascending band tension.",
+            alternatives: ["push-up", "incline-push-up"]
+          },
+          {
+            exerciseId: "banded-standing-row",
+            exerciseName: "Banded Standing Row",
+            sets: 3,
+            reps: "12-15",
+            restSeconds: 60,
+            primaryMuscle: "back",
+            equipmentNeeded: "resistance_bands",
+            safetyNote: "Hinge at hips, stand on band, pull elbows up and back squeezing shoulder blades.",
+            alternatives: ["band-assisted-pull-ups", "band-pull-apart"]
+          },
+          {
+            exerciseId: "banded-overhead-press",
+            exerciseName: "Banded Overhead Press",
+            sets: 3,
+            reps: "10-12",
+            restSeconds: 60,
+            primaryMuscle: "shoulders",
+            equipmentNeeded: "resistance_bands",
+            safetyNote: "Stand on band, press handles overhead without arching lower back. Brace core firmly.",
+            alternatives: ["band-pull-apart"]
+          },
+          {
+            exerciseId: "banded-glute-bridge",
+            exerciseName: "Banded Glute Bridge",
+            sets: 3,
+            reps: "15-20",
+            restSeconds: 45,
+            primaryMuscle: "legs",
+            equipmentNeeded: "resistance_bands",
+            safetyNote: "Place mini-band above knees, drive through heels and push knees slightly outward at peak.",
+            alternatives: ["banded-hip-thrust", "glute-bridge"]
+          },
+          {
+            exerciseId: "banded-pallof-press",
+            exerciseName: "Banded Pallof Press",
+            sets: 3,
+            reps: "10-12 per side",
+            restSeconds: 45,
+            primaryMuscle: "core",
+            equipmentNeeded: "resistance_bands",
+            safetyNote: "Anchor band at chest height, extend arms forward, resisting torso rotation.",
+            alternatives: ["plank"]
+          }
+        ]
+      },
+      {
+        dayNumber: 2,
+        dayName: "Tuesday",
+        title: "Active Recovery & Mobility",
+        focusMuscles: [],
+        estimatedDuration: 0,
+        isRestDay: true,
+        warmupMinutes: 0,
+        exercises: []
+      },
+      {
+        dayNumber: 3,
+        dayName: "Wednesday",
+        title: "Band Full-Body Sculpt B",
+        focusMuscles: ["legs", "shoulders", "back", "chest", "core"],
+        estimatedDuration: 40,
+        isRestDay: false,
+        warmupMinutes: 5,
+        exercises: [
+          {
+            exerciseId: "banded-romanian-deadlift",
+            exerciseName: "Banded Romanian Deadlift",
+            sets: 3,
+            reps: "12-15",
+            restSeconds: 60,
+            primaryMuscle: "legs",
+            equipmentNeeded: "resistance_bands",
+            safetyNote: "Stand on band, hinge deeply at hips with soft knees, feel stretch in hamstrings and drive hips forward.",
+            alternatives: ["banded-good-morning", "band-pull-through"]
+          },
+          {
+            exerciseId: "band-pull-apart",
+            exerciseName: "Band Pull Apart",
+            sets: 3,
+            reps: "15-20",
+            restSeconds: 45,
+            primaryMuscle: "shoulders",
+            equipmentNeeded: "resistance_bands",
+            safetyNote: "Hold band at chest height with straight arms, pull horizontally until band touches chest.",
+            alternatives: ["band-shoulder-external-rotation"]
+          },
+          {
+            exerciseId: "band-assisted-pull-ups",
+            exerciseName: "Band Assisted Pull Ups",
+            sets: 3,
+            reps: "8-10",
+            restSeconds: 75,
+            primaryMuscle: "back",
+            equipmentNeeded: "resistance_bands",
+            safetyNote: "Loop heavy band over pull-up bar, step foot in loop to offset bodyweight with controlled reps.",
+            alternatives: ["banded-standing-row"]
+          },
+          {
+            exerciseId: "banded-lateral-walk",
+            exerciseName: "Banded Lateral Walk",
+            sets: 3,
+            reps: "12-15 per direction",
+            restSeconds: 45,
+            primaryMuscle: "legs",
+            equipmentNeeded: "resistance_bands",
+            safetyNote: "Place loop band around ankles, maintain athletic quarter squat and take controlled steps sideways.",
+            alternatives: ["banded-clamshell"]
+          },
+          {
+            exerciseId: "banded-push-up",
+            exerciseName: "Banded Push-Up",
+            sets: 3,
+            reps: "10-12",
+            restSeconds: 60,
+            primaryMuscle: "chest",
+            equipmentNeeded: "resistance_bands",
+            safetyNote: "Maintain tight plank posture throughout; lower with control for 2 seconds.",
+            alternatives: ["push-up"]
+          },
+          {
+            exerciseId: "banded-standing-curl",
+            exerciseName: "Banded Standing Leg Curl",
+            sets: 3,
+            reps: "12-15 per leg",
+            restSeconds: 45,
+            primaryMuscle: "legs",
+            equipmentNeeded: "resistance_bands",
+            safetyNote: "Anchor band low, curl heel backward toward glutes, pause 1 second at full squeeze.",
+            alternatives: ["banded-glute-bridge"]
+          }
+        ]
+      },
+      {
+        dayNumber: 4,
+        dayName: "Thursday",
+        title: "Active Recovery & Mobility",
+        focusMuscles: [],
+        estimatedDuration: 0,
+        isRestDay: true,
+        warmupMinutes: 0,
+        exercises: []
+      },
+      {
+        dayNumber: 5,
+        dayName: "Friday",
+        title: "Band Full-Body Burn C",
+        focusMuscles: ["legs", "back", "shoulders", "core"],
+        estimatedDuration: 40,
+        isRestDay: false,
+        warmupMinutes: 5,
+        exercises: [
+          {
+            exerciseId: "banded-hip-thrust",
+            exerciseName: "Banded Hip Thrust",
+            sets: 3,
+            reps: "15-20",
+            restSeconds: 60,
+            primaryMuscle: "legs",
+            equipmentNeeded: "resistance_bands",
+            safetyNote: "Upper back rested on couch or bench, band above knees, drive hips up to horizontal line.",
+            alternatives: ["banded-glute-bridge"]
+          },
+          {
+            exerciseId: "banded-standing-row",
+            exerciseName: "Banded Standing Row",
+            sets: 3,
+            reps: "12-15",
+            restSeconds: 60,
+            primaryMuscle: "back",
+            equipmentNeeded: "resistance_bands",
+            safetyNote: "Squeeze shoulder blades together at peak for 1 second before extending arms.",
+            alternatives: ["band-assisted-pull-ups"]
+          },
+          {
+            exerciseId: "banded-overhead-press",
+            exerciseName: "Banded Overhead Press",
+            sets: 3,
+            reps: "10-12",
+            restSeconds: 60,
+            primaryMuscle: "shoulders",
+            equipmentNeeded: "resistance_bands",
+            safetyNote: "Drive handles upward with controlled speed; lower to collarbone slowly.",
+            alternatives: ["band-pull-apart"]
+          },
+          {
+            exerciseId: "banded-squat",
+            exerciseName: "Banded Squat",
+            sets: 3,
+            reps: "15-20",
+            restSeconds: 60,
+            primaryMuscle: "legs",
+            equipmentNeeded: "resistance_bands",
+            safetyNote: "Keep weight balanced across midfoot and heels, push knees out over toes.",
+            alternatives: ["banded-romanian-deadlift"]
+          },
+          {
+            exerciseId: "band-pull-through",
+            exerciseName: "Band Pull-Through",
+            sets: 3,
+            reps: "12-15",
+            restSeconds: 45,
+            primaryMuscle: "legs",
+            equipmentNeeded: "resistance_bands",
+            safetyNote: "Anchor band low behind you, reach between legs, powerfully extend hips to upright lockout.",
+            alternatives: ["banded-good-morning"]
+          },
+          {
+            exerciseId: "banded-pallof-press",
+            exerciseName: "Banded Pallof Press",
+            sets: 3,
+            reps: "12 per side",
+            restSeconds: 45,
+            primaryMuscle: "core",
+            equipmentNeeded: "resistance_bands",
+            safetyNote: "Stay perpendicular to anchor, brace abdominals like preparing for a punch.",
+            alternatives: ["plank"]
+          }
+        ]
+      },
+      {
+        dayNumber: 6,
+        dayName: "Saturday",
+        title: "Active Recovery & Mobility",
+        focusMuscles: [],
+        estimatedDuration: 0,
+        isRestDay: true,
+        warmupMinutes: 0,
+        exercises: []
+      },
+      {
+        dayNumber: 7,
+        dayName: "Sunday",
+        title: "Rest & Prep",
+        focusMuscles: [],
+        estimatedDuration: 0,
+        isRestDay: true,
+        warmupMinutes: 0,
+        exercises: []
+      }
+    ]
+  },
+
   // 2. Beginner Home Dumbbells (3x/week)
   {
     id: "template_beginner_home_dumbbells",
@@ -1732,13 +2034,20 @@ export function matchApprovedTemplate(options: {
   }
 
   // Priority 2: Equipment & Location boundaries
-  const hasGymAccess =
-    location === "gym" ||
-    equipment.includes("fully_equipped_gym");
+  const hasGymEquipment = equipment.includes("fully_equipped_gym");
+  const hasDumbbells = equipment.includes("dumbbells") || equipment.includes("basic_home_gym");
+  const hasResistanceBands = equipment.includes("resistance_bands");
 
-  const hasDumbbells =
-    equipment.includes("dumbbells") ||
-    equipment.includes("basic_home_gym");
+  // 2A. User has Resistance Bands (without dumbbells or gym machines)
+  if (hasResistanceBands && !hasDumbbells && !hasGymEquipment) {
+    const bandTemplate = APPROVED_WORKOUT_TEMPLATES.find((t) => t.id === "template_home_resistance_bands");
+    if (bandTemplate) return bandTemplate;
+  }
+
+  // 2B. Commercial Gym Access
+  const hasGymAccess =
+    hasGymEquipment ||
+    (location === "gym" && !hasResistanceBands);
 
   if (hasGymAccess) {
     if (daysPerWeek >= 4 && (fitnessLevel === "intermediate" || fitnessLevel === "advanced")) {
@@ -1747,8 +2056,15 @@ export function matchApprovedTemplate(options: {
     return APPROVED_WORKOUT_TEMPLATES.find((t) => t.id === "template_beginner_gym_full_body")!;
   }
 
+  // 2C. User has Dumbbells
   if (hasDumbbells) {
     return APPROVED_WORKOUT_TEMPLATES.find((t) => t.id === "template_beginner_home_dumbbells")!;
+  }
+
+  // 2D. Fallback for Resistance Bands
+  if (hasResistanceBands) {
+    const bandTemplate = APPROVED_WORKOUT_TEMPLATES.find((t) => t.id === "template_home_resistance_bands");
+    if (bandTemplate) return bandTemplate;
   }
 
   // Baseline Home Bodyweight
