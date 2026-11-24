@@ -26,6 +26,8 @@ import {
 } from "@/lib/nutrition/types";
 import { MEAL_DATABASE } from "@/lib/nutrition/database";
 import { filterEligibleMeals, generateDailyMealPlan } from "@/lib/nutrition/filterEngine";
+import { loadAssessmentProgress } from "@/lib/assessment/storage";
+import { AssessmentAnswers } from "@/lib/engine/types";
 
 const NUTRITION_STORAGE_KEY = "fit_planner_nutrition_profile";
 
@@ -39,6 +41,7 @@ export default function NutritionPage() {
     reviewerStatus: "general_guidance"
   });
 
+  const [assessment, setAssessment] = useState<AssessmentAnswers | null>(null);
   const [isConfiguring, setIsConfiguring] = useState(false);
   const [dislikedInput, setDislikedInput] = useState("");
   const [dailyPlan, setDailyPlan] = useState<PlannedDailyNutrition | null>(null);
@@ -47,6 +50,9 @@ export default function NutritionPage() {
 
   useEffect(() => {
     try {
+      const assessmentAnswers = loadAssessmentProgress();
+      setAssessment(assessmentAnswers);
+
       const stored = localStorage.getItem(NUTRITION_STORAGE_KEY);
       if (stored) {
         const parsed: NutritionProfile = JSON.parse(stored);
@@ -54,15 +60,30 @@ export default function NutritionPage() {
         const plan = generateDailyMealPlan(parsed);
         setDailyPlan(plan);
       } else {
-        const defaultProfile: NutritionProfile = {
-          dietType: "flexible",
-          allergens: ["none"],
-          dislikedFoods: [],
-          mealsPerDay: 3,
+        // Seamlessly sync from member assessment answers
+        const mappedDiet: DietType = (assessmentAnswers.dietType as DietType) || "flexible";
+        const mappedAllergens: AllergenType[] =
+          assessmentAnswers.foodIntolerances && assessmentAnswers.foodIntolerances.length > 0
+            ? (assessmentAnswers.foodIntolerances as AllergenType[])
+            : ["none"];
+        const mappedDisliked: string[] = assessmentAnswers.dislikedFoodsText
+          ? assessmentAnswers.dislikedFoodsText.split(",").map((s) => s.trim()).filter(Boolean)
+          : [];
+        const rawMeals = parseInt(assessmentAnswers.mealsPerDay || "3", 10);
+        const mappedMealsCount: 2 | 3 | 4 | 5 =
+          rawMeals === 2 || rawMeals === 3 || rawMeals === 4 || rawMeals === 5
+            ? rawMeals
+            : 3;
+
+        const syncedProfile: NutritionProfile = {
+          dietType: mappedDiet,
+          allergens: mappedAllergens,
+          dislikedFoods: mappedDisliked,
+          mealsPerDay: mappedMealsCount,
           reviewerStatus: "general_guidance"
         };
-        setProfile(defaultProfile);
-        const plan = generateDailyMealPlan(defaultProfile);
+        setProfile(syncedProfile);
+        const plan = generateDailyMealPlan(syncedProfile);
         setDailyPlan(plan);
       }
     } catch (e) {
@@ -184,6 +205,50 @@ export default function NutritionPage() {
           </span>
         </div>
       </div>
+
+      {/* Assessment-Calibrated Targets Strip */}
+      {(() => {
+        const userWeightKg = assessment?.weightKg || 78;
+        const isLoss = assessment?.goal === "lose_weight";
+        const isGain = assessment?.goal === "gain_weight" || assessment?.goal === "build_muscle";
+        const bmrBase = Math.round(userWeightKg * 24 * 1.35);
+        const targetDailyCalories = isLoss ? bmrBase - 450 : isGain ? bmrBase + 300 : bmrBase;
+        const targetProteinG = Math.round(userWeightKg * 2.0);
+
+        return (
+          <div className="p-4 rounded-3xl bg-[#0E1B20] border border-[#28525B]/60 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 shadow-md">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-2xl bg-[#28DACC]/15 border border-[#28525B] flex items-center justify-center text-[#28DACC] shrink-0">
+                <Sparkles size={18} />
+              </div>
+              <div>
+                <div className="flex items-center gap-2">
+                  <span className="text-xs font-bold text-white">
+                    Personalized Assessment Target
+                  </span>
+                  <span className="text-[10px] font-mono uppercase px-2 py-0.5 rounded-full bg-[#28DACC]/20 text-[#28DACC] font-semibold">
+                    {assessment?.goal ? assessment.goal.replace(/_/g, " ") : "Active"}
+                  </span>
+                </div>
+                <p className="text-xs text-[#A8C5CA] mt-0.5">
+                  Calibrated for {userWeightKg}kg bodyweight:{" "}
+                  <span className="text-white font-semibold">{targetDailyCalories} kcal/day</span>{" "}
+                  with <span className="text-[#28DACC] font-semibold">{targetProteinG}g protein</span> (2.0g/kg).
+                </p>
+              </div>
+            </div>
+            <div className="flex items-center gap-2 text-xs font-mono text-[#A8C5CA] bg-black/40 px-3 py-1.5 rounded-xl border border-[#28525B]/40 shrink-0">
+              <span>Goal Match:</span>
+              <span className="text-[#28DACC] font-bold">
+                {dailyPlan
+                  ? Math.min(100, Math.round((dailyPlan.totalCalories / targetDailyCalories) * 100))
+                  : 100}
+                %
+              </span>
+            </div>
+          </div>
+        );
+      })()}
 
       {/* MACRO BREAKDOWN SUMMARY TILE */}
       {dailyPlan && (

@@ -311,14 +311,21 @@ export default function LandingPage() {
             Build strength and transform your physique with one personalized plan, from $1.99/mo.
           </p>
 
-          {/* White "Claim deal" button & guarantee */}
-          <div className="pt-2 flex flex-col sm:flex-row items-center justify-center gap-4">
+          {/* Action Buttons: 1-Min Express vs Full Assessment */}
+          <div className="pt-2 flex flex-col sm:flex-row items-center justify-center gap-3">
             <Link
-              href="/assessment"
-              className="w-full sm:w-auto px-8 py-3.5 rounded-lg bg-white text-black font-bold text-sm hover:bg-[#F2F3F6] transition-all active:scale-95 shadow-xl flex items-center justify-center gap-2"
+              href="/assessment?mode=express"
+              className="w-full sm:w-auto px-7 py-3.5 rounded-lg bg-[#28DACC] text-black font-extrabold text-sm hover:brightness-110 transition-all active:scale-95 shadow-xl flex items-center justify-center gap-2"
             >
-              <span>Claim deal</span>
+              <Zap size={16} className="fill-black" />
+              <span>Quick Plan (1 Min)</span>
               <ArrowRight size={16} strokeWidth={2.5} />
+            </Link>
+            <Link
+              href="/assessment?mode=full"
+              className="w-full sm:w-auto px-7 py-3.5 rounded-lg bg-white/10 hover:bg-white/15 text-white font-bold text-sm border border-white/15 transition-all active:scale-95 flex items-center justify-center gap-2"
+            >
+              <span>Full Clinical Assessment</span>
             </Link>
           </div>
 

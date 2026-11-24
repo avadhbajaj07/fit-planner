@@ -183,6 +183,18 @@ export default function AssessmentPage() {
   const { resolvedTheme, toggleTheme } = useTheme();
 
   const [step, setStep] = useState(1);
+  const [isExpressMode, setIsExpressMode] = useState(false);
+  const EXPRESS_STEP_CHAIN = [1, 3, 10, 11, 12, 24];
+
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      const params = new URLSearchParams(window.location.search);
+      if (params.get("mode") === "express") {
+        setIsExpressMode(true);
+      }
+    }
+  }, []);
+
   const [answers, setAnswers] = useState<AssessmentAnswers>({
     gender: "male",
     age: 28,
@@ -227,6 +239,15 @@ export default function AssessmentPage() {
 
     setTimeout(() => {
       setStep((s) => {
+        if (isExpressMode) {
+          const currentIdx = EXPRESS_STEP_CHAIN.indexOf(s);
+          if (currentIdx !== -1 && currentIdx < EXPRESS_STEP_CHAIN.length - 1) {
+            return EXPRESS_STEP_CHAIN[currentIdx + 1];
+          }
+          router.push("/results");
+          return s;
+        }
+
         const next = s + 1;
         if (next > TOTAL_STEPS) {
           router.push("/results");
@@ -293,6 +314,18 @@ export default function AssessmentPage() {
       setShowConsentModal(true);
       return;
     }
+
+    if (isExpressMode) {
+      const currentIdx = EXPRESS_STEP_CHAIN.indexOf(step);
+      if (currentIdx !== -1 && currentIdx < EXPRESS_STEP_CHAIN.length - 1) {
+        setStep(EXPRESS_STEP_CHAIN[currentIdx + 1]);
+        window.scrollTo({ top: 0, behavior: "smooth" });
+        return;
+      }
+      router.push("/results");
+      return;
+    }
+
     if (step < TOTAL_STEPS) {
       setStep((s) => s + 1);
       window.scrollTo({ top: 0, behavior: "smooth" });
@@ -302,6 +335,17 @@ export default function AssessmentPage() {
   };
 
   const prevStep = () => {
+    if (isExpressMode) {
+      const currentIdx = EXPRESS_STEP_CHAIN.indexOf(step);
+      if (currentIdx > 0) {
+        setStep(EXPRESS_STEP_CHAIN[currentIdx - 1]);
+        window.scrollTo({ top: 0, behavior: "smooth" });
+        return;
+      }
+      router.push("/");
+      return;
+    }
+
     if (step > 1) {
       setStep((s) => s - 1);
       window.scrollTo({ top: 0, behavior: "smooth" });
@@ -310,15 +354,23 @@ export default function AssessmentPage() {
     }
   };
 
-  // Calculate current display question number out of 22
+  // Calculate current display question number
   const getQuestionNumberDisplay = () => {
-    if (step === 5 || step === 10 || step === 24) return null;
+    if (step === 24) return null;
+    if (isExpressMode) {
+      const idx = EXPRESS_STEP_CHAIN.indexOf(step);
+      if (idx === -1 || idx >= 5) return null;
+      return `${idx + 1}/5 · Express`;
+    }
+    if (step === 5 || step === 10) return null;
     let qNum = step;
     if (step > 5) qNum -= 1;
     return `${qNum}/22`;
   };
 
-  const questionProgressPct = Math.min(100, Math.round((step / TOTAL_STEPS) * 100));
+  const questionProgressPct = isExpressMode
+    ? Math.min(100, Math.round(((Math.max(0, EXPRESS_STEP_CHAIN.indexOf(step)) + 1) / 5) * 100))
+    : Math.min(100, Math.round((step / TOTAL_STEPS) * 100));
 
   return (
     <div className="min-h-[100dvh] bg-[#000000] text-[#F4F9FA] flex flex-col justify-between selection:bg-[#28DACC] selection:text-[#000000]">
@@ -353,9 +405,9 @@ export default function AssessmentPage() {
             >
               {resolvedTheme === "dark" ? <Sun size={14} /> : <Moon size={14} />}
             </button>
-            <div className="w-12 text-right">
+            <div className="w-16 text-right">
               {getQuestionNumberDisplay() ? (
-                <span className="text-xs font-mono font-semibold text-[#A8C5CA]">
+                <span className="text-[11px] font-mono font-semibold text-[#A8C5CA]">
                   {getQuestionNumberDisplay()}
                 </span>
               ) : (
@@ -367,6 +419,42 @@ export default function AssessmentPage() {
           </div>
         </div>
       </header>
+
+      {/* Mode Switcher Pill */}
+      {step !== 24 && (
+        <div className="bg-[#0A0A0A] border-b border-[#1A1A1A] py-1.5 px-4">
+          <div className="max-w-md mx-auto flex items-center justify-center gap-2">
+            <button
+              type="button"
+              onClick={() => {
+                setIsExpressMode(true);
+                if (!EXPRESS_STEP_CHAIN.includes(step)) {
+                  setStep(1);
+                }
+              }}
+              className={`px-3 py-1 rounded-full text-[11px] font-semibold transition-all flex items-center gap-1.5 ${
+                isExpressMode
+                  ? "bg-[#28DACC] text-[#000000] shadow-[0_0_12px_rgba(40,218,204,0.35)]"
+                  : "bg-[#141414] text-[#8E8E93] hover:text-[#FFFFFF]"
+              }`}
+            >
+              <Zap size={11} className={isExpressMode ? "fill-black" : ""} />
+              <span>1-Min Express (5 Qs)</span>
+            </button>
+            <button
+              type="button"
+              onClick={() => setIsExpressMode(false)}
+              className={`px-3 py-1 rounded-full text-[11px] font-semibold transition-all flex items-center gap-1.5 ${
+                !isExpressMode
+                  ? "bg-[#28DACC] text-[#000000] shadow-[0_0_12px_rgba(40,218,204,0.35)]"
+                  : "bg-[#141414] text-[#8E8E93] hover:text-[#FFFFFF]"
+              }`}
+            >
+              <span>Full Precision (22 Qs)</span>
+            </button>
+          </div>
+        </div>
+      )}
 
       {/* Main Content Area */}
       <main className="flex-1 max-w-md w-full mx-auto px-4 py-6 flex flex-col justify-between">
