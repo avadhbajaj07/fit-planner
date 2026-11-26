@@ -97,7 +97,7 @@ export default function MembershipPage() {
 
           {/* iOS Segmented Currency Control */}
           <div className="mt-5 inline-flex p-1 rounded-2xl bg-[#102831] border border-[#28525B]">
-            {(["EUR", "CHF", "USD", "INR"] as CurrencyCode[]).map((cur) => (
+            {(["EUR", "CHF", "USD"] as CurrencyCode[]).map((cur) => (
               <button
                 key={cur}
                 type="button"

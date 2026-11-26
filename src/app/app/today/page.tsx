@@ -48,18 +48,18 @@ export default function DashboardPage() {
       id: 1,
       icon: Shield,
       title: "Save and sync your workout progress history.",
-      oldPrice: "₹ 4,598.00",
-      newPrice: "₹ 1,069.00",
+      oldPrice: "€199.00",
+      newPrice: "€49.00",
       period: "/1st yr",
-      discount: "77% off",
+      discount: "75% off",
       cta: "View plan"
     },
     {
       id: 2,
       icon: Bell,
       title: "Daily workout and macro habit reminders.",
-      oldPrice: "₹ 3,999.00",
-      newPrice: "₹ 899.00",
+      oldPrice: "€159.00",
+      newPrice: "€39.00",
       period: "/1st yr",
       discount: "75% off",
       cta: "Set reminders"
@@ -68,10 +68,10 @@ export default function DashboardPage() {
       id: 3,
       icon: Users,
       title: "Invite a coach or workout partner.",
-      oldPrice: "₹ 5,200.00",
-      newPrice: "₹ 1,299.00",
+      oldPrice: "€219.00",
+      newPrice: "€59.00",
       period: "/1st yr",
-      discount: "75% off",
+      discount: "73% off",
       cta: "Invite partner"
     }
   ];

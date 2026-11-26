@@ -100,4 +100,42 @@ describe("FIT Planner Nutrition & Allergen Filter Engine", () => {
     expect(plan.totalProteinG).toBeGreaterThan(60);
     expect(plan.reviewerNotice).toContain("General Athletic Guidance Notice");
   });
+
+  it("verifies entire database conforms to European athletic nutrition standard with zero Indian recipes", () => {
+    // Assert zero Indian culinary keywords exist in names or descriptions
+    const forbiddenKeywords = ["curry", "dahl", "garam masala", "paneer", "biryani", "masala"];
+
+    for (const meal of MEAL_DATABASE) {
+      const fullText = (meal.name + " " + meal.description + " " + meal.instructions.join(" ")).toLowerCase();
+      for (const kw of forbiddenKeywords) {
+        expect(fullText.includes(kw), `Meal "${meal.name}" should not contain Indian keyword "${kw}"`).toBe(false);
+      }
+    }
+
+    // Assert European Mediterranean, Nordic, and Alpine staples are present
+    const mealIds = MEAL_DATABASE.map((m) => m.id);
+    expect(mealIds).toContain("din_tuscan_white_bean_stew");
+    expect(mealIds).toContain("din_provencal_lentil_stew");
+    expect(mealIds).toContain("bf_swiss_birchermuesli");
+    expect(mealIds).toContain("lunch_norwegian_salmon_dill");
+    expect(mealIds).toContain("din_mediterranean_beef_tagliata");
+    expect(mealIds).toContain("snack_skyr_berries");
+  });
+
+  it("allocates European vegan dinner (Tuscan White Bean & Cavolo Nero Stew) for plant-based athletes", () => {
+    const profile: NutritionProfile = {
+      dietType: "vegan",
+      allergens: ["none"],
+      dislikedFoods: [],
+      mealsPerDay: 3,
+      reviewerStatus: "general_guidance"
+    };
+
+    const plan = generateDailyMealPlan(profile, "2026-11-26");
+    const dinner = plan.meals.find((m) => m.category === "dinner");
+    expect(dinner).toBeDefined();
+    expect(dinner?.id).toBe("din_tuscan_white_bean_stew");
+    expect(dinner?.name).toBe("Tuscan Cannellini Bean & Cavolo Nero Stew");
+    expect(dinner?.dietaryTags).toContain("vegan");
+  });
 });
