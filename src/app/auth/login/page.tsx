@@ -15,6 +15,15 @@ export default function LoginPage() {
   const [error, setError] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
+  const getNextTarget = () => {
+    if (typeof window !== "undefined") {
+      const params = new URLSearchParams(window.location.search);
+      const next = params.get("next") || params.get("redirect");
+      if (next && next.startsWith("/") && !next.startsWith("//")) return next;
+    }
+    return "/app/today";
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!email || !password) {
@@ -28,7 +37,7 @@ export default function LoginPage() {
     setIsSubmitting(false);
 
     if (res.success) {
-      router.push("/app/today");
+      router.push(getNextTarget());
     } else {
       setError(res.error || "Login failed.");
     }
@@ -36,17 +45,17 @@ export default function LoginPage() {
 
   const handleDemo = () => {
     loginAsDemo();
-    router.push("/app/today");
+    router.push(getNextTarget());
   };
 
   const handleGoogleLogin = async () => {
     await loginWithGoogle();
-    router.push("/app/today");
+    router.push(getNextTarget());
   };
 
   const handleFacebookLogin = async () => {
     await loginWithFacebook();
-    router.push("/app/today");
+    router.push(getNextTarget());
   };
 
   return (

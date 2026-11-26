@@ -2,18 +2,49 @@
 
 import React, { useState } from "react";
 import Link from "next/link";
-import { KeyRound, Mail, ArrowRight, CheckCircle2, AlertCircle } from "lucide-react";
+import { KeyRound, Mail, ArrowRight, CheckCircle2, AlertCircle, Loader2 } from "lucide-react";
 import { useAuth } from "@/lib/auth/authContext";
+import { supabase } from "@/lib/supabase/client";
 
 export default function ForgotPasswordPage() {
   const { isSupabaseConfigured } = useAuth();
   const [email, setEmail] = useState("");
   const [submitted, setSubmitted] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!email) return;
-    setSubmitted(true);
+    if (!email.trim()) return;
+
+    setIsSubmitting(true);
+    setErrorMessage(null);
+
+    try {
+      if (supabase && isSupabaseConfigured) {
+        const redirectUrl =
+          typeof window !== "undefined"
+            ? `${window.location.origin}/auth/login`
+            : undefined;
+
+        const { error } = await supabase.auth.resetPasswordForEmail(email.trim(), {
+          redirectTo: redirectUrl
+        });
+
+        if (error) {
+          setErrorMessage(error.message);
+          setIsSubmitting(false);
+          return;
+        }
+      }
+
+      // If live Supabase succeeded or running in local dev demo mode
+      setSubmitted(true);
+    } catch (err: any) {
+      setErrorMessage(err?.message || "Failed to initiate password reset.");
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -23,7 +54,7 @@ export default function ForgotPasswordPage() {
           ← Back to Login
         </Link>
         <span className="text-[11px] font-mono uppercase tracking-widest text-[#A8C5CA]">
-          FIT PLANNER
+          SHAPE RADAR
         </span>
       </header>
 
@@ -38,6 +69,13 @@ export default function ForgotPasswordPage() {
           </p>
         </div>
 
+        {errorMessage && (
+          <div className="mb-4 p-3 rounded-xl bg-[#FF5C5C]/15 border border-[#FF5C5C]/40 text-xs text-[#FF5C5C] flex items-center gap-2">
+            <AlertCircle size={15} />
+            <span>{errorMessage}</span>
+          </div>
+        )}
+
         {submitted ? (
           <div className="ios-glass-card rounded-3xl p-6 border border-[#28525B] text-center">
             <div className="w-10 h-10 rounded-full bg-[#28DA8B]/20 text-[#28DA8B] flex items-center justify-center mx-auto mb-3">
@@ -49,7 +87,7 @@ export default function ForgotPasswordPage() {
             </p>
             {!isSupabaseConfigured && (
               <p className="text-[11px] text-[#FFB020] mt-3">
-                (Note: SMTP/Resend email service is currently in setup mode.)
+                (Note: Live SMTP/Resend email service is currently in setup mode.)
               </p>
             )}
             <Link
@@ -71,6 +109,7 @@ export default function ForgotPasswordPage() {
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
                     required
+                    disabled={isSubmitting}
                     className="w-full bg-transparent text-sm text-[#F4F9FA] placeholder:text-[#A8C5CA]/50 outline-none"
                     style={{ fontSize: "16px" }}
                   />
@@ -80,17 +119,27 @@ export default function ForgotPasswordPage() {
 
             <button
               type="submit"
-              className="w-full h-[50px] rounded-[14px] bg-[#28DACC] text-[#07151D] font-bold text-sm flex items-center justify-center gap-2 shadow-[0_0_20px_rgba(40,218,204,0.3)] active:scale-[0.98] transition-all hover:bg-[#41E9DC]"
+              disabled={isSubmitting}
+              className="w-full h-[50px] rounded-[14px] bg-[#28DACC] text-[#07151D] font-bold text-sm flex items-center justify-center gap-2 shadow-[0_0_20px_rgba(40,218,204,0.3)] active:scale-[0.98] transition-all hover:bg-[#41E9DC] disabled:opacity-50"
             >
-              <span>Send Recovery Link</span>
-              <ArrowRight size={17} />
+              {isSubmitting ? (
+                <>
+                  <Loader2 size={17} className="animate-spin" />
+                  <span>Sending Link...</span>
+                </>
+              ) : (
+                <>
+                  <span>Send Recovery Link</span>
+                  <ArrowRight size={17} />
+                </>
+              )}
             </button>
           </form>
         )}
       </main>
 
       <footer className="text-center text-[11px] text-[#A8C5CA]/60 pb-safe">
-        FIT Planner · Secure Encrypted Access
+        Shape Radar · Secure Encrypted Access
       </footer>
     </div>
   );

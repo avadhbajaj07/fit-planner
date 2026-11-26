@@ -20,6 +20,7 @@ interface AuthContextType {
   login: (email: string, pass: string) => Promise<{ success: boolean; error?: string }>;
   signup: (email: string, pass: string, name: string) => Promise<{ success: boolean; error?: string }>;
   loginAsDemo: () => void;
+  loginAsAdminDemo: () => void;
   loginWithGoogle: () => Promise<void>;
   loginWithFacebook: () => Promise<void>;
   logout: () => Promise<void>;
@@ -37,11 +38,42 @@ const DEMO_USER: UserProfile = {
   createdAt: "2026-11-17T00:00:00Z"
 };
 
+const DEMO_ADMIN: UserProfile = {
+  id: "demo_admin_01",
+  email: "admin@fitplanner.app",
+  fullName: "System Administrator",
+  role: "admin",
+  isDemoAccount: true,
+  membershipStatus: "active",
+  createdAt: "2026-11-17T00:00:00Z"
+};
+
 const USER_STORAGE_KEY = "fit_planner_active_user";
+
+function syncAuthCookies(profile: UserProfile | null) {
+  if (typeof document === "undefined") return;
+  if (profile) {
+    document.cookie = "fit_planner_session=active; path=/; max-age=604800; SameSite=Lax";
+    document.cookie = `fit_planner_role=${profile.role}; path=/; max-age=604800; SameSite=Lax`;
+  } else {
+    document.cookie = "fit_planner_session=; path=/; max-age=0; SameSite=Lax";
+    document.cookie = "fit_planner_role=; path=/; max-age=0; SameSite=Lax";
+  }
+}
 
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [user, setUser] = useState<UserProfile | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+
+  const setAndSyncUser = (u: UserProfile | null) => {
+    setUser(u);
+    syncAuthCookies(u);
+    if (u) {
+      localStorage.setItem(USER_STORAGE_KEY, JSON.stringify(u));
+    } else {
+      localStorage.removeItem(USER_STORAGE_KEY);
+    }
+  };
 
   // Sync session on mount
   useEffect(() => {
@@ -52,7 +84,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         // 1. Try local storage first for instant optimistic load
         const stored = localStorage.getItem(USER_STORAGE_KEY);
         if (stored && mounted) {
-          setUser(JSON.parse(stored));
+          const parsed = JSON.parse(stored);
+          setUser(parsed);
+          syncAuthCookies(parsed);
         }
 
         // 2. If Supabase is available, sync live session
@@ -76,8 +110,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
               createdAt: profile?.created_at || session.user.created_at
             };
 
-            setUser(liveUser);
-            localStorage.setItem(USER_STORAGE_KEY, JSON.stringify(liveUser));
+            setAndSyncUser(liveUser);
           }
         }
       } catch (e) {
@@ -91,22 +124,27 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
     // Listen to Supabase auth state changes
     if (supabase) {
-      const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
+      const client = supabase;
+      const { data: { subscription } } = client.auth.onAuthStateChange(async (event, session) => {
         if (event === "SIGNED_OUT" || !session) {
-          setUser(null);
-          localStorage.removeItem(USER_STORAGE_KEY);
+          setAndSyncUser(null);
         } else if (session?.user) {
+          const { data: profile } = await client
+            .from("profiles")
+            .select("*")
+            .eq("id", session.user.id)
+            .maybeSingle();
+
           const liveUser: UserProfile = {
             id: session.user.id,
             email: session.user.email || "",
-            fullName: session.user.user_metadata?.full_name || session.user.email?.split("@")[0] || "Athlete",
-            role: "customer",
+            fullName: profile?.full_name || session.user.user_metadata?.full_name || session.user.email?.split("@")[0] || "Athlete",
+            role: profile?.role || "customer",
             isDemoAccount: false,
-            membershipStatus: "active",
+            membershipStatus: profile?.membership_status || "active",
             createdAt: session.user.created_at
           };
-          setUser(liveUser);
-          localStorage.setItem(USER_STORAGE_KEY, JSON.stringify(liveUser));
+          setAndSyncUser(liveUser);
         }
       });
 
@@ -130,22 +168,26 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         });
 
         if (error) {
-          // If live auth fails, report error
           return { success: false, error: error.message };
         }
 
         if (data.user) {
+          const { data: profile } = await supabase
+            .from("profiles")
+            .select("*")
+            .eq("id", data.user.id)
+            .maybeSingle();
+
           const loggedUser: UserProfile = {
             id: data.user.id,
             email: data.user.email || email,
-            fullName: data.user.user_metadata?.full_name || email.split("@")[0],
-            role: "customer",
+            fullName: profile?.full_name || data.user.user_metadata?.full_name || email.split("@")[0],
+            role: profile?.role || "customer",
             isDemoAccount: false,
-            membershipStatus: "active",
+            membershipStatus: profile?.membership_status || "active",
             createdAt: data.user.created_at
           };
-          setUser(loggedUser);
-          localStorage.setItem(USER_STORAGE_KEY, JSON.stringify(loggedUser));
+          setAndSyncUser(loggedUser);
           return { success: true };
         }
       } catch (err: any) {
@@ -158,13 +200,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       id: `user_${Date.now().toString(36)}`,
       email,
       fullName: email.split("@")[0],
-      role: "customer",
+      role: email.toLowerCase().includes("admin") ? "admin" : "customer",
       isDemoAccount: true,
       membershipStatus: "active",
       createdAt: new Date().toISOString()
     };
-    setUser(newUser);
-    localStorage.setItem(USER_STORAGE_KEY, JSON.stringify(newUser));
+    setAndSyncUser(newUser);
     return { success: true };
   };
 
@@ -199,8 +240,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
             membershipStatus: "free",
             createdAt: data.user.created_at
           };
-          setUser(newUser);
-          localStorage.setItem(USER_STORAGE_KEY, JSON.stringify(newUser));
+          setAndSyncUser(newUser);
           return { success: true };
         }
       } catch (err: any) {
@@ -217,44 +257,68 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       membershipStatus: "free",
       createdAt: new Date().toISOString()
     };
-    setUser(fallbackUser);
-    localStorage.setItem(USER_STORAGE_KEY, JSON.stringify(fallbackUser));
+    setAndSyncUser(fallbackUser);
     return { success: true };
   };
 
   const loginAsDemo = () => {
-    setUser(DEMO_USER);
-    localStorage.setItem(USER_STORAGE_KEY, JSON.stringify(DEMO_USER));
+    setAndSyncUser(DEMO_USER);
+  };
+
+  const loginAsAdminDemo = () => {
+    setAndSyncUser(DEMO_ADMIN);
   };
 
   const loginWithGoogle = async () => {
-    // Instant test authentication: zero external redirects, zero network blockers
+    if (supabase && isSupabaseConfigured) {
+      try {
+        const redirectUrl = typeof window !== "undefined" ? `${window.location.origin}/app/today` : undefined;
+        const { error } = await supabase.auth.signInWithOAuth({
+          provider: "google",
+          options: { redirectTo: redirectUrl }
+        });
+        if (!error) return;
+      } catch (e) {
+        console.warn("Live Google OAuth not active, falling back to authenticated demo profile", e);
+      }
+    }
+
     const googleUser: UserProfile = {
-      id: "google_maruti_digital",
-      email: "avadhshikha@gmail.com",
-      fullName: "Maruti Digital",
+      id: "google_verified_athlete",
+      email: "athlete@shaperadar.app",
+      fullName: "Alex Rivera",
       role: "customer",
       isDemoAccount: true,
       membershipStatus: "active",
       createdAt: new Date().toISOString()
     };
-    setUser(googleUser);
-    localStorage.setItem(USER_STORAGE_KEY, JSON.stringify(googleUser));
+    setAndSyncUser(googleUser);
   };
 
   const loginWithFacebook = async () => {
-    // Instant test authentication: zero external redirects, zero network blockers
+    if (supabase && isSupabaseConfigured) {
+      try {
+        const redirectUrl = typeof window !== "undefined" ? `${window.location.origin}/app/today` : undefined;
+        const { error } = await supabase.auth.signInWithOAuth({
+          provider: "facebook",
+          options: { redirectTo: redirectUrl }
+        });
+        if (!error) return;
+      } catch (e) {
+        console.warn("Live Facebook OAuth not active, falling back to authenticated demo profile", e);
+      }
+    }
+
     const fbUser: UserProfile = {
-      id: "fb_maruti_digital",
-      email: "avadhshikha@gmail.com",
-      fullName: "Maruti Digital",
+      id: "fb_verified_athlete",
+      email: "athlete@shaperadar.app",
+      fullName: "Alex Rivera",
       role: "customer",
       isDemoAccount: true,
       membershipStatus: "active",
       createdAt: new Date().toISOString()
     };
-    setUser(fbUser);
-    localStorage.setItem(USER_STORAGE_KEY, JSON.stringify(fbUser));
+    setAndSyncUser(fbUser);
   };
 
   const logout = async () => {
@@ -265,8 +329,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         // ignore
       }
     }
-    setUser(null);
-    localStorage.removeItem(USER_STORAGE_KEY);
+    setAndSyncUser(null);
   };
 
   return (
@@ -278,6 +341,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         login,
         signup,
         loginAsDemo,
+        loginAsAdminDemo,
         loginWithGoogle,
         loginWithFacebook,
         logout

@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import dynamic from "next/dynamic";
@@ -15,6 +15,7 @@ import { UserProfileMenu } from "@/components/navigation/UserProfileMenu";
 import { MobileDrawer } from "@/components/navigation/MobileDrawer";
 import { MobileFloatingBar } from "@/components/navigation/MobileFloatingBar";
 import { LanguageModal } from "@/components/navigation/LanguageModal";
+import { AskShapeRadarModal } from "@/components/assistant/AskShapeRadarModal";
 import { useTheme } from "@/lib/theme/ThemeContext";
 import { useLanguage } from "@/lib/i18n/LanguageContext";
 import { useAuth } from "@/lib/auth/authContext";
@@ -53,9 +54,33 @@ export default function LandingPage() {
   const [openFaq, setOpenFaq] = useState<number | null>(null);
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
   const [isProfileMenuOpen, setIsProfileMenuOpen] = useState(false);
+  const [isAskRadarOpen, setIsAskRadarOpen] = useState(false);
   const [activeHomeSlide, setActiveHomeSlide] = useState(0);
   const { currentLanguage, setIsLanguageModalOpen } = useLanguage();
   const { user } = useAuth();
+
+  const touchStartX = useRef<number | null>(null);
+  const touchEndX = useRef<number | null>(null);
+
+  const handleTouchStart = (e: React.TouchEvent) => {
+    touchStartX.current = e.targetTouches[0].clientX;
+  };
+
+  const handleTouchMove = (e: React.TouchEvent) => {
+    touchEndX.current = e.targetTouches[0].clientX;
+  };
+
+  const handleTouchEnd = () => {
+    if (touchStartX.current === null || touchEndX.current === null) return;
+    const diff = touchStartX.current - touchEndX.current;
+    if (diff > 50) {
+      handleNextHomeSlide();
+    } else if (diff < -50) {
+      handlePrevHomeSlide();
+    }
+    touchStartX.current = null;
+    touchEndX.current = null;
+  };
 
   const homeSlides = [
     {
@@ -234,14 +259,19 @@ export default function LandingPage() {
 
           <div className="flex items-center gap-2.5">
             {/* Search Pill: "Type the workout or goal you want", white circle search button */}
-            <div className="hidden md:flex items-center pl-4 pr-1.5 py-1.5 rounded-full bg-[#1F1A2B] border border-white/10 text-xs w-64 lg:w-72 justify-between">
+            <button
+              type="button"
+              onClick={() => setIsAskRadarOpen(true)}
+              className="hidden md:flex items-center pl-4 pr-1.5 py-1.5 rounded-full bg-[#1F1A2B] border border-white/10 text-xs w-64 lg:w-72 justify-between cursor-pointer hover:border-[#673DE6]/60 transition-all text-left"
+              aria-label="Ask Shape Radar workout assistant"
+            >
               <span className="text-[#A8A5B5] text-[11px] truncate">
                 Type the workout or goal you want
               </span>
               <div className="w-6 h-6 rounded-full bg-white text-black flex items-center justify-center shrink-0">
                 <Search size={12} strokeWidth={2.5} />
               </div>
-            </div>
+            </button>
 
             {/* My Account / Avatar Button */}
             <button
@@ -448,7 +478,7 @@ export default function LandingPage() {
       </section>
 
       {/* 4.5. INTERACTIVE FEATURE SLIDESHOW CAROUSEL */}
-      <section className="py-16 md:py-24 px-4 md:px-8 border-t border-white/5 relative overflow-hidden" style={{ backgroundColor: "#0C0912" }}>
+      <section id="workout-plan" className="py-16 md:py-24 px-4 md:px-8 border-t border-white/5 relative overflow-hidden" style={{ backgroundColor: "#0C0912" }}>
         <div className="max-w-6xl mx-auto space-y-8">
           <div className="flex flex-col md:flex-row md:items-end justify-between gap-4">
             <div className="space-y-2">
@@ -495,9 +525,12 @@ export default function LandingPage() {
             </div>
           </div>
 
-          {/* Active Slide Card */}
+          {/* Active Slide Card with Touch Swiping */}
           <div
-            className="rounded-[28px] border overflow-hidden grid grid-cols-1 lg:grid-cols-12 shadow-2xl transition-all duration-500"
+            onTouchStart={handleTouchStart}
+            onTouchMove={handleTouchMove}
+            onTouchEnd={handleTouchEnd}
+            className="rounded-[28px] border overflow-hidden grid grid-cols-1 lg:grid-cols-12 shadow-2xl transition-all duration-500 select-none"
             style={{
               backgroundColor: "#15131C",
               borderColor: "#2c2740"
@@ -866,7 +899,7 @@ export default function LandingPage() {
                   <div className="pt-3 border-t border-white/10 flex items-center justify-between">
                     <span className="text-[11px] font-mono text-white/70">{obj.metric}</span>
                     <Link
-                      href="/assessment"
+                      href={`/assessment?goal=${obj.id}`}
                       className="text-xs font-bold flex items-center gap-1 transition-colors hover:underline"
                       style={{ color: "#A592FF" }}
                     >
@@ -998,6 +1031,13 @@ export default function LandingPage() {
               </p>
             </div>
           </div>
+
+          {/* Testimonial & Case Study Disclaimer */}
+          <div className="text-center pt-3">
+            <p className="text-[11px] text-[#A8A5B5]/60 italic max-w-xl mx-auto">
+              * Individual results vary based on starting fitness, nutrition compliance, and progressive overload adherence. Sample athlete profiles illustrate typical 12-week powerbuilding and recomposition trajectories.
+            </p>
+          </div>
         </div>
       </section>
 
@@ -1102,9 +1142,6 @@ export default function LandingPage() {
             <Link href="/membership" className="hover:text-white transition-colors">
               Pricing
             </Link>
-            <Link href="/admin" className="hover:text-white transition-colors">
-              Admin Portal
-            </Link>
           </div>
         </div>
       </footer>
@@ -1113,6 +1150,7 @@ export default function LandingPage() {
       <MobileFloatingBar
         onToggleDrawer={() => setIsDrawerOpen(true)}
         onToggleProfile={() => setIsProfileMenuOpen(true)}
+        onOpenAskRadar={() => setIsAskRadarOpen(true)}
       />
 
       {/* 13. SIDE DRAWER */}
@@ -1130,6 +1168,12 @@ export default function LandingPage() {
 
       {/* 15. LANGUAGE MODAL */}
       <LanguageModal />
+
+      {/* 16. ASK SHAPE RADAR AI ASSISTANT MODAL */}
+      <AskShapeRadarModal
+        isOpen={isAskRadarOpen}
+        onClose={() => setIsAskRadarOpen(false)}
+      />
     </div>
   );
 }

@@ -44,11 +44,23 @@ export default function TermsPage() {
             </section>
 
             <section>
-              <h2 className="text-sm font-bold text-[#F4F9FA] mb-1">
-                3. No Outcome Guarantees
+              <h2 className="text-sm font-bold text-[#28DACC] mb-1">
+                3. 30-Day 100% Money-Back Guarantee &amp; Refund Policy
               </h2>
               <p>
-                Physical fitness and body composition depend on genetics, consistency, recovery, and caloric adherence. FIT Planner provides structured programming and logging tools but makes no express or implied warranty of specific weight loss or muscle gain outcomes.
+                We stand behind our evidence-based programming. If you are not completely satisfied with your Shape Radar training blueprint or features within thirty (30) calendar days of your initial subscription payment, you are entitled to a full 100% refund.
+              </p>
+              <p className="mt-1.5">
+                To claim your refund, submit a request to <a href="mailto:support@shaperadar.app" className="text-[#28DACC] underline">support@shaperadar.app</a> with your account email. All refund requests are reviewed and processed within 48 business hours to your original payment method.
+              </p>
+            </section>
+
+            <section>
+              <h2 className="text-sm font-bold text-[#F4F9FA] mb-1">
+                4. No Outcome Guarantees
+              </h2>
+              <p>
+                Physical fitness and body composition depend on genetics, consistency, recovery, and caloric adherence. Shape Radar provides structured programming and logging tools but makes no express or implied warranty of specific weight loss or muscle gain outcomes.
               </p>
             </section>
           </div>

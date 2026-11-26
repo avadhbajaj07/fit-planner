@@ -1,7 +1,7 @@
 {
-  "name": "FIT Planner",
-  "short_name": "FIT Planner",
-  "description": "Your Goals. Your Body. Your Plan. Personalized workout and nutrition planning.",
+  "name": "Shape Radar",
+  "short_name": "Shape Radar",
+  "description": "Your Goals. Your Body. Your Plan. Personalized workout and nutrition planning with automated progressive overload.",
   "start_url": "/",
   "display": "standalone",
   "background_color": "#07151D",
@@ -12,6 +12,21 @@
       "src": "/favicon.ico",
       "sizes": "64x64 32x32 24x24 16x16",
       "type": "image/x-icon"
+    },
+    {
+      "src": "/icons/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "/icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    },
+    {
+      "src": "/icons/apple-touch-icon.png",
+      "sizes": "180x180",
+      "type": "image/png"
     }
   ]
 }

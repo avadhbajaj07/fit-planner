@@ -73,13 +73,14 @@ export function MobileDrawer({ isOpen, onClose, onOpenProfile }: MobileDrawerPro
           {/* Banners */}
           <div className="space-y-2">
             {/* Gradient SALE OF THE YEAR Banner */}
-            <div
-              className="p-3.5 rounded-[16px] text-white cursor-pointer transition-transform active:scale-[0.99] relative overflow-hidden"
+            <Link
+              href="/membership"
+              onClick={onClose}
+              className="block p-3.5 rounded-[16px] text-white cursor-pointer transition-transform active:scale-[0.99] relative overflow-hidden"
               style={{
                 background: "linear-gradient(135deg, #1D1536 0%, #2E1B58 50%, #4D2678 100%)",
                 border: "1px solid rgba(165, 146, 255, 0.3)"
               }}
-              onClick={onClose}
             >
               <div className="flex items-center justify-between">
                 <div>
@@ -91,16 +92,17 @@ export function MobileDrawer({ isOpen, onClose, onOpenProfile }: MobileDrawerPro
                 </div>
                 <ChevronRight size={16} className="text-white/80" />
               </div>
-            </div>
+            </Link>
 
             {/* Green FREE PLANS / PRODUCTS Banner */}
-            <div
-              className="p-3.5 rounded-[16px] text-white cursor-pointer transition-transform active:scale-[0.99]"
+            <Link
+              href="/assessment?mode=express"
+              onClick={onClose}
+              className="block p-3.5 rounded-[16px] text-white cursor-pointer transition-transform active:scale-[0.99]"
               style={{
                 backgroundColor: "#008361",
                 border: "1px solid rgba(255, 255, 255, 0.2)"
               }}
-              onClick={onClose}
             >
               <div className="flex items-center justify-between">
                 <div>
@@ -111,7 +113,7 @@ export function MobileDrawer({ isOpen, onClose, onOpenProfile }: MobileDrawerPro
                 </div>
                 <ChevronRight size={16} className="text-white/80" />
               </div>
-            </div>
+            </Link>
           </div>
 
           {/* Navigation Items (Home, Agent, Workouts, Nutrition, Progress, Recovery, More services) */}

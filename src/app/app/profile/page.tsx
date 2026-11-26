@@ -87,6 +87,7 @@ export default function ProfilePage() {
 
         <button
           type="button"
+          aria-label="Log Out"
           onClick={() => {
             logout();
             router.push("/auth/login");

@@ -6,11 +6,13 @@ import { Menu, Sparkles, Mic, ArrowUp } from "lucide-react";
 interface MobileFloatingBarProps {
   onToggleDrawer: () => void;
   onToggleProfile: () => void;
+  onOpenAskRadar?: () => void;
 }
 
 export function MobileFloatingBar({
   onToggleDrawer,
-  onToggleProfile
+  onToggleProfile,
+  onOpenAskRadar
 }: MobileFloatingBarProps) {
   return (
     <div className="lg:hidden fixed bottom-4 left-4 right-4 z-40 max-w-md mx-auto select-none pointer-events-auto">
@@ -19,7 +21,7 @@ export function MobileFloatingBar({
         <button
           type="button"
           onClick={onToggleDrawer}
-          className="w-14 h-14 rounded-full flex items-center justify-center border shadow-lg shrink-0 transition-transform active:scale-95"
+          className="w-14 h-14 rounded-full flex items-center justify-center border shadow-lg shrink-0 transition-transform active:scale-95 cursor-pointer"
           style={{
             backgroundColor: "var(--card)",
             borderColor: "var(--bd)",
@@ -33,13 +35,22 @@ export function MobileFloatingBar({
 
         {/* Pill Input: "Ask Shape Radar" with sparkle icon, mic icon and purple send circle */}
         <div
-          className="flex-1 h-14 px-4 rounded-full border shadow-lg flex items-center justify-between text-sm cursor-pointer transition-colors"
+          role="button"
+          tabIndex={0}
+          className="flex-1 h-14 px-4 rounded-full border shadow-lg flex items-center justify-between text-sm cursor-pointer transition-colors active:scale-[0.99]"
           style={{
             backgroundColor: "var(--card)",
             borderColor: "var(--bd)",
             boxShadow: "var(--shadow)"
           }}
-          onClick={onToggleProfile}
+          onClick={onOpenAskRadar || onToggleProfile}
+          onKeyDown={(e) => {
+            if (e.key === "Enter" || e.key === " ") {
+              e.preventDefault();
+              (onOpenAskRadar || onToggleProfile)();
+            }
+          }}
+          aria-label="Ask Shape Radar Assistant"
         >
           <div className="flex items-center gap-2.5 truncate">
             <Sparkles size={18} style={{ color: "var(--pr)" }} className="shrink-0" />

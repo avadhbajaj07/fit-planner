@@ -10,11 +10,10 @@ const dmSans = DM_Sans({
   display: "swap",
 });
 
+// Accessible viewport: zoom enabled, proper safe area cover
 export const viewport: Viewport = {
   width: "device-width",
   initialScale: 1,
-  maximumScale: 1,
-  userScalable: false,
   viewportFit: "cover",
   themeColor: "#07151D",
 };

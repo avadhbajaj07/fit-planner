@@ -114,6 +114,27 @@ export default function MembershipPage() {
           </div>
         </div>
 
+        {/* Black Friday Promotional Banner */}
+        <div className="p-4 rounded-2xl bg-gradient-to-r from-[#2C194D] via-[#1D1536] to-[#0D1C24] border border-[#673DE6]/50 flex flex-col sm:flex-row items-center justify-between gap-3 text-center sm:text-left shadow-xl">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-xl bg-[#673DE6]/30 border border-[#673DE6]/60 flex items-center justify-center text-[#A592FF] shrink-0 font-bold text-xs">
+              85% OFF
+            </div>
+            <div>
+              <div className="text-xs font-bold text-white flex items-center gap-1.5 justify-center sm:justify-start">
+                <Sparkles size={13} className="text-[#A592FF]" />
+                <span>BLACK FRIDAY DEAL · UP TO 85% OFF · FROM $1.99/MO PROMO</span>
+              </div>
+              <div className="text-[11px] text-[#A8C5CA] mt-0.5">
+                Introductory seasonal rates applied. Protected by our 30-day 100% money-back guarantee.
+              </div>
+            </div>
+          </div>
+          <span className="px-3 py-1 rounded-full bg-[#28DA8B]/20 border border-[#28DA8B]/40 text-[#28DA8B] text-[11px] font-mono font-bold tracking-wider shrink-0">
+            PROMO ACTIVE
+          </span>
+        </div>
+
         {/* Setup Notice Banner */}
         {setupNotice && (
           <div className="p-4 rounded-3xl bg-[#141414] border border-[#FFB020]/50 max-w-2xl mx-auto space-y-3">
