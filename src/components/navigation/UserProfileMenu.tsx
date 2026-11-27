@@ -221,7 +221,8 @@ export function UserProfileMenu({ isOpen, onClose }: UserProfileMenuProps) {
             <button
               type="button"
               onClick={() => {
-                loginWithGoogle();
+                const currentPath = typeof window !== "undefined" ? window.location.pathname : "/app/today";
+                loginWithGoogle(currentPath);
                 onClose();
               }}
               className="w-full flex items-center justify-center gap-2 py-2 px-3 rounded-lg bg-white text-black font-semibold text-xs hover:bg-gray-100 transition-colors shadow-sm"

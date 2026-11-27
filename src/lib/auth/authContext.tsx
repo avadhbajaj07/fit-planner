@@ -21,7 +21,7 @@ interface AuthContextType {
   signup: (email: string, pass: string, name: string) => Promise<{ success: boolean; error?: string }>;
   loginAsDemo: () => void;
   loginAsAdminDemo: () => void;
-  loginWithGoogle: () => Promise<void>;
+  loginWithGoogle: (nextTarget?: string) => Promise<{ success: boolean; error?: string }>;
   loginWithFacebook: () => Promise<void>;
   logout: () => Promise<void>;
 }
@@ -48,9 +48,9 @@ const DEMO_ADMIN: UserProfile = {
   createdAt: "2026-11-17T00:00:00Z"
 };
 
-const USER_STORAGE_KEY = "fit_planner_active_user";
+export const USER_STORAGE_KEY = "fit_planner_active_user";
 
-function syncAuthCookies(profile: UserProfile | null) {
+export function syncAuthCookies(profile: UserProfile | null) {
   if (typeof document === "undefined") return;
   if (profile) {
     document.cookie = "fit_planner_session=active; path=/; max-age=604800; SameSite=Lax";
@@ -269,30 +269,49 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     setAndSyncUser(DEMO_ADMIN);
   };
 
-  const loginWithGoogle = async () => {
-    if (supabase && isSupabaseConfigured) {
-      try {
-        const redirectUrl = typeof window !== "undefined" ? `${window.location.origin}/app/today` : undefined;
-        const { error } = await supabase.auth.signInWithOAuth({
-          provider: "google",
-          options: { redirectTo: redirectUrl }
-        });
-        if (!error) return;
-      } catch (e) {
-        console.warn("Live Google OAuth not active, falling back to authenticated demo profile", e);
-      }
+  const loginWithGoogle = async (
+    nextTarget?: string
+  ): Promise<{ success: boolean; error?: string }> => {
+    if (!supabase || !isSupabaseConfigured) {
+      return {
+        success: false,
+        error: "Supabase authentication is not configured in this environment."
+      };
     }
 
-    const googleUser: UserProfile = {
-      id: "google_verified_athlete",
-      email: "athlete@shaperadar.app",
-      fullName: "Alex Rivera",
-      role: "customer",
-      isDemoAccount: true,
-      membershipStatus: "active",
-      createdAt: new Date().toISOString()
-    };
-    setAndSyncUser(googleUser);
+    try {
+      const origin = typeof window !== "undefined" ? window.location.origin : "";
+      const callbackUrl = new URL("/auth/callback", origin);
+      if (nextTarget && nextTarget.startsWith("/") && !nextTarget.startsWith("//")) {
+        callbackUrl.searchParams.set("next", nextTarget);
+      }
+
+      const { data, error } = await supabase.auth.signInWithOAuth({
+        provider: "google",
+        options: {
+          redirectTo: callbackUrl.toString(),
+          queryParams: {
+            access_type: "offline",
+            prompt: "select_account"
+          }
+        }
+      });
+
+      if (error) {
+        return { success: false, error: error.message };
+      }
+
+      if (data?.url && typeof window !== "undefined") {
+        window.location.assign(data.url);
+      }
+
+      return { success: true };
+    } catch (e: any) {
+      return {
+        success: false,
+        error: e?.message || "Failed to initiate Google authentication"
+      };
+    }
   };
 
   const loginWithFacebook = async () => {

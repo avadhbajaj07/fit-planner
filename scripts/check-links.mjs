@@ -19,6 +19,7 @@ const ROUTES = [
   "/auth/login",
   "/auth/signup",
   "/auth/forgot-password",
+  "/auth/callback",
   "/sitemap.xml",
   "/robots.txt",
   "/manifest.json"
