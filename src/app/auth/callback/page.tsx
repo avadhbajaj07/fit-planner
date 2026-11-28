@@ -33,7 +33,7 @@ function CallbackHandler() {
         setStatus("error");
         const msg =
           errorParam === "access_denied"
-            ? "Google sign-in was cancelled."
+            ? "Sign-in was cancelled."
             : errorDescription || errorParam;
         setErrorMessage(msg);
         // Automatically redirect back to login after a brief pause
@@ -70,10 +70,15 @@ function CallbackHandler() {
         }
 
         const user = session.user;
+        const userEmail =
+          user.email ||
+          user.user_metadata?.email ||
+          `athlete_${user.id.slice(0, 8)}@shaperadar.app`;
+
         const fallbackName =
           user.user_metadata?.full_name ||
           user.user_metadata?.name ||
-          user.email?.split("@")[0] ||
+          (user.email ? user.email.split("@")[0] : "Athlete") ||
           "Athlete";
 
         // 4. Check existing profile in Supabase to avoid overwriting member roles or status
@@ -89,7 +94,7 @@ function CallbackHandler() {
             await supabase.from("profiles").upsert(
               {
                 id: user.id,
-                email: user.email || "",
+                email: userEmail,
                 full_name: fallbackName,
                 avatar_url: user.user_metadata?.avatar_url || user.user_metadata?.picture || null,
                 role: "customer",
@@ -106,7 +111,7 @@ function CallbackHandler() {
         // 5. Construct user profile & sync session cookies for middleware
         const activeProfile: UserProfile = {
           id: user.id,
-          email: user.email || "",
+          email: existingProfile?.email || userEmail,
           fullName: existingProfile?.full_name || fallbackName,
           role: existingProfile?.role || "customer",
           isDemoAccount: false,
@@ -165,7 +170,7 @@ function CallbackHandler() {
         router.replace(destination);
       } catch (err: any) {
         setStatus("error");
-        setErrorMessage(err?.message || "An unexpected error occurred during Google authentication.");
+        setErrorMessage(err?.message || "An unexpected error occurred during authentication.");
       }
     }
 
@@ -182,7 +187,7 @@ function CallbackHandler() {
             </div>
             <h1 className="text-xl font-bold text-[#F4F9FA]">Securing Your Session</h1>
             <p className="text-xs text-[#A8C5CA] leading-relaxed">
-              Verifying your Google credentials and preparing your ShapeRadar dashboard...
+              Verifying your credentials and preparing your ShapeRadar dashboard...
             </p>
           </div>
         )}
@@ -206,7 +211,7 @@ function CallbackHandler() {
             </div>
             <h1 className="text-xl font-bold text-[#F4F9FA]">Authentication Failed</h1>
             <p className="text-xs text-[#FF5C5C] leading-relaxed">
-              {errorMessage || "Unable to complete Google sign-in."}
+              {errorMessage || "Unable to complete sign-in."}
             </p>
             <div className="pt-2">
               <Link

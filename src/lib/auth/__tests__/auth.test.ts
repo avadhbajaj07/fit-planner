@@ -113,4 +113,64 @@ describe("Shape Radar Real Google Authentication & Session Sync", () => {
 
     expect(result.error?.message).toBe("Google OAuth provider disabled");
   });
+
+  it("initiates real Supabase Facebook OAuth with email and public_profile scopes", async () => {
+    const testClient = createClient(
+      "https://tnhmsfnpwhgoisenhatp.supabase.co",
+      "sb_publishable_rQxwyMjfjOP9Dpxzr7U9kg_NIpvoxLi"
+    );
+
+    const signInSpy = vi.spyOn(testClient.auth, "signInWithOAuth").mockResolvedValueOnce({
+      data: {
+        provider: "facebook",
+        url: "https://tnhmsfnpwhgoisenhatp.supabase.co/auth/v1/authorize?provider=facebook&redirect_to=http%3A%2F%2Flocalhost%3A3000%2Fauth%2Fcallback%3Fnext%3D%252Fapp%252Ftoday&scopes=email%2Cpublic_profile"
+      },
+      error: null
+    } as any);
+
+    const origin = "http://localhost:3000";
+    const callbackUrl = new URL("/auth/callback", origin);
+    callbackUrl.searchParams.set("next", "/app/today");
+
+    const result = await testClient.auth.signInWithOAuth({
+      provider: "facebook",
+      options: {
+        redirectTo: callbackUrl.toString(),
+        scopes: "email,public_profile"
+      }
+    });
+
+    expect(signInSpy).toHaveBeenCalledTimes(1);
+    expect(signInSpy).toHaveBeenCalledWith(
+      expect.objectContaining({
+        provider: "facebook",
+        options: expect.objectContaining({
+          redirectTo: "http://localhost:3000/auth/callback?next=%2Fapp%2Ftoday",
+          scopes: "email,public_profile"
+        })
+      })
+    );
+
+    expect(result.data?.url).toContain("provider=facebook");
+    expect(result.error).toBeNull();
+  });
+
+  it("handles Facebook OAuth error and propagates error cleanly", async () => {
+    const testClient = createClient(
+      "https://tnhmsfnpwhgoisenhatp.supabase.co",
+      "sb_publishable_rQxwyMjfjOP9Dpxzr7U9kg_NIpvoxLi"
+    );
+
+    vi.spyOn(testClient.auth, "signInWithOAuth").mockResolvedValueOnce({
+      data: { provider: "facebook", url: null },
+      error: { message: "Facebook OAuth provider error", status: 400, name: "AuthApiError" }
+    } as any);
+
+    const result = await testClient.auth.signInWithOAuth({
+      provider: "facebook",
+      options: { redirectTo: "http://localhost:3000/auth/callback" }
+    });
+
+    expect(result.error?.message).toBe("Facebook OAuth provider error");
+  });
 });

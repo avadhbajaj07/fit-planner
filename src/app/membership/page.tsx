@@ -17,6 +17,7 @@ import {
 import { DEFAULT_MEMBERSHIP_PLANS, formatPrice } from "@/lib/billing/plans";
 import { CurrencyCode, MembershipPlan } from "@/lib/billing/types";
 import { useAuth } from "@/lib/auth/authContext";
+import { supabase } from "@/lib/supabase/client";
 
 export default function MembershipPage() {
   const router = useRouter();
@@ -26,24 +27,35 @@ export default function MembershipPage() {
   const [isProcessing, setIsProcessing] = useState(false);
   const [setupNotice, setSetupNotice] = useState<string | null>(null);
 
-  const paymentProvider = process.env.NEXT_PUBLIC_PAYMENT_PROVIDER || "none";
+  const paymentProvider = process.env.NEXT_PUBLIC_PAYMENT_PROVIDER || "sandbox";
 
   const handleCheckout = async (plan: MembershipPlan) => {
     setIsProcessing(true);
     setSetupNotice(null);
 
     try {
+      const headers: Record<string, string> = { "Content-Type": "application/json" };
+      if (supabase) {
+        const { data: sessionData } = await supabase.auth.getSession();
+        if (sessionData?.session?.access_token) {
+          headers["Authorization"] = `Bearer ${sessionData.session.access_token}`;
+        }
+      }
+
       const res = await fetch("/api/billing/checkout", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers,
         body: JSON.stringify({
-          userId: user?.id || "guest_athlete",
-          userEmail: user?.email || "athlete@fitplanner.app",
           planId: plan.id,
           currency: selectedCurrency,
           tierMonths: plan.tierMonths
         })
       });
+
+      if (res.status === 401) {
+        router.push("/auth/login?next=/membership");
+        return;
+      }
 
       const data = await res.json();
 
@@ -54,7 +66,8 @@ export default function MembershipPage() {
       } else {
         setSetupNotice(
           data.errorMessage ||
-            `Payment setup required: Provider "${paymentProvider}" is in development mode. No live payment gateway credentials found.`
+            data.error ||
+            `Payment setup required: Provider "${paymentProvider}" is in development mode.`
         );
       }
     } catch (e: any) {
@@ -261,7 +274,7 @@ export default function MembershipPage() {
       </main>
 
       <footer className="text-center text-[11px] text-[#A8C5CA]/60 pb-safe">
-        FIT Planner · Payment Abstraction Layer (Stripe &amp; Razorpay)
+        Shape Radar · Payment Architecture &amp; Subscription Security
       </footer>
     </div>
   );

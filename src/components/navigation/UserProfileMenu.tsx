@@ -251,7 +251,8 @@ export function UserProfileMenu({ isOpen, onClose }: UserProfileMenuProps) {
             <button
               type="button"
               onClick={() => {
-                loginWithFacebook();
+                const currentPath = typeof window !== "undefined" ? window.location.pathname : "/app/today";
+                loginWithFacebook(currentPath);
                 onClose();
               }}
               className="w-full flex items-center justify-center gap-2 py-2 px-3 rounded-lg bg-[#1877F2] text-white font-semibold text-xs hover:bg-[#166FE5] transition-colors shadow-sm"

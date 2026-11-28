@@ -1,4 +1,4 @@
-export type PaymentProviderType = "stripe" | "razorpay" | "none";
+export type PaymentProviderType = "stripe" | "razorpay" | "sandbox" | "none";
 
 export type CurrencyCode = "CHF" | "EUR" | "USD" | "INR";
 
@@ -51,6 +51,7 @@ export interface WebhookEventPayload {
 
 export interface WebhookVerificationResult {
   verified: boolean;
+  eventId?: string;
   eventType: string;
   userId?: string;
   tierMonths?: 1 | 3 | 6;

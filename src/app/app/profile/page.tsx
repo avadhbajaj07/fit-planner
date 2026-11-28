@@ -6,6 +6,7 @@ import Link from "next/link";
 import {
   User,
   Shield,
+  ShieldCheck,
   CreditCard,
   Download,
   Trash2,
@@ -109,26 +110,30 @@ export default function ProfilePage() {
             <div className="flex items-center gap-3">
               <CreditCard size={18} className="text-[#28DACC]" />
               <div>
-                <div className="text-sm font-semibold text-[#F4F9FA]">Membership Tier</div>
-                <div className="text-xs text-[#A8C5CA]">Current active subscription</div>
+                <div className="text-sm font-semibold text-[#F4F9FA]">
+                  {user?.membershipStatus === "active" ? "PRO Access (Active)" : "Membership Tier"}
+                </div>
+                <div className="text-xs text-[#A8C5CA]">
+                  {user?.membershipStatus === "active" ? "Unlimited periodized plans & overload tracking" : "Current active subscription"}
+                </div>
               </div>
             </div>
             <Link
-              href="/membership"
+              href={user?.membershipStatus === "active" ? `/membership/sandbox-checkout?user_id=${user?.id || ""}&email=${user?.email || ""}&plan_id=plan_3_month&tier_months=3` : "/membership"}
               className="text-xs font-semibold text-[#28DACC] hover:underline flex items-center gap-1"
             >
-              <span>View Plans</span>
+              <span>{user?.membershipStatus === "active" ? "Manage Plan" : "View Plans"}</span>
               <ChevronRight size={14} />
             </Link>
           </div>
 
           <div className="ios-inset-row flex-col items-start gap-2 bg-[#07151D]/40">
-            <div className="flex items-center gap-2 text-xs font-semibold text-[#FFB020]">
-              <AlertTriangle size={14} />
-              <span>Payment Gateway State (Section 11)</span>
+            <div className="flex items-center gap-2 text-xs font-semibold text-[#28DACC]">
+              <ShieldCheck size={14} />
+              <span>Sandbox Simulation Mode Active</span>
             </div>
             <p className="text-xs text-[#A8C5CA] leading-relaxed">
-              Provider is currently: <span className="font-mono text-[#F4F9FA]">{paymentProvider}</span>. Live credit card checkout (Stripe/Razorpay) will activate once API credentials and webhook secrets are placed in <code className="text-[#28DACC]">.env.local</code>. Never simulating fake success.
+              Active Billing Architecture: <span className="font-mono text-[#F4F9FA]">{paymentProvider}</span>. You can test complete subscription activation, receipt dispatch, and 30-day refund simulation with zero real charges.
             </p>
           </div>
         </div>

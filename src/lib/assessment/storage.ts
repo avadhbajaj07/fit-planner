@@ -68,29 +68,32 @@ export function saveAssessmentProgress(answers: AssessmentAnswers): void {
 export async function syncAssessmentToSupabase(answers: AssessmentAnswers, userId: string): Promise<void> {
   if (!supabase || !userId) return;
   try {
-    await supabase.from("member_assessments").upsert({
-      user_id: userId,
-      version: "2.0",
-      is_completed: true,
-      gender: answers.gender || "male",
-      age: answers.age || 28,
-      age_bracket: answers.ageBracket || "18_29",
-      goal: answers.goal || "improve_fitness",
-      fitness_level: answers.fitnessLevel || "beginner",
-      height_cm: answers.heightCm,
-      weight_kg: answers.weightKg,
-      target_weight_kg: answers.targetWeightKg,
-      body_shape: answers.bodyShape,
-      location: answers.location || "home",
-      equipment: answers.equipment || ["bodyweight"],
-      days_per_week: answers.daysPerWeek || 3,
-      duration_minutes: answers.durationMinutes || 40,
-      restrictions: answers.restrictions || ["none"],
-      diet_type: answers.dietType || "flexible",
-      muscle_focus: answers.muscleFocus || [],
-      raw_answers_json: answers,
-      updated_at: new Date().toISOString()
-    });
+    await supabase.from("member_assessments").upsert(
+      {
+        user_id: userId,
+        version: "2.0",
+        is_completed: true,
+        gender: answers.gender || "male",
+        age: answers.age || 28,
+        age_bracket: answers.ageBracket || "18_29",
+        goal: answers.goal || "improve_fitness",
+        fitness_level: answers.fitnessLevel || "beginner",
+        height_cm: answers.heightCm,
+        weight_kg: answers.weightKg,
+        target_weight_kg: answers.targetWeightKg,
+        body_shape: answers.bodyShape,
+        location: answers.location || "home",
+        equipment: answers.equipment || ["bodyweight"],
+        days_per_week: answers.daysPerWeek || 3,
+        duration_minutes: answers.durationMinutes || 40,
+        restrictions: answers.restrictions || ["none"],
+        diet_type: answers.dietType || "flexible",
+        muscle_focus: answers.muscleFocus || [],
+        raw_answers_json: answers,
+        updated_at: new Date().toISOString()
+      },
+      { onConflict: "user_id" }
+    );
   } catch (err) {
     console.warn("Background sync of assessment to Supabase failed:", err);
   }

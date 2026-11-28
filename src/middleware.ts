@@ -21,19 +21,9 @@ export function middleware(req: NextRequest) {
     }
   }
 
-  // 2. Guard admin portal routes (/admin/*)
+  // 2. Deprecate and redirect legacy /admin routes (system is 100% automated)
   if (pathname.startsWith("/admin")) {
-    if (!hasSessionCookie) {
-      const loginUrl = new URL("/auth/login", req.url);
-      loginUrl.searchParams.set("next", pathname + search);
-      return NextResponse.redirect(loginUrl);
-    }
-
-    if (userRole && userRole !== "admin") {
-      const redirectUrl = new URL("/app/today", req.url);
-      redirectUrl.searchParams.set("error", "unauthorized_admin");
-      return NextResponse.redirect(redirectUrl);
-    }
+    return NextResponse.redirect(new URL("/", req.url));
   }
 
   return NextResponse.next();

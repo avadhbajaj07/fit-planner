@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef, useCallback } from "react";
 import Link from "next/link";
 import {
   Sparkles,
@@ -39,21 +39,7 @@ export function AskShapeRadarModal({
   const [result, setResult] = useState<AskResult | null>(null);
   const inputRef = useRef<HTMLInputElement>(null);
 
-  useEffect(() => {
-    if (isOpen) {
-      if (initialQuery) {
-        setQuery(initialQuery);
-        handleAsk(initialQuery);
-      }
-      setTimeout(() => {
-        inputRef.current?.focus();
-      }, 100);
-    } else {
-      setError(null);
-    }
-  }, [isOpen, initialQuery]);
-
-  const handleAsk = async (queryText?: string) => {
+  const handleAsk = useCallback(async (queryText?: string) => {
     const q = (queryText ?? query).trim();
     if (!q) return;
 
@@ -78,7 +64,21 @@ export function AskShapeRadarModal({
     } finally {
       setLoading(false);
     }
-  };
+  }, [query]);
+
+  useEffect(() => {
+    if (isOpen) {
+      if (initialQuery) {
+        setQuery(initialQuery);
+        handleAsk(initialQuery);
+      }
+      setTimeout(() => {
+        inputRef.current?.focus();
+      }, 100);
+    } else {
+      setError(null);
+    }
+  }, [isOpen, initialQuery, handleAsk]);
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.key === "Enter") {

@@ -186,23 +186,6 @@ export default function AssessmentPage() {
   const [isExpressMode, setIsExpressMode] = useState(false);
   const EXPRESS_STEP_CHAIN = [1, 3, 10, 11, 12, 24];
 
-  useEffect(() => {
-    if (typeof window !== "undefined") {
-      const params = new URLSearchParams(window.location.search);
-      if (params.get("mode") === "express") {
-        setIsExpressMode(true);
-      }
-      const goalParam = params.get("goal");
-      if (goalParam) {
-        let mappedGoal: Goal = "build_muscle";
-        if (goalParam === "fat_loss" || goalParam === "lose_weight") mappedGoal = "lose_weight";
-        else if (goalParam === "longevity" || goalParam === "improve_fitness") mappedGoal = "improve_fitness";
-        else if (goalParam === "hypertrophy" || goalParam === "strength" || goalParam === "build_muscle") mappedGoal = "build_muscle";
-        setAnswers((prev) => ({ ...prev, goal: mappedGoal }));
-      }
-    }
-  }, []);
-
   const [answers, setAnswers] = useState<AssessmentAnswers>({
     gender: "male",
     age: 28,
@@ -233,6 +216,23 @@ export default function AssessmentPage() {
     mealsPerDay: "3",
     healthConsentGiven: true
   });
+
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      const params = new URLSearchParams(window.location.search);
+      if (params.get("mode") === "express") {
+        setIsExpressMode(true);
+      }
+      const goalParam = params.get("goal");
+      if (goalParam) {
+        let mappedGoal: Goal = "build_muscle";
+        if (goalParam === "fat_loss" || goalParam === "lose_weight") mappedGoal = "lose_weight";
+        else if (goalParam === "longevity" || goalParam === "improve_fitness") mappedGoal = "improve_fitness";
+        else if (goalParam === "hypertrophy" || goalParam === "strength" || goalParam === "build_muscle") mappedGoal = "build_muscle";
+        setAnswers((prev) => ({ ...prev, goal: mappedGoal }));
+      }
+    }
+  }, []);
 
   const isAdvancingRef = useRef(false);
 

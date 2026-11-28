@@ -15,6 +15,7 @@ export default function LoginPage() {
   const [error, setError] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isGoogleSubmitting, setIsGoogleSubmitting] = useState(false);
+  const [isFacebookSubmitting, setIsFacebookSubmitting] = useState(false);
 
   useEffect(() => {
     if (typeof window !== "undefined") {
@@ -75,8 +76,18 @@ export default function LoginPage() {
   };
 
   const handleFacebookLogin = async () => {
-    await loginWithFacebook();
-    router.push(getNextTarget());
+    try {
+      setIsFacebookSubmitting(true);
+      setError(null);
+      const res = await loginWithFacebook(getNextTarget());
+      if (!res.success) {
+        setError(res.error || "Facebook sign-in could not be initiated.");
+        setIsFacebookSubmitting(false);
+      }
+    } catch (err: any) {
+      setError(err?.message || "An unexpected error occurred during Facebook sign in.");
+      setIsFacebookSubmitting(false);
+    }
   };
 
   return (
@@ -159,12 +170,22 @@ export default function LoginPage() {
           <button
             type="button"
             onClick={handleFacebookLogin}
-            className="w-full h-12 rounded-2xl bg-[#1877F2] text-white font-semibold text-xs flex items-center justify-center gap-2.5 hover:bg-[#166FE5] transition-colors shadow-sm active:scale-[0.99]"
+            disabled={isFacebookSubmitting || isGoogleSubmitting || isSubmitting}
+            className="w-full h-12 rounded-2xl bg-[#1877F2] text-white font-semibold text-xs flex items-center justify-center gap-2.5 hover:bg-[#166FE5] transition-colors shadow-sm active:scale-[0.99] disabled:opacity-75 disabled:cursor-not-allowed"
           >
-            <svg className="w-4 h-4 fill-current" viewBox="0 0 24 24">
-              <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z" />
-            </svg>
-            <span>Continue with Facebook</span>
+            {isFacebookSubmitting ? (
+              <div className="flex items-center gap-2 text-white">
+                <div className="w-4 h-4 border-2 border-white/40 border-t-white rounded-full animate-spin" />
+                <span>Connecting to Facebook...</span>
+              </div>
+            ) : (
+              <>
+                <svg className="w-4 h-4 fill-current" viewBox="0 0 24 24">
+                  <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z" />
+                </svg>
+                <span>Continue with Facebook</span>
+              </>
+            )}
           </button>
         </div>
 

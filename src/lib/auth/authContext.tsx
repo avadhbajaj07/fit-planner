@@ -22,7 +22,7 @@ interface AuthContextType {
   loginAsDemo: () => void;
   loginAsAdminDemo: () => void;
   loginWithGoogle: (nextTarget?: string) => Promise<{ success: boolean; error?: string }>;
-  loginWithFacebook: () => Promise<void>;
+  loginWithFacebook: (nextTarget?: string) => Promise<{ success: boolean; error?: string }>;
   logout: () => Promise<void>;
 }
 
@@ -314,30 +314,46 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   };
 
-  const loginWithFacebook = async () => {
-    if (supabase && isSupabaseConfigured) {
-      try {
-        const redirectUrl = typeof window !== "undefined" ? `${window.location.origin}/app/today` : undefined;
-        const { error } = await supabase.auth.signInWithOAuth({
-          provider: "facebook",
-          options: { redirectTo: redirectUrl }
-        });
-        if (!error) return;
-      } catch (e) {
-        console.warn("Live Facebook OAuth not active, falling back to authenticated demo profile", e);
-      }
+  const loginWithFacebook = async (
+    nextTarget?: string
+  ): Promise<{ success: boolean; error?: string }> => {
+    if (!supabase || !isSupabaseConfigured) {
+      return {
+        success: false,
+        error: "Supabase authentication is not configured in this environment."
+      };
     }
 
-    const fbUser: UserProfile = {
-      id: "fb_verified_athlete",
-      email: "athlete@shaperadar.app",
-      fullName: "Alex Rivera",
-      role: "customer",
-      isDemoAccount: true,
-      membershipStatus: "active",
-      createdAt: new Date().toISOString()
-    };
-    setAndSyncUser(fbUser);
+    try {
+      const origin = typeof window !== "undefined" ? window.location.origin : "";
+      const callbackUrl = new URL("/auth/callback", origin);
+      if (nextTarget && nextTarget.startsWith("/") && !nextTarget.startsWith("//")) {
+        callbackUrl.searchParams.set("next", nextTarget);
+      }
+
+      const { data, error } = await supabase.auth.signInWithOAuth({
+        provider: "facebook",
+        options: {
+          redirectTo: callbackUrl.toString(),
+          scopes: "email,public_profile"
+        }
+      });
+
+      if (error) {
+        return { success: false, error: error.message };
+      }
+
+      if (data?.url && typeof window !== "undefined") {
+        window.location.assign(data.url);
+      }
+
+      return { success: true };
+    } catch (e: any) {
+      return {
+        success: false,
+        error: e?.message || "Failed to initiate Facebook authentication"
+      };
+    }
   };
 
   const logout = async () => {

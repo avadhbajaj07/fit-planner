@@ -129,21 +129,25 @@ test.describe("Shape Radar Core E2E Flows", () => {
     await expect(page.locator("text=30-day 100% money-back guarantee").or(page.locator("text=30-Day Money-Back Guarantee")).first()).toBeVisible();
   });
 
-  test("6. Google OAuth Button & Callback State Handling", async ({ page }) => {
-    // 1. Check Continue with Google button on login page
+  test("6. Social OAuth Buttons (Google & Facebook) & Callback Handling", async ({ page }) => {
+    // 1. Check Continue with Google & Facebook buttons on login page
     await page.goto("/auth/login");
     const googleLoginBtn = page.locator('button:has-text("Continue with Google")');
     await expect(googleLoginBtn).toBeVisible();
+    const fbLoginBtn = page.locator('button:has-text("Continue with Facebook")');
+    await expect(fbLoginBtn).toBeVisible();
 
-    // 2. Check Continue with Google button on signup page
+    // 2. Check Continue with Google & Facebook buttons on signup page
     await page.goto("/auth/signup");
     const googleSignupBtn = page.locator('button:has-text("Continue with Google")');
     await expect(googleSignupBtn).toBeVisible();
+    const fbSignupBtn = page.locator('button:has-text("Continue with Facebook")');
+    await expect(fbSignupBtn).toBeVisible();
 
-    // 3. Test OAuth callback error handling (e.g. user cancelled Google login)
+    // 3. Test OAuth callback error handling (e.g. user cancelled social login)
     await page.goto("/auth/callback?error=access_denied");
     // Should show error state and automatically route back to login with cancellation notice
     await page.waitForURL(/auth\/login\?error=/, { timeout: 8000 });
-    await expect(page.locator("text=Google sign-in was cancelled").or(page.locator("text=cancelled")).first()).toBeVisible();
+    await expect(page.locator("text=cancelled").or(page.locator("text=Sign-in was cancelled")).first()).toBeVisible();
   });
 });
