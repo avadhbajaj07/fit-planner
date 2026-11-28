@@ -16,7 +16,7 @@ import {
 } from "lucide-react";
 import { DEFAULT_MEMBERSHIP_PLANS, formatPrice } from "@/lib/billing/plans";
 import { CurrencyCode, MembershipPlan } from "@/lib/billing/types";
-import { useAuth } from "@/lib/auth/authContext";
+import { useAuth, USER_STORAGE_KEY, UserProfile } from "@/lib/auth/authContext";
 import { supabase } from "@/lib/supabase/client";
 
 export default function MembershipPage() {
@@ -60,6 +60,16 @@ export default function MembershipPage() {
       const data = await res.json();
 
       if (data.status === "redirect" && data.checkoutUrl) {
+        if (data.instantActivated && typeof window !== "undefined") {
+          try {
+            const raw = localStorage.getItem(USER_STORAGE_KEY);
+            if (raw) {
+              const profile: UserProfile = JSON.parse(raw);
+              profile.membershipStatus = "active";
+              localStorage.setItem(USER_STORAGE_KEY, JSON.stringify(profile));
+            }
+          } catch {}
+        }
         window.location.assign(data.checkoutUrl);
       } else if (data.status === "setup_required") {
         setSetupNotice(data.errorMessage);
@@ -252,7 +262,7 @@ export default function MembershipPage() {
                         : "bg-[#07151D] text-[#F4F9FA] border border-[#28525B] hover:border-[#28DACC]"
                     }`}
                   >
-                    <span>{isProcessing && isSelected ? "Connecting Gateway..." : "Select & Checkout"}</span>
+                    <span>{isProcessing && isSelected ? "Activating Plan..." : "Select & Activate"}</span>
                     <ArrowRight size={14} />
                   </button>
                 </div>

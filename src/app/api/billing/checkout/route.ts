@@ -3,7 +3,11 @@ import { z } from "zod";
 import { getActiveBillingProvider } from "@/lib/billing/provider";
 import { DEFAULT_MEMBERSHIP_PLANS } from "@/lib/billing/plans";
 import { CurrencyCode } from "@/lib/billing/types";
-import { getAuthenticatedSupabaseUser, isSandboxAllowed } from "@/lib/billing/sandboxSecurity";
+import {
+  getAuthenticatedSupabaseUser,
+  getSupabaseAdminClient,
+  isSandboxAllowed
+} from "@/lib/billing/sandboxSecurity";
 
 const CheckoutRequestSchema = z.object({
   planId: z.string(),
@@ -17,7 +21,7 @@ export async function POST(req: NextRequest) {
     const user = await getAuthenticatedSupabaseUser(req);
     if (!user || !user.email) {
       return NextResponse.json(
-        { error: "Authentication required to initiate checkout." },
+        { error: "Authentication required to activate a membership plan." },
         { status: 401 }
       );
     }
@@ -48,7 +52,49 @@ export async function POST(req: NextRequest) {
       );
     }
 
+    const appUrl = process.env.NEXT_PUBLIC_APP_URL || req.nextUrl.origin;
     const provider = getActiveBillingProvider();
+
+    // 3. Instant Preview Activation when no real payment gateway (Stripe/Razorpay) is configured
+    if (provider.name === "none" && process.env.INSTANT_PREVIEW_ACCESS !== "false") {
+      const supabaseAdmin = getSupabaseAdminClient();
+      if (!supabaseAdmin) {
+        return NextResponse.json(
+          { error: "Server database client is not configured." },
+          { status: 500 }
+        );
+      }
+
+      const now = new Date();
+      const periodEnd = new Date(now.getTime() + plan.tierMonths * 30 * 24 * 60 * 60 * 1000);
+
+      await supabaseAdmin.from("subscriptions").upsert(
+        {
+          user_id: user.id,
+          provider: "preview_free",
+          provider_subscription_id: `preview_${user.id.slice(0, 8)}_${Date.now()}`,
+          is_sandbox: true,
+          status: "active",
+          tier_months: plan.tierMonths,
+          current_period_start: now.toISOString(),
+          current_period_end: periodEnd.toISOString(),
+          updated_at: now.toISOString()
+        },
+        { onConflict: "user_id" }
+      );
+
+      await supabaseAdmin
+        .from("profiles")
+        .update({ membership_status: "active" })
+        .eq("id", user.id);
+
+      return NextResponse.json({
+        status: "redirect",
+        instantActivated: true,
+        checkoutUrl: `${appUrl}/membership/success`
+      });
+    }
+
     if (provider.name === "sandbox") {
       const sandboxCheck = isSandboxAllowed(user.email);
       if (!sandboxCheck.allowed) {
@@ -58,8 +104,6 @@ export async function POST(req: NextRequest) {
         );
       }
     }
-
-    const appUrl = process.env.NEXT_PUBLIC_APP_URL || req.nextUrl.origin;
 
     const result = await provider.createCheckoutSession({
       userId: user.id,
